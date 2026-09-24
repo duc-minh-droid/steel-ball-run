@@ -92,6 +92,23 @@
     setTimeout(() => { el.classList.add('out'); document.getElementById('screen').classList.remove('tbc-freeze'); setTimeout(() => { el.remove(); resolve(); }, 400); }, 2300);
   });
 
+  /* ---------------- Wanted poster (threat tier 0-3) ---------------- */
+  SBR.art.wanted = tier => {
+    const bounty = ['$50', '$500', '$5,000', '$50,000'][tier] || '$50';
+    const ink = ['#6a5a4a', '#8a5a1a', '#a03a10', '#8a1010'][tier];
+    const stamp = tier >= 2 ? `<g transform="rotate(-18 30 44)"><rect x="6" y="36" width="48" height="16" fill="none" stroke="#c8323c" stroke-width="3" opacity=".85"/><text x="30" y="48.5" text-anchor="middle" font-family="Oswald,sans-serif" font-weight="700" font-size="11" fill="#c8323c" opacity=".9">${tier >= 3 ? 'DEAD' : 'ALIVE'}</text></g>` : '';
+    return `<svg class="wanted-svg" viewBox="0 0 60 76" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M3 3 L57 2 L58 72 L2 74Z" fill="#f0dcaa" stroke="${INK}" stroke-width="2.4"/>
+      <path d="M3 3 L10 8 M57 2 L50 7 M58 72 L52 66 M2 74 L9 68" stroke="${INK}" stroke-width="1" opacity=".4"/>
+      <text x="30" y="16" text-anchor="middle" font-family="Rye,serif" font-size="11" fill="${ink}">WANTED</text>
+      <rect x="14" y="20" width="32" height="28" fill="#e0c890" stroke="${ink}" stroke-width="1.6"/>
+      <path d="M22 44 Q22 30 30 28 Q38 30 38 44Z" fill="${ink}" opacity=".85"/><circle cx="30" cy="30" r="6" fill="${ink}" opacity=".85"/>
+      <path d="M20 26 Q30 18 40 26 L42 28 H18Z" fill="${ink}" opacity=".85"/>
+      <text x="30" y="60" text-anchor="middle" font-family="Oswald,sans-serif" font-weight="700" font-size="10" fill="${ink}">${bounty}</text>
+      <text x="30" y="69" text-anchor="middle" font-family="Oswald,sans-serif" font-size="6" letter-spacing=".5" fill="${ink}">REWARD</text>
+      ${stamp}</svg>`;
+  };
+
   /* ---------------- title logo ---------------- */
   SBR.art.logo = () => `<svg class="sbr-logo" viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg" aria-label="Steel Ball Run">
     <defs>

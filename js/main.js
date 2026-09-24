@@ -111,7 +111,15 @@ SBR.game = (() => {
       SBR.toast(`<div class="toast-port grey">${art.portrait(SBR.CHARS[id].portrait)}</div><div>${msg || SBR.CHARS[id].name + ' left the party.'}</div>`, 'loss');
     },
     achieve,
-    flag(k) { SBR.run.flags[k] = true; },
+    flag(k) { const r = SBR.run; if (!r.flags[k] && SBR.FLAG_THREAT && SBR.FLAG_THREAT[k]) G.threat(SBR.FLAG_THREAT[k]); r.flags[k] = true; },
+    /** the Hunt: raise or lower threat; announces tier changes */
+    threat(n) {
+      const r = SBR.run; if (!r || !n) return;
+      const before = SBR.threatTier();
+      r.threat = Math.max(0, Math.round(((r.threat || 0) + n) * 10) / 10);
+      const after = SBR.threatTier();
+      if (after !== before) { const T = SBR.THREAT_TIERS[after]; SBR.toast(`<div class="toast-wanted">${SBR.art.wanted ? SBR.art.wanted(after) : ''}</div><div><b style="color:${T.color}">${after > before ? 'THREAT RISES' : 'THE TRAIL COOLS'}: ${T.name}</b><br><small>${T.desc}</small></div>`, after > before ? 'loss' : 'good'); SBR.audio.play(after > before ? 'menace' : 'success'); if (ui.refreshStage) ui.refreshStage(); }
+    },
     enterArea(id) { const r = SBR.run; r.area = { id, stage: 0, used: [] }; r.stageCards = null; r.areasSeen = (r.areasSeen || []).concat(id); SBR.audio.play('detour'); },
     /** Paths (subclasses) */
     canTakePath(charId) { const m = SBR.run.party.find(x => x.id === charId); return !!m && !m.path; },
@@ -158,6 +166,7 @@ SBR.game = (() => {
       if (M && M.holy) {
         if (r.mats[id] > 0) return;
         r.mats[id] = 1;
+        G.threat(1);
         if (id === 'c_eyes') r.flags.eyes = true;
         if (Object.keys(r.mats).filter(k => SBR.MATERIALS[k] && SBR.MATERIALS[k].holy && r.mats[k] > 0).length >= 5) achieve('corpse5');
         SBR.toast(`<span class="toast-ico">${SBR.matIcon(id)}</span><div><b>${M.name}</b><br><small>${M.desc}</small></div>`, 'corpse');
@@ -246,7 +255,7 @@ SBR.game = (() => {
       await resolveChoice(ch);
     }
     if (s.fight) {
-      const win = await fight(s.fight.enemies, { elite: s.fight.elite, boss: s.fight.boss });
+      const win = await fight(s.fight.enemies, { elite: s.fight.elite, boss: s.fight.boss, midRound: s.fight.midRound, bossName: s.fight.boss && s.card ? s.card.title : undefined });
       if (!win) return false;
     }
     if (s.after) { s.after(G); await flushPending(); }
@@ -256,7 +265,13 @@ SBR.game = (() => {
   async function startAct(n) {
     const r = SBR.run;
     r.act = n; r.stage = 1; r.stageCards = null;
-    r.pace = SBR.util.clamp(50 + (SBR.bonus().pace || 0), 0, 100);
+    r.lineup = r.lineup || {}; r.conditions = r.conditions || {};
+    if (!r.lineup[n]) r.lineup[n] = SBR.rollLineup(n);
+    if (!r.conditions[n]) r.conditions[n] = SBR.rollCondition(n);
+    const C = SBR.curCondition();
+    r.pace = SBR.util.clamp(50 + (SBR.bonus().pace || 0) + (C.pace || 0), 0, 100);
+    if (C.threat) G.threat(C.threat);
+    if (C.heal) G.healAll(1);
     SBR.meta.stats.bestAct = Math.max(SBR.meta.stats.bestAct, n); SBR.saveMeta();
     SBR.saveRun();
     await actCard(n);
@@ -273,7 +288,8 @@ SBR.game = (() => {
         scr.className = 'screen-actcard';
         scr.innerHTML = `<div class="actcard-scene">${art.scene(a.scene)}</div><div class="actcard">
           <div class="ac-num">${a.name}</div><div class="ac-title">${a.title}</div><div class="ac-sub">${a.sub}</div>
-          <div class="ac-map">${art.usMap(a.route)}</div></div>`;
+          <div class="ac-map">${art.usMap(a.route)}</div>
+          ${(() => { const C = SBR.curCondition(), T = SBR.THREAT_TIERS[SBR.threatTier()], P = SBR.actPlan(n); return `<div class="ac-extra"><div class="ac-cond" style="--cc:${C ? C.color : '#aaa'}"><b>RACE CONDITION: ${C ? C.name : '—'}</b><span>${C ? C.desc : ''}</span></div><div class="ac-threat" style="--cc:${T.color}">${art.wanted ? art.wanted(SBR.threatTier()) : ''}<b>${T.name}</b><span>${P.variant !== 'canon' ? 'The road ahead is not the one you remember.' : ''}</span></div></div>`; })()}</div>`;
         ui.menacing(scr, 5, 'ド');
         SBR.audio.play('menace');
         setTimeout(res, 2600 / SBR.settings.speed);
@@ -309,8 +325,9 @@ SBR.game = (() => {
     const r = SBR.run;
     if (r.area) return drawAreaCards();
     const act = SBR.ACTS[r.act];
-    if (r.stage === act.stages) return [{ id: 'boss', type: 'boss', title: act.boss.name, blurb: 'The stage\'s final obstacle. There is no way around.', icon: 'crown', forced: true, art: SBR.ENEMIES[act.boss.enemies[0]].art.key }];
-    const storyId = act.story[r.stage];
+    const plan = SBR.actPlan(r.act);
+    if (r.stage === act.stages) return [{ id: 'boss', type: 'boss', title: plan.boss.name, blurb: 'The stage\'s final obstacle. There is no way around.', icon: 'crown', forced: true, art: SBR.ENEMIES[act.boss.enemies[0]].art.key }];
+    const storyId = plan.story[r.stage];
     if (storyId && !(SBR.STORY[storyId].leadSkip || []).includes(r.lead)) { const s = SBR.STORY[storyId]; return [Object.assign({ id: storyId, type: 'story', forced: true, story: true }, s.card)]; }
     const pool = SBR.EVENTS.filter(e => e.acts.includes(r.act) && !(e.once && r.usedEvents.includes(e.id)) && (!e.cond || e.cond(G)));
     const n = 3 + (SBR.bonus().cards || 0);
@@ -320,7 +337,7 @@ SBR.game = (() => {
       const e = weighted(bag, x => x.weight || 1);
       bag.splice(bag.indexOf(e), 1);
       if (out.some(o => o.type === 'shop') && e.type === 'shop') continue;
-      out.push({ id: e.id, type: e.type, title: e.title, blurb: e.blurb, icon: e.icon, pace: e.pace, art: e.art });
+      out.push({ id: e.id, type: e.type, title: e.title, blurb: e.blurb, icon: e.icon, pace: e.pace, art: e.art, enemies: e.fight && e.fight.random ? SBR.buildFight(r.act, r.stage, e.type === 'elite' ? 'elite' : 'fight') : null });
     }
     return out;
   }
@@ -404,7 +421,7 @@ SBR.game = (() => {
     if (ev.once) r.usedEvents.push(ev.id);
     if (ev.pace) G.pace(ev.pace);
     if (ev.fight) {
-      const win = await fight(ev.fight.random ? pick(SBR.FIGHTS[r.act]) : ev.fight.enemies, { elite: ev.type === 'elite', loot: ev.fight.loot });
+      const win = await fight(ev.fight.random ? (card.enemies || SBR.buildFight(r.act, r.stage, ev.type === 'elite' ? 'elite' : 'fight')) : ev.fight.enemies, { elite: ev.type === 'elite', loot: ev.fight.loot });
       if (!win) return;
       return advanceStage();
     }
@@ -430,7 +447,7 @@ SBR.game = (() => {
     await flushPending();
     if (outcome.fight) {
       const f = outcome.fight;
-      const win = await fight(f.random ? pick(SBR.FIGHTS[SBR.run.act]) : f.enemies, { elite: f.elite });
+      const win = await fight(f.random ? SBR.buildFight(SBR.run.act, SBR.run.stage, f.elite ? 'elite' : 'fight') : f.enemies, { elite: f.elite });
       if (!win) return false;
       if (f.bounty) G.money(f.bounty);
       if (f.after) { f.after(G); await flushPending(); }
@@ -448,7 +465,7 @@ SBR.game = (() => {
     const roll = Math.random() - (b.scavenge ? 0.1 : 0);
     if (roll < 0.22) {
       await ui.resultPanel('Scavenge', 'You weren\'t the only ones looking. Ambush!', 'skull');
-      const win = await fight(r.area ? pick(SBR.AREAS[r.area.id].fights) : pick(SBR.FIGHTS[r.act]), {});
+      const win = await fight(r.area ? pick(SBR.AREAS[r.area.id].fights) : SBR.buildFight(r.act, r.stage), {});
       if (!win) return;
     } else {
       const got = [];
@@ -538,6 +555,7 @@ SBR.game = (() => {
     });
     if (result !== 'win') { await gameOver(); return false; }
     r.battles++;
+    if (opts.elite || opts.boss) G.threat(0.5);
     achieve('first_blood');
     const b = SBR.bonus();
     if (b.postHeal) r.party.forEach(m => { m.hp = Math.min(m.maxHp, m.hp + b.postHeal); });
@@ -564,7 +582,8 @@ SBR.game = (() => {
     const out = {};
     const luck = Math.max(...SBR.run.party.map(m => m.stats.luck)) * 0.01;
     combat.units.filter(u => u.side === 'enemy' && u.dead).forEach(u => {
-      (SBR.DROPS[u.id] || []).forEach(([mat, ch, a, b]) => { if (Math.random() < ch + luck) out[mat] = (out[mat] || 0) + randInt(a, b); });
+      const tb = 1 + 0.12 * SBR.threatTier() + ((u.traits || []).length ? 0.25 : 0);
+      (SBR.DROPS[u.id] || []).forEach(([mat, ch, a, b]) => { if (Math.random() < (ch + luck) * tb) out[mat] = (out[mat] || 0) + randInt(a, b); });
       const rem = SBR.REMNANT_DROPS[u.id];
       if (rem) out[rem] = (out[rem] || 0) + 1;
     });
@@ -615,12 +634,13 @@ SBR.game = (() => {
   async function bossStage() {
     const r = SBR.run;
     const act = SBR.ACTS[r.act];
-    await ui.dialogue(act.boss.pre);
-    const pre = SBR.STORY[act.boss.pre];
+    const B = SBR.actPlan(r.act).boss;
+    await ui.dialogue(B.pre);
+    const pre = SBR.STORY[B.pre];
     if (pre && pre.fx) { pre.fx(G); await flushPending(); }
-    const win = await fight(act.boss.enemies, { boss: true, bossName: act.boss.name, midRound: act.boss.midRound });
+    const win = await fight(B.enemies, { boss: true, bossName: B.name, midRound: B.midRound });
     if (!win) return;
-    await playScene(act.boss.post);
+    await playScene(B.post);
     r.stage = act.stages + 1;
     SBR.saveRun();
     actFinish();
@@ -642,7 +662,9 @@ SBR.game = (() => {
     const r = SBR.run;
     res.order.forEach((k, i) => { r.points[k] = (r.points[k] || 0) + (SBR.POINTS[i] || 3); });
     Object.keys(SBR.RIVALS).forEach(k => { if (!res.order.includes(k)) r.points[k] = (r.points[k] || 0) + randInt(0, 12); });
-    const money = [110, 70, 45, 30, 20, 15][res.place - 1] || 10;
+    const C = SBR.curCondition && SBR.curCondition();
+    const money = Math.round(([110, 70, 45, 30, 20, 15][res.place - 1] || 10) * (C && C.sprintMoney || 1));
+    if (res.place <= 3) G.threat(1);
     r.money += money;
     if (res.place === 1) { SBR.meta.stats.sprintsWon++; achieve('sprint1'); }
     if (res.place <= 3) { SBR.meta.stats.top3++; if (SBR.meta.stats.top3 >= 3) achieve('top3x3'); }
@@ -926,7 +948,7 @@ SBR.game = (() => {
     if (n >= 1 && n <= cards.length) cards[n - 1].click();
   });
 
-  const _debug = { newRun, startAct, fight, bossStage, playScene, showStage, actFinish };
+  const _debug = { newRun, startAct, fight, bossStage, playScene, showStage, actFinish, resolveCard, advanceStage, ending, gameOver, applySprint, drawCards, G };
   return { canCraft, craft, equip, unequip, freeSlot, _debug, makeMember, memberAbilities, xpToNext, autoAssign, beltSize, achieve, standings, playerRank, G, bestFor, checkMod, fieldUseItem, toTitle, titleScreen, lobbyScreen };
 })();
 

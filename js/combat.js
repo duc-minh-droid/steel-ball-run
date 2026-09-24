@@ -24,6 +24,7 @@ SBR.Combat = class Combat {
     const partySize = this.party().length;
     this.hpScale = 0.75 + 0.18 * partySize;
     enemyIds.forEach(id => this.units.push(this.makeEnemyUnit(id)));
+    if (SBR.applyTraits) SBR.applyTraits(this, opts);
 
     // initiative
     this.units.forEach(u => { u.init = this.rollInit(u); });
@@ -54,6 +55,10 @@ SBR.Combat = class Combat {
     if (f.presidentPlan && any(['valentine1', 'lovetrain'])) { P.forEach(u => this.addStatus(u, 'secondwind', 0, 3, true)); note('You know what the President wants.'); }
     if (f.corpseVision && any(['ferdinand', 'lovetrain', 'diego_world'])) { P.filter(u => u.id === 'johnny').forEach(u => this.addStatus(u, 'goldenheart', 0, 3, true)); note('The Saint\'s vision guides Johnny.'); }
     if (f.savedNun && any(['diego_world', 'lovetrain'])) { P.forEach(u => this.addStatus(u, 'regen', 0, 3, true)); note('The nun you saved is praying for you.'); }
+    const tier = SBR.threatTier ? SBR.threatTier() : 0;
+    const boss = this.enemies().find(e => e.tier === 'boss');
+    if (boss && tier >= 2) { boss.energy += 1; this.addStatus(boss, 'guard', 0, 2, true); note(`You are ${SBR.THREAT_TIERS[tier].name}. ${boss.name} was expecting you.`); }
+    if (boss && tier >= 3 && this.opts.boss) { this.addStatus(boss, 'empower', 0, 2, true); this.enemies().filter(e => e !== boss).forEach(e => this.addStatus(e, 'shield', 8, 0, true)); }
     if (f.scoutEnemy && any(['sandman'])) { this.enemies().forEach(e => this.addStatus(e, 'empower', 0, 3, true)); note('Sandman heard what you did to his people.'); }
   }
 
@@ -307,6 +312,7 @@ SBR.Combat = class Combat {
     amount = Math.max(1, Math.round(amount));
     if (src && this.has(tgt, 'reflect') && src !== tgt) { const back = Math.max(1, Math.round(amount * 0.4)); this.push({ t: 'float', uid: tgt.uid, text: 'REFLECTED', cls: 'block' }); this.applyHp(src, back, false, 'GRID', null); }
     const res = this.applyHp(tgt, amount, crit, opts.label, src, blocked, { dtype, eff });
+    if (SBR.traitHooks && (src && src.traits || tgt.traits)) SBR.traitHooks.hit(this, src, tgt);
     // magnet share
     if (this.has(tgt, 'magnet') && !opts.noShare) {
       this.friends(tgt).filter(o => o !== tgt && this.has(o, 'magnet')).forEach(o => this.applyHp(o, Math.max(1, Math.round(amount * 0.4)), false, 'MAGNET', src));
@@ -348,9 +354,12 @@ SBR.Combat = class Combat {
       const h = u.def.hooks;
       if (h && h.death) { const prevented = h.death(this.ctx(u, null)); if (prevented && u.hp > 0) return; }
       u.dead = true;
-      this.loot.xp += u.def.xp || 0;
+      const lm = u.lootMul || 1;
+      this.loot.xp += Math.round((u.def.xp || 0) * lm);
       const [a, b] = u.def.money || [0, 0];
-      this.loot.money += SBR.util.randInt(a, b);
+      const C = SBR.curCondition && SBR.curCondition();
+      this.loot.money += Math.round(SBR.util.randInt(a, b) * lm * (C && C.eliteMoney && (this.opts.elite || this.opts.boss) ? C.eliteMoney : 1));
+      if (SBR.traitHooks) SBR.traitHooks.death(this, u);
       SBR.meta.stats.kills++;
       this.push({ t: 'death', uid: u.uid });
     } else {
@@ -572,8 +581,11 @@ SBR.Combat = class Combat {
   /** Enemy AI */
   pickPartyTarget() {
     const cands = this.alive('party');
+    const smart = SBR.threatTier ? SBR.threatTier() : 0;
     return SBR.util.weighted(cands, p => {
       let w = 1;
+      // at higher threat enemies focus the wounded and the Scanned
+      if (smart) { w *= 1 + smart * 0.6 * (1 - p.hp / p.maxHp); if (this.has(p, 'marked')) w *= 1 + smart * 0.5; }
       if (this.has(p, 'taunt')) w *= 5;
       if (p.id === 'lucy') w *= 0.6;
       if (p.hp < p.maxHp * 0.4) w *= 1.3;
@@ -585,11 +597,14 @@ SBR.Combat = class Combat {
     const def = u.def;
     const x0 = this.ctx(u, null);
     const cost = a => (a.cost != null ? a.cost : a.cd >= 3 ? 2 : a.cd >= 1 ? 1 : 0);
-    let opts = def.abilities.filter((a, i) => !(u.cds['a' + i] > 0) && cost(a) <= (u.energy || 0) && (!a.cond || a.cond(x0)));
-    if (!opts.length) opts = def.abilities.filter(a => cost(a) === 0);
-    if (!opts.length) opts = [def.abilities[def.abilities.length - 1]];
-    const ab = SBR.util.weighted(opts, a => a.w || 1);
-    const idx = def.abilities.indexOf(ab);
+    const abl = u.xAbilities || def.abilities;
+    let opts = abl.filter((a, i) => !(u.cds['a' + i] > 0) && cost(a) <= (u.energy || 0) && (!a.cond || a.cond(x0)));
+    if (!opts.length) opts = abl.filter(a => cost(a) === 0);
+    if (!opts.length) opts = [abl[abl.length - 1]];
+    // smarter at higher threat: favour the costliest move it can afford, and AoE into a full party
+    const smart = SBR.threatTier ? SBR.threatTier() : 0;
+    const ab = SBR.util.weighted(opts, a => (a.w || 1) * (1 + smart * 0.35 * cost(a)) * (a.target === 'allEnemies' && this.alive('party').length >= 3 ? 1 + smart * 0.3 : 1));
+    const idx = abl.indexOf(ab);
     if (ab.cd) u.cds['a' + idx] = ab.cd + 1;
     if (!free) u.energy = Math.max(0, (u.energy || 0) - cost(ab));
     let target = null;

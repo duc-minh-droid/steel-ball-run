@@ -1054,3 +1054,35 @@ body.reduced .sun-rays, body.reduced .windmill, body.reduced .bird, body.reduced
 .stage-title h1 { text-shadow: 3px 3px 0 var(--pink), 6px 6px 0 var(--ink); }
 .stage-kicker { box-shadow: 3px 3px 0 var(--ink); }
 .battle-bg::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(115deg, transparent 0 60px, rgba(255, 255, 255, .025) 60px 62px); pointer-events: none; }
+.sprint-tip { position: absolute; left: 50%; top: 110px; transform: translateX(-50%); width: min(620px, 92vw); padding: 10px 16px; background: #f6d860; border: 4px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); font-family: var(--f-ui); font-size: 15px; z-index: 6; animation: tbcIn .4s both; transition: opacity .5s; } .sprint-tip b:first-child { display: block; font-family: var(--f-sfx); letter-spacing: .1em; font-size: 18px; } .sprint-tip.out { opacity: 0; }
+
+/* ---------- threat, conditions, traits ---------- */
+.hud-stat.wanted { gap: 4px; padding-left: 2px; }
+.hud-stat.wanted .wanted-svg { width: 24px; height: 30px; display: block; }
+.hud-stat.wanted.t1 span { color: #f2c14e; } .hud-stat.wanted.t2 span { color: #e8742a; } .hud-stat.wanted.t3 span { color: #ff5a5a; }
+.hud-stat.wanted.t3 { animation: wantedPulse 1.2s ease-in-out infinite; }
+@keyframes wantedPulse { 50% { box-shadow: 0 0 0 3px rgba(200, 50, 60, .6); } }
+.hud-stat.cond i { width: 12px; height: 12px; border-radius: 50%; background: var(--cc); border: 2px solid var(--ink); display: inline-block; }
+.toast-wanted .wanted-svg { width: 38px; height: 48px; display: block; animation: puPop .5s cubic-bezier(.2, 1.6, .4, 1) both; }
+.ac-extra { display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap; justify-content: center; }
+.ac-cond, .ac-threat { display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; background: var(--paper); border: 3px solid var(--ink); border-left: 8px solid var(--cc); box-shadow: 5px 5px 0 var(--ink); max-width: 360px; text-align: left; font-family: var(--f-ui); color: var(--ink); animation: puIn .5s .6s both; }
+.ac-cond b, .ac-threat b { font-size: 14px; letter-spacing: .06em; }
+.ac-cond span, .ac-threat span { font-size: 12px; opacity: .85; }
+.ac-threat { flex-direction: row; align-items: center; gap: 10px; }
+.ac-threat .wanted-svg { width: 44px; height: 56px; flex: none; }
+.trait-badge { display: inline-block; padding: 0 6px; font-size: 11px; font-weight: 700; letter-spacing: .04em; color: #fff; background: var(--tc); border: 1.5px solid var(--ink); text-shadow: 1px 1px 0 var(--ink); }
+.tip-traits small { font-size: 11px; opacity: .85; }
+.unit-card.traited .uc-frame::after { content: '★'; position: absolute; top: 4px; right: 6px; color: #f2c14e; font-size: 18px; -webkit-text-stroke: 1.5px var(--ink); z-index: 3; }
+.enc-threat { position: absolute; top: 6px; right: 8px; font-size: 12px; color: #c8323c; -webkit-text-stroke: .6px var(--ink); letter-spacing: -1px; z-index: 4; }
+.enc-foes { display: flex; gap: 3px; margin-top: auto; margin-bottom: 4px; } .enc-foe { width: 30px; height: 36px; border: 2px solid var(--ink); overflow: hidden; background: var(--ink); } .enc-foe svg { width: 100%; height: 100%; display: block; }
+
+/* ---------- debug panel ---------- */
+.debug-panel { position: fixed; right: 8px; top: 60px; z-index: 999; width: 440px; max-width: 96vw; background: rgba(20, 12, 28, .95); color: #f6ecd8; border: 2px solid #f2c14e; font: 12px/1.3 'Oswald', sans-serif; padding: 8px; box-shadow: 4px 4px 0 #000; }
+.debug-panel .dbg-head { font-family: 'Bangers', Impact, sans-serif; font-size: 18px; letter-spacing: .1em; color: #f2c14e; margin-bottom: 4px; }
+.debug-panel .dbg-head small { font-family: 'Oswald', sans-serif; font-size: 11px; color: #aaa; letter-spacing: 0; }
+.debug-panel .dbg-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin: 4px 0; }
+.debug-panel label { color: #9fc7e8; min-width: 38px; }
+.debug-panel input, .debug-panel select { background: #2a1a38; color: #f6ecd8; border: 1px solid #6b5bd6; font: inherit; padding: 2px 4px; max-width: 170px; }
+.debug-panel input[type=number] { width: 52px; }
+.debug-panel button { background: #f2c14e; color: #1a1020; border: 1px solid #000; font: inherit; font-weight: 700; padding: 2px 8px; cursor: pointer; }
+.debug-panel button:hover { background: #fff3a0; }

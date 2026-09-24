@@ -146,6 +146,8 @@ SBR.art = (() => {
     tattoo: () => `<g fill="none" stroke="#c8323c" stroke-width="1.4"><path d="M36 60 q4 -4 8 0 M56 60 q4 -4 8 0"/><text x="50" y="112" font-family="Bangers" font-size="11" text-anchor="middle" fill="#c8323c" stroke="none">YOU!</text></g>`,
   };
 
+  /** register extra portrait configs from other files */
+  function addPortrait(o) { Object.assign(P, o); }
   function portrait(key, opts = {}) {
     const p = Object.assign({}, P[key] || P.bandit, opts.override || {});
     const id = nid('pt');
@@ -583,5 +585,5 @@ SBR.art = (() => {
     </svg>`;
   }
 
-  return { portrait, creature, horse, scene, icon, sigil, usMap, SCENES, P, INK };
+  return { addPortrait, portrait, creature, horse, scene, icon, sigil, usMap, SCENES, P, INK };
 })();

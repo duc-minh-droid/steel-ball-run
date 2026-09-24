@@ -387,6 +387,7 @@ SBR.bonus = () => {
   const r = SBR.run;
   if (r) {
     add(SBR.HORSES[r.horse] && SBR.HORSES[r.horse].bonus);
+    const C = SBR.curCondition && SBR.curCondition(); if (C && C.bonus) add(C.bonus);
     Object.keys(r.mats || {}).forEach(id => { const m = SBR.MATERIALS && SBR.MATERIALS[id]; if (m && m.holy && r.mats[id] > 0) add(m.bonus); });
     (r.party || []).forEach(m => Object.values(m.equip || {}).forEach(eid => {
       const e = eid && SBR.EQUIPMENT && SBR.EQUIPMENT[eid];

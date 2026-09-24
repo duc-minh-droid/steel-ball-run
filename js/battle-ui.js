@@ -34,7 +34,7 @@ SBR.battle = (() => {
   }
 
   function unitCard(u) {
-    const card = el('div', { class: `unit-card ${u.side} tier-${u.tier || 'ally'}` + (u.dead ? ' dead' : ''), dataset: { uid: u.uid } });
+    const card = el('div', { class: `unit-card ${u.side} tier-${u.tier || 'ally'}` + (u.dead ? ' dead' : '') + (u.traits && u.traits.length ? ' traited' : ''), dataset: { uid: u.uid } });
     card.innerHTML = `
       <div class="uc-frame"><div class="uc-art">${ui.artFor(u.art)}</div><div class="uc-flash"></div></div>
       <div class="uc-name">${u.name}${u.def && u.def.stand ? `<small>「${u.def.stand}」</small>` : ''}</div>
@@ -57,6 +57,7 @@ SBR.battle = (() => {
     const lines = [`<b>${u.fullName || u.name}</b>${u.def && u.def.title ? ` — <i>${u.def.title}</i>` : ''}`];
     lines.push(`HP ${u.hp}/${u.maxHp}`);
     lines.push(`Dodge ${Math.round(c.dodgeChance(u) * 100)}% · Block ${Math.round(c.blockChance(u) * 100)}% · Crit ${Math.round(c.critChance(u) * 100)}%`);
+    if (u.traits && u.traits.length) lines.push(`<span class="tip-traits">${u.traits.map(k => SBR.traitBadge(k) + ' <small>' + SBR.TRAITS[k].desc + '</small>').join('<br>')}</span>`);
     const rc = SBR.resChips(c.resOf(u));
     if (rc) lines.push(`<span class="tip-res">${rc}</span>`);
     if (u.side === 'enemy' && u.def.dtype) lines.push(`<span class="tip-dt">Attacks deal <b style="color:${SBR.DMG[u.def.dtype].color}">${SBR.DMG[u.def.dtype].name}</b></span>`);

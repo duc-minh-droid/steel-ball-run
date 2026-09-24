@@ -289,6 +289,8 @@ SBR.ui = (() => {
     SBR.tip.bind(pace, '<b>Pace</b><br>Your head start for this act\'s stage sprint. Resting, scavenging and long detours cost pace; riding hard, shortcuts and good horses gain it.');
     const rank = SBR.game.playerRank();
     const right = el('div', { class: 'hud-right' },
+      (() => { const ti = SBR.threatTier(), T = SBR.THREAT_TIERS[ti]; const w = el('div', { class: 'hud-stat wanted t' + ti, html: `${art.wanted(ti)}<span>${T.name}</span>` }); SBR.tip.bind(w, `<b style="color:${T.color}">THREAT: ${T.name}</b> (${(r.threat || 0).toFixed(1)})<br>${T.desc}<br><small>Corpse Parts, podium finishes, elite wins and some choices raise it. Hiding and paying off hunters lower it.</small>`); return w; })(),
+      (() => { const C = SBR.curCondition(); if (!C) return ''; const c = el('div', { class: 'hud-stat cond', style: { '--cc': C.color }, html: `<i></i><span>${C.name}</span>` }); SBR.tip.bind(c, `<b>Race condition: ${C.name}</b><br>${C.desc}`); return c; })(),
       el('div', { class: 'hud-stat money', html: `${art.icon('coin', 22)}<span>${fmtMoney(r.money)}</span>` }),
       el('div', { class: 'hud-stat rank', html: `${art.icon('trophy', 22)}<span>${SBR.util.ordinal(rank)}</span>` }),
       iconBtn('gear', 'Settings (Esc)', () => settingsScreen(true)));
@@ -317,9 +319,10 @@ SBR.ui = (() => {
     const t = el('div', { class: 'stage-track' });
     for (let i = 1; i <= act.stages; i++) {
       const cls = i < r.stage ? 'done' : i === r.stage ? 'current' : '';
-      const isBoss = i === act.stages, isStory = act.story[i];
+      const plan = SBR.actPlan(r.act);
+      const isBoss = i === act.stages, isStory = plan.story[i];
       const d = el('div', { class: `st-dot ${cls} ${isBoss ? 'boss' : ''} ${isStory ? 'story' : ''}` }, isBoss ? el('span', { html: art.icon('crown', 14) }) : '');
-      SBR.tip.bind(d, `Stage ${i}${isBoss ? ' — BOSS: ' + act.boss.name : isStory ? ' — Story' : ''}`);
+      SBR.tip.bind(d, `Stage ${i}${isBoss ? ' — BOSS: ' + plan.boss.name : isStory ? ' — Story' : ''}`);
       t.appendChild(d);
     }
     return t;
@@ -358,7 +361,7 @@ SBR.ui = (() => {
       root.appendChild(hud());
       const title = el('div', { class: 'stage-title' },
         el('div', { class: 'stage-kicker' + (A ? ' detour' : '') }, A ? `DETOUR ${r.area.stage} / ${A.stages}` : `STAGE ${r.stage} / ${act.stages}`),
-        el('h1', {}, A ? (r.area.stage >= A.stages ? A.boss.name : A.name) : r.stage === act.stages ? act.boss.name : act.story[r.stage] ? 'A Fateful Encounter' : SBR.art.SCENES[act.scene].name),
+        el('h1', {}, A ? (r.area.stage >= A.stages ? A.boss.name : A.name) : r.stage === act.stages ? SBR.actPlan(r.act).boss.name : SBR.actPlan(r.act).story[r.stage] ? 'A Fateful Encounter' : SBR.art.SCENES[act.scene].name),
         el('div', { class: 'stage-sub' }, A ? `${A.sub} · Hazard: ${SBR.HAZARDS[A.hazard].name}` : act.sub.split('—')[0].trim() + ' · ' + (act.sub.split('—')[1] || '').trim()));
       if (A) SBR.tip.bind(title.querySelector('.stage-sub'), `<b>${SBR.HAZARDS[A.hazard].name}</b><br>${SBR.HAZARDS[A.hazard].desc}`);
       root.appendChild(title);
@@ -431,6 +434,8 @@ SBR.ui = (() => {
       <div class="enc-art">${artHtml}</div>
       <div class="enc-title">${card.title}</div>
       <div class="enc-blurb">${card.blurb}</div>
+      ${card.enemies ? `<div class="enc-foes">${card.enemies.map(id => `<span class="enc-foe" title="${SBR.ENEMIES[id].name}">${artFor(SBR.ENEMIES[id].art)}</span>`).join('')}</div>` : ''}
+      ${card.type === 'fight' || card.type === 'elite' ? `<div class="enc-threat">${'☠'.repeat(1 + SBR.threatTier() + (card.type === 'elite' ? 1 : 0))}</div>` : ''}
       <div class="enc-foot">${card.pace ? `<span class="enc-pace ${card.pace > 0 ? 'up' : 'down'}">${card.pace > 0 ? '+' : ''}${card.pace} pace</span>` : '<span></span>'}<span class="enc-key">${i + 1}</span></div><div class="enc-gloss"></div>`;
     c.addEventListener('click', () => {
       if (c.parentNode && c.parentNode.dataset.picked) return;

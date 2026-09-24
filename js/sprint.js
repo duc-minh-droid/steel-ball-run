@@ -174,10 +174,11 @@ SBR.sprint = (() => {
 
       async function countdown() {
         const cd = wrap.querySelector('.sprint-count');
+        // real seconds, independent of game speed: 3, 2, 1, GO!
         for (const n of ['3', '2', '1', 'GO!']) {
           cd.textContent = n; cd.classList.remove('pop'); void cd.offsetWidth; cd.classList.add('pop');
           SBR.audio.play(n === 'GO!' ? 'whistle' : 'click');
-          await sleep(650);
+          await new Promise(r => setTimeout(r, n === 'GO!' ? 450 : 1000));
         }
         cd.textContent = '';
         started = true;
@@ -199,7 +200,14 @@ SBR.sprint = (() => {
 
       requestAnimationFrame(frame);
       (async () => {
-        if (tutorial) await SBR.ui.dialogue('sprint_tutorial');
+        // the race starts straight away; first-timers get a hint banner instead of a blocking dialogue
+        if (tutorial || !SBR.meta.sprintHintSeen) {
+          const tip = el('div', { class: 'sprint-tip', html: '<b>HOW TO RACE</b> Press <b>SPACE</b> or click when the needle crosses the <span class="gold">GOLD</span> zone to surge. Miss and your horse stumbles. Your act PACE is your head start.' });
+          wrap.appendChild(tip);
+          setTimeout(() => tip.classList.add('out'), 7000);
+          setTimeout(() => tip.remove(), 7600);
+          SBR.meta.sprintHintSeen = true; SBR.saveMeta();
+        }
         await countdown();
       })();
     });

@@ -151,7 +151,7 @@ SBR.AREAS = {
 SBR.inArea = () => !!(SBR.run && SBR.run.area);
 SBR.curArea = () => (SBR.run && SBR.run.area ? SBR.AREAS[SBR.run.area.id] : null);
 SBR.sceneId = () => { const a = SBR.curArea(); return a ? a.scene : (SBR.ACTS[SBR.run.act] || {}).scene || 1; };
-SBR.curHazard = () => { const a = SBR.curArea(); return a ? a.hazard : null; };
+SBR.curHazard = () => { const a = SBR.curArea(); if (a) return a.hazard; const C = SBR.curCondition && SBR.curCondition(); return C && C.hazard || null; };
 Object.entries(SBR.AREAS).forEach(([id, a]) => { SBR.SCAVENGE_MATS['area_' + id] = a.mats; });
 
 /* ---------------- Area stage cards ---------------- */
