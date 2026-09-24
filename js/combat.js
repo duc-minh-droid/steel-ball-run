@@ -1,0 +1,633 @@
+/* Combat engine: pure state + event log. The battle UI replays events as animations. */
+'use strict';
+
+SBR.Combat = class Combat {
+  constructor(enemyIds, opts = {}) {
+    const U = SBR.util;
+    this.opts = opts;
+    this.events = [];
+    this.units = [];
+    this.round = 0;
+    this.turnIdx = -1;
+    this.order = [];
+    this.flags = {};
+    this.snaps = {};
+    this.loot = { xp: 0, money: 0 };
+    this.result = null;
+    this.bonus = SBR.bonus();
+    this.firstAttackDone = false;
+    this.stitchUsed = false;
+    this.maxHit = 0;
+
+    const run = SBR.run;
+    run.party.forEach(m => { if (m.hp > 0 || true) this.units.push(this.makePartyUnit(m)); });
+    const partySize = this.party().length;
+    this.hpScale = 0.75 + 0.18 * partySize;
+    enemyIds.forEach(id => this.units.push(this.makeEnemyUnit(id)));
+
+    // initiative
+    this.units.forEach(u => { u.init = this.rollInit(u); });
+    this.order = this.units.slice().sort((a, b) => b.init - a.init || (a.side === 'party' ? -1 : 1)).map(u => u.uid);
+
+    // combat-start effects
+    const b = this.bonus;
+    this.party().forEach(u => {
+      u.energy = Math.min(u.maxEnergy, 1 + (b.energyStart || 0) + this.eq(u, 'energyStart'));
+      if (u.id === 'gyro') this.addStatus(u, 'rotation', 1 + (b.rotationStart || 0), 0, true);
+      if (b.guardStart) this.addStatus(u, 'guard', 0, b.guardStart + 1, true);
+      if (b.shieldStart) this.addStatus(u, 'shield', b.shieldStart, 0, true);
+      if (b.palm) this.addStatus(u, U.pick(['empower', 'evasive', 'lucky', 'regen', 'guard']), 0, 2, true);
+    });
+    this.enemies().forEach(u => { const h = u.def.hooks; if (h && h.start) h.start(this.ctx(u, null)); });
+    this.applyStoryFlags();
+    this.events = []; // setup events are not animated
+  }
+
+  /** Choices made on the road change how certain battles begin */
+  applyStoryFlags() {
+    const f = SBR.run.flags, ids = this.enemies().map(e => e.id), P = this.party();
+    const note = t => { this.storyNotes = (this.storyNotes || []).concat(t); };
+    const any = list => list.some(i => ids.includes(i));
+    if (f.boomWarning && any(['benjamin'])) { P.forEach(u => this.addStatus(u, 'guard', 0, 2, true)); this.enemies().forEach(e => this.addStatus(e, 'vuln', 0, 2, true)); note('The prospector warned you about the magnets.'); }
+    if (f.silentWarning && any(['sandman'])) { P.forEach(u => this.addStatus(u, 'calm', 0, 3, true)); note('The scout\'s warning: do not touch what speaks.'); }
+    if (f.agentOrders && any(['agent', 'vguard', 'soldier'])) { this.enemies().forEach(e => this.addStatus(e, 'stun', 0, 1, true)); note('You know their orders. They\'re caught off guard.'); }
+    if (f.presidentPlan && any(['valentine1', 'lovetrain'])) { P.forEach(u => this.addStatus(u, 'secondwind', 0, 3, true)); note('You know what the President wants.'); }
+    if (f.corpseVision && any(['ferdinand', 'lovetrain', 'diego_world'])) { P.filter(u => u.id === 'johnny').forEach(u => this.addStatus(u, 'goldenheart', 0, 3, true)); note('The Saint\'s vision guides Johnny.'); }
+    if (f.savedNun && any(['diego_world', 'lovetrain'])) { P.forEach(u => this.addStatus(u, 'regen', 0, 3, true)); note('The nun you saved is praying for you.'); }
+    if (f.scoutEnemy && any(['sandman'])) { this.enemies().forEach(e => this.addStatus(e, 'empower', 0, 3, true)); note('Sandman heard what you did to his people.'); }
+  }
+
+  /* ---------- unit factories ---------- */
+  makePartyUnit(m) {
+    const def = SBR.CHARS[m.id];
+    const b = this.bonus || SBR.bonus();
+    const stats = Object.assign({}, m.stats);
+    const eb = SBR.equipBonus(m);
+    for (const k in eb.stats) stats[k] = (stats[k] || 0) + eb.stats[k];
+    if (m.id === 'johnny' && b.johnnyAll) for (const k in stats) stats[k] += b.johnnyAll;
+    if (m.id === 'johnny' && SBR.HORSES[SBR.run.horse].bonus.ride) stats.ride += SBR.HORSES[SBR.run.horse].bonus.ride;
+    const exh = m.exhaustion || 0;
+    const maxHp = Math.max(1, Math.round(m.maxHp * (1 - 0.15 * exh)));
+    return {
+      uid: SBR.util.uid('p'), id: m.id, name: def.short, fullName: def.name, side: 'party', ref: m, def,
+      art: { kind: 'portrait', key: def.portrait }, stats, maxHp, hp: Math.min(m.hp, maxHp), energy: 2, maxEnergy: 6,
+      cds: {}, statuses: [], dead: m.hp <= 0, exhaustion: exh, eqb: eb.bonus, abilities: SBR.game.memberAbilities(m), upgrades: m.upgrades || {},
+    };
+  }
+  makeEnemyUnit(id) {
+    const def = SBR.ENEMIES[id];
+    const maxHp = Math.round(def.hp * (this.hpScale || 1));
+    SBR.meta.seen.enemies[id] = true;
+    return {
+      uid: SBR.util.uid('e'), id, name: def.name, side: 'enemy', def, art: def.art,
+      stats: Object.assign({ spin: 0, aim: 0, grit: 0, ride: 0, res: 0, luck: 0 }, def.stats),
+      maxHp, hp: maxHp, cds: {}, statuses: [], dead: false, tier: def.tier || 'mob', energy: def.tier === 'boss' ? 2 : 1, maxEnergy: 6,
+    };
+  }
+
+  /* ---------- queries ---------- */
+  party() { return this.units.filter(u => u.side === 'party' && !u.removed); }
+  enemies() { return this.units.filter(u => u.side === 'enemy' && !u.dead); }
+  alive(side) { return this.units.filter(u => u.side === side && !u.dead && !u.removed); }
+  unit(uid) { return this.units.find(u => u.uid === uid); }
+  foes(u) { return this.alive(u.side === 'party' ? 'enemy' : 'party'); }
+  friends(u) { return this.alive(u.side); }
+  st(u, id) { return u.statuses.find(s => s.id === id); }
+  has(u, id) { return !!this.st(u, id); }
+  stacks(u, id) { const s = this.st(u, id); return s ? s.stacks : 0; }
+  current() { return this.unit(this.order[this.turnIdx]); }
+
+  eq(u, k) { return (u.eqb && u.eqb[k]) || 0; }
+  /* ---------- derived stats ---------- */
+  statMod(u, key, mode = 'add') {
+    let v = mode === 'mul' ? 1 : 0;
+    for (const s of u.statuses) {
+      const d = SBR.STATUS[s.id];
+      if (!d.mods) continue;
+      if (key === 'dodge' && d.mods.dodgePer) v += d.mods.dodgePer * s.stacks;
+      if (d.mods[key] === undefined) continue;
+      if (mode === 'mul') v *= d.mods[key]; else v += d.mods[key];
+    }
+    return v;
+  }
+  dodgeChance(u) {
+    if (this.has(u, 'marked') || this.has(u, 'stun') || this.has(u, 'timestop')) return 0;
+    let d = 0.04 + u.stats.ride * 0.006 + this.statMod(u, 'dodge');
+    if (u.side === 'party') {
+      d += (this.bonus.dodge || 0) + this.eq(u, 'dodge');
+      if (u.id === 'johnny') d += 0.08 + (SBR.HORSES[SBR.run.horse].bonus.dodge || 0);
+      if (u.id === 'diego') d += 0.15;
+    }
+    return SBR.util.clamp(d, 0, 0.6);
+  }
+  blockChance(u) {
+    if (u.id === 'johnny') return 0;
+    let b = 0.05 + u.stats.grit * 0.006 + this.statMod(u, 'block');
+    if (u.side === 'party') { b += (this.bonus.block || 0) + this.eq(u, 'block'); if (u.id === 'mountaintim') b += 0.1; }
+    return SBR.util.clamp(b, 0, 0.75);
+  }
+  blockDR(u) { return SBR.util.clamp(0.35 + u.stats.grit * 0.008, 0, 0.7); }
+  critChance(u) {
+    let c = 0.05 + u.stats.aim * 0.005 + u.stats.luck * 0.006 + this.statMod(u, 'crit');
+    if (u.side === 'party') { c += (this.bonus.crit || 0) + this.eq(u, 'crit'); if (u.id === 'pocoloco') c += 0.1; }
+    return c;
+  }
+  critDmg(u) { return 1.5 + u.stats.spin * 0.008 + u.stats.luck * 0.005 + (u.side === 'party' ? (this.bonus.critDmg || 0) + this.eq(u, 'critDmg') : 0); }
+  rollInit(u) {
+    let i = SBR.util.randInt(1, 10) + Math.floor(u.stats.ride / 2);
+    if (u.side === 'party') { i += (this.bonus.init || 0) + this.eq(u, 'init'); if (u.id === 'diego') i += 3; }
+    return i;
+  }
+
+  /* ---------- events ---------- */
+  push(e) { this.events.push(e); return e; }
+  flush() { const e = this.events; this.events = []; return e; }
+  log(text, kind = '') { this.push({ t: 'log', text, kind }); }
+
+  /* ---------- core mechanics ---------- */
+  addStatus(t, id, stacks = 0, turns = 0, silent = false) {
+    if (!t || t.dead) return;
+    const d = SBR.STATUS[id];
+    if (!d) return;
+    if (t.side === 'party' && d.kind === 'debuff') {
+      if ((this.bonus.immune || []).concat((t.eqb && t.eqb.immune) || []).includes(id)) return this.push({ t: 'float', uid: t.uid, text: 'IMMUNE', cls: 'buff' });
+      if (id === 'fossil' && t.id === 'johnny' && this.bonus.fossilImmune) return this.push({ t: 'float', uid: t.uid, text: 'SAINT\'S ARM', cls: 'buff' });
+      if (t.id === 'pocoloco' && Math.random() < 0.15) return this.push({ t: 'float', uid: t.uid, text: 'LUCKY!', cls: 'buff' });
+    }
+    let s = this.st(t, id);
+    if (!s) { s = { id, stacks: 0, turns: 0 }; t.statuses.push(s); }
+    if (d.mode === 'stacks') s.stacks = Math.min(d.max || 99, s.stacks + Math.max(1, stacks));
+    if (turns) s.turns = Math.max(s.turns, turns);
+    if (d.mode === 'turns' && !turns) s.turns = Math.max(s.turns, stacks || 1);
+    if (!silent) this.push({ t: 'status', uid: t.uid, id, kind: d.kind });
+    if (id === 'fossil' && s.stacks >= 5) {
+      this.removeStatus(t, 'fossil');
+      this.addStatus(t, 'raptor', 0, 2);
+      this.push({ t: 'float', uid: t.uid, text: 'DINOSAURIFIED!', cls: 'debuff big' });
+    }
+  }
+  removeStatus(t, id) { t.statuses = t.statuses.filter(s => s.id !== id); this.push({ t: 'statusGone', uid: t.uid, id }); }
+  cleanse(t, n = 1) {
+    let removed = 0;
+    for (const s of t.statuses.slice()) {
+      const d = SBR.STATUS[s.id];
+      if (d.kind === 'debuff' && !d.permanent && removed < n) { this.removeStatus(t, s.id); removed++; }
+    }
+    if (removed) this.push({ t: 'float', uid: t.uid, text: 'CLEANSED', cls: 'buff' });
+  }
+
+  scaleVal(u, base, scale = {}) {
+    let v = base;
+    let m = 1;
+    for (const [k, s] of Object.entries(scale || {})) m += (u.stats[k] || 0) * s;
+    return v * m;
+  }
+
+  damage(src, tgt, base, scale, opts = {}, ability = null) {
+    if (!tgt || tgt.dead) return { hit: false };
+    const tags = opts.tags || (ability && ability.tags) || [];
+    const pierce = opts.pierce || (ability && ability.pierce && opts.pierce !== false);
+    let raw = src ? this.scaleVal(src, base, scale) : base;
+    let mult = 1;
+    if (src) {
+      mult *= this.statMod(src, 'dmgOut', 'mul');
+      if (src.side === 'party') {
+        const b = this.bonus;
+        mult *= 1 + (b.dmg || 0) + this.eq(src, 'dmg');
+        if (tags.includes('spin')) mult *= 1 + (b.spinDmg || 0) + this.eq(src, 'spinDmg') + this.stacks(src, 'rotation') * 0.08;
+        if (tags.includes('gun')) mult *= 1 + (b.gunDmg || 0) + this.eq(src, 'gunDmg');
+        mult *= 1 - 0.15 * (src.exhaustion || 0);
+      }
+      // miss from blindness
+      const miss = this.statMod(src, 'miss');
+      if (miss && Math.random() < miss) { this.push({ t: 'float', uid: tgt.uid, text: 'MISS', cls: 'miss' }); return { hit: false }; }
+    }
+    mult *= this.statMod(tgt, 'dmgIn', 'mul');
+    if (tgt.side === 'party' && tgt.id === 'wekapipo') mult *= 0.9;
+
+    // dodge
+    if (src && !opts.noDodge && Math.random() < this.dodgeChance(tgt)) {
+      this.push({ t: 'float', uid: tgt.uid, text: 'DODGE', cls: 'miss' });
+      return { hit: false, dodged: true };
+    }
+    // stand defences
+    if (this.has(tgt, 'rainveil')) {
+      if (!tags.includes('spin') && !pierce) { this.push({ t: 'float', uid: tgt.uid, text: 'RAIN VEIL', cls: 'block' }); return { hit: false }; }
+      this.removeStatus(tgt, 'rainveil');
+      this.push({ t: 'float', uid: tgt.uid, text: 'RAIN EVAPORATES!', cls: 'buff big' });
+    }
+    let crit = false;
+    if (src && !opts.noCrit) {
+      let cc = this.critChance(src) + (this.has(tgt, 'marked') ? 0.2 : 0);
+      if (src.side === 'party' && this.bonus.firstCrit && !this.firstAttackDone) cc = 1;
+      crit = opts.forceCrit || Math.random() < cc;
+    }
+    if (src && src.side === 'party') this.firstAttackDone = true;
+    let amount = raw * mult * (crit ? this.critDmg(src) : 1);
+
+    if (this.has(tgt, 'invuln') && !pierce) {
+      if (tgt.id === 'lovetrain') {
+        const victims = this.alive('party');
+        const v = SBR.util.pick(victims);
+        this.push({ t: 'float', uid: tgt.uid, text: 'REDIRECTED', cls: 'block' });
+        if (v) {
+          const mis = Math.max(1, Math.round(amount * 0.3));
+          this.push({ t: 'float', uid: v.uid, text: 'MISFORTUNE', cls: 'debuff' });
+          this.applyHp(v, mis, false, 'misfortune', null);
+        }
+      } else this.push({ t: 'float', uid: tgt.uid, text: 'NO EFFECT', cls: 'block' });
+      return { hit: false };
+    }
+    let blocked = false;
+    if (src && !pierce && Math.random() < this.blockChance(tgt)) { blocked = true; amount *= 1 - this.blockDR(tgt); }
+
+    // Tattoo You phasing
+    if (this.has(tgt, 'phase') && Math.random() < 0.5) {
+      const others = this.friends(tgt).filter(o => o !== tgt && this.has(o, 'phase'));
+      if (others.length) {
+        const o = SBR.util.pick(others);
+        this.push({ t: 'float', uid: tgt.uid, text: 'PHASED', cls: 'miss' });
+        tgt = o;
+      }
+    }
+    // D4C: another Valentine steps in from a parallel world
+    if (tgt.id === 'valentine1' && !pierce) {
+      const copy = this.friends(tgt).find(o => o.id === 'parallel');
+      if (copy && Math.random() < 0.5) { this.push({ t: 'float', uid: tgt.uid, text: 'DOJYAAAN~', cls: 'block' }); tgt = copy; }
+    }
+    amount = Math.max(1, Math.round(amount));
+    if (src && this.has(tgt, 'reflect') && src !== tgt) { const back = Math.max(1, Math.round(amount * 0.4)); this.push({ t: 'float', uid: tgt.uid, text: 'REFLECTED', cls: 'block' }); this.applyHp(src, back, false, 'GRID', null); }
+    const res = this.applyHp(tgt, amount, crit, opts.label, src, blocked);
+    // magnet share
+    if (this.has(tgt, 'magnet') && !opts.noShare) {
+      this.friends(tgt).filter(o => o !== tgt && this.has(o, 'magnet')).forEach(o => this.applyHp(o, Math.max(1, Math.round(amount * 0.4)), false, 'MAGNET', src));
+    }
+    if (src && src.side === 'party' && amount >= 40) SBR.game.achieve('crit_big');
+    this.maxHit = Math.max(this.maxHit, src && src.side === 'party' ? amount : 0);
+    return Object.assign({ hit: true, crit, blocked }, res);
+  }
+
+  applyHp(tgt, amount, crit, label, src, blocked) {
+    const sh = this.st(tgt, 'shield');
+    let absorbed = 0;
+    if (sh) {
+      absorbed = Math.min(sh.stacks, amount);
+      sh.stacks -= absorbed; amount -= absorbed;
+      if (sh.stacks <= 0) this.removeStatus(tgt, 'shield');
+    }
+    tgt.hp = Math.max(0, tgt.hp - amount);
+    this.push({ t: 'dmg', uid: tgt.uid, amount, absorbed, crit, blocked, label, hp: tgt.hp, src: src && src.uid });
+    if (tgt.side === 'enemy' && tgt.def.hooks && tgt.def.hooks.damaged && tgt.hp > 0) tgt.def.hooks.damaged(this.ctx(tgt, null));
+    if (tgt.hp <= 0) this.onDeath(tgt, src);
+    return { amount };
+  }
+
+  heal(src, tgt, base, scale) {
+    if (!tgt || tgt.dead) return 0;
+    let amt = src ? this.scaleVal(src, base, scale) : base;
+    if (src && src.side === 'party') { amt *= 1 + (this.bonus.heal || 0) + this.eq(src, 'heal'); if (src.id === 'hotpants') amt *= 1.2; amt *= 1 - 0.15 * (src.exhaustion || 0); }
+    amt = Math.round(amt);
+    const before = tgt.hp;
+    tgt.hp = Math.min(tgt.maxHp, tgt.hp + amt);
+    this.push({ t: 'heal', uid: tgt.uid, amount: tgt.hp - before, hp: tgt.hp });
+    return tgt.hp - before;
+  }
+
+  onDeath(u, src) {
+    if (u.dead) return;
+    if (u.side === 'enemy') {
+      const h = u.def.hooks;
+      if (h && h.death) { const prevented = h.death(this.ctx(u, null)); if (prevented && u.hp > 0) return; }
+      u.dead = true;
+      this.loot.xp += u.def.xp || 0;
+      const [a, b] = u.def.money || [0, 0];
+      this.loot.money += SBR.util.randInt(a, b);
+      SBR.meta.stats.kills++;
+      this.push({ t: 'death', uid: u.uid });
+    } else {
+      if (this.eq(u, 'selfRewind') && !u.rewound) {
+        u.rewound = true;
+        u.hp = Math.ceil(u.maxHp * 0.4);
+        this.push({ t: 'fx', kind: 'rewind', uid: u.uid });
+        this.push({ t: 'float', uid: u.uid, text: 'MANDOM!', cls: 'buff big' });
+        this.push({ t: 'revive', uid: u.uid, hp: u.hp });
+        return;
+      }
+      if ((this.bonus.stitch) && !this.stitchUsed) {
+        this.stitchUsed = true;
+        u.hp = Math.ceil(u.maxHp * 0.28);
+        this.push({ t: 'float', uid: u.uid, text: 'STITCHED BACK!', cls: 'buff big' });
+        this.push({ t: 'revive', uid: u.uid, hp: u.hp });
+        return;
+      }
+      u.dead = true;
+      u.statuses = [];
+      this.push({ t: 'death', uid: u.uid });
+    }
+    this.checkEnd();
+  }
+
+  revive(u, pct) {
+    if (!u) return;
+    u.dead = false;
+    u.hp = Math.max(1, Math.ceil(u.maxHp * pct));
+    if (u.side === 'enemy') u.statuses = u.statuses.filter(s => SBR.STATUS[s.id].kind === 'buff');
+    this.push({ t: 'revive', uid: u.uid, hp: u.hp });
+  }
+
+  checkEnd() {
+    if (this.result) return;
+    if (!this.alive('enemy').length) this.result = 'win';
+    else if (!this.alive('party').length) {
+      if (this.bonus.dojyaan && !SBR.run.dojyaanUsed) {
+        SBR.run.dojyaanUsed = true;
+        this.push({ t: 'banner', text: 'DOJYAAAN~', sub: 'A parallel you steps in.' });
+        this.party().filter(u => !u.removed).forEach(u => this.revive(u, 0.5));
+      } else this.result = 'lose';
+    }
+  }
+
+  /* ---------- turn flow ---------- */
+  nextTurn() {
+    if (this.result) return null;
+    for (let guard = 0; guard < 200; guard++) {
+      this.turnIdx++;
+      if (this.turnIdx >= this.order.length || this.turnIdx === 0 && this.round === 0) {
+        if (this.turnIdx >= this.order.length) this.turnIdx = 0;
+        this.startRound();
+        if (this.result) return null;
+      }
+      const u = this.unit(this.order[this.turnIdx]);
+      if (u && !u.dead && !u.removed) return u;
+    }
+    return null;
+  }
+  startRound() {
+    this.round++;
+    this.push({ t: 'round', round: this.round });
+    const mid = this.opts.midRound && this.opts.midRound[this.round];
+    if (mid) {
+      this.push({ t: 'dialogue', id: mid });
+      const flag = { tusk_awaken: 'tusk1', tusk2_awaken: 'tusk2' }[mid];
+      if (flag) this.unlockFlag(flag);
+    }
+    this.enemies().forEach(u => { const h = u.def.hooks; if (h && h.roundStart) h.roundStart(this.ctx(u, null)); });
+  }
+
+  /** Begin a unit's turn. Returns {skip} */
+  beginTurn(u) {
+    this.push({ t: 'turn', uid: u.uid });
+    u.usedItem = false;
+    for (const k in u.cds) if (u.cds[k] > 0) u.cds[k]--;
+    // Energy: every unit gains 1 per turn naturally, modified by effects
+    {
+      const blocked = u.statuses.some(s => SBR.STATUS[s.id].noEnergy);
+      let gain = 0;
+      if (!blocked) {
+        gain = 1 + (this.has(u, 'secondwind') ? 1 : 0);
+        const chance = (u.side === 'party' ? u.stats.res * 0.02 + (this.bonus.energyChance || 0) : 0) + this.statMod(u, 'energyChance');
+        if (chance > 0 && Math.random() < chance) { gain++; this.push({ t: 'float', uid: u.uid, text: '+1 ENERGY', cls: 'energy' }); }
+      } else this.push({ t: 'float', uid: u.uid, text: 'NO ENERGY', cls: 'debuff' });
+      if (this.has(u, 'goldenheart')) gain++;
+      u.energy = Math.min(u.maxEnergy || 6, (u.energy || 0) + gain);
+    }
+    if (u.side === 'party') {
+      const rg = (this.bonus.regen || 0) + this.eq(u, 'regen');
+      if (rg) this.heal(null, u, rg);
+    }
+    // status ticks
+    for (const s of u.statuses.slice()) {
+      if (u.dead) break;
+      const d = SBR.STATUS[s.id];
+      if (!d.tick) continue;
+      switch (d.tick) {
+        case 'bleed': this.applyHp(u, 2 * s.stacks, false, 'BLEED'); s.stacks--; if (s.stacks <= 0) this.removeStatus(u, s.id); break;
+        case 'holed': this.applyHp(u, 3 * s.stacks, false, 'HOLE'); break;
+        case 'guilt': this.applyHp(u, 2 * s.stacks, false, 'GUILT'); s.stacks = Math.min(d.max, s.stacks + 1); break;
+        case 'infinite': this.applyHp(u, Math.max(3, Math.round(u.maxHp * 0.08)), false, '∞'); break;
+        case 'regen': this.heal(null, u, 4); break;
+        case 'primed':
+          s.turns--;
+          if (s.turns <= 0) { this.removeStatus(u, 'primed'); this.push({ t: 'fx', kind: 'boom', uid: u.uid }); this.applyHp(u, 18, false, 'BOOM'); }
+          else this.push({ t: 'float', uid: u.uid, text: `PIN ${s.turns}`, cls: 'debuff' });
+          break;
+      }
+    }
+    if (u.dead) { this.checkEnd(); return { skip: true }; }
+    if (u.side === 'enemy' && u.def.hooks && u.def.hooks.turnStart) {
+      u.def.hooks.turnStart(this.ctx(u, null));
+      if (u.dead) return { skip: true };
+    }
+    const stun = this.st(u, 'stun') || this.st(u, 'timestop');
+    if (stun) {
+      this.push({ t: 'float', uid: u.uid, text: stun.id === 'stun' ? 'SPUN!' : 'FROZEN', cls: 'debuff big' });
+      this.endTurn(u);
+      return { skip: true };
+    }
+    return { skip: false };
+  }
+
+  endTurn(u) {
+    for (const s of u.statuses.slice()) {
+      const d = SBR.STATUS[s.id];
+      if (d.tick === 'primed') continue;
+      if (s.turns > 0 && s.turns < 900) {
+        s.turns--;
+        if (s.turns <= 0 && d.mode === 'turns') this.removeStatus(u, s.id);
+      }
+    }
+    this.push({ t: 'endTurn', uid: u.uid });
+    this.checkEnd();
+  }
+
+  /** pre-action checks shared by party & enemies; returns false if the action fizzles */
+  preAction(u) {
+    const snd = this.st(u, 'sound');
+    if (snd) {
+      this.removeStatus(u, 'sound');
+      this.push({ t: 'fx', kind: 'sound', uid: u.uid });
+      this.applyHp(u, 6 * snd.stacks, false, 'DOGOOON');
+      if (u.dead) return false;
+    }
+    if (this.has(u, 'leftblind') && Math.random() < 0.35) {
+      this.push({ t: 'float', uid: u.uid, text: 'CAN\'T SEE LEFT!', cls: 'debuff' });
+      return false;
+    }
+    return true;
+  }
+
+  canUse(u, abId) {
+    const ab = SBR.ABILITIES[abId];
+    if (!ab) return false;
+    if ((u.cds[abId] || 0) > 0) return false;
+    if (u.energy < ab.cost) return false;
+    if (this.has(u, 'raptor') && ab.cost > 0) return false;
+    if (ab.target === 'allyDead' && !this.party().some(p => p.dead && !p.removed)) return false;
+    return true;
+  }
+
+  useAbility(u, abId, targetUid) {
+    const ab = SBR.ABILITIES[abId];
+    if (!this.canUse(u, abId)) return false;
+    u.energy -= ab.cost;
+    if (ab.cd) u.cds[abId] = ab.cd + 1;
+    let target = targetUid ? this.unit(targetUid) : null;
+    const tgtList = ab.target === 'allEnemies' ? this.foes(u).map(t => t.uid) : ab.target === 'allAllies' ? this.friends(u).map(t => t.uid) : target ? [target.uid] : [];
+    this.push({ t: 'act', uid: u.uid, name: ab.name, fx: ab.fx, targets: tgtList, cost: ab.cost, abId, special: (ab.tags || []).includes('stand') || abId === 'ball_breaker' });
+    if (!this.preAction(u)) { this.endTurn(u); return true; }
+    const lvl = (u.upgrades && u.upgrades[abId]) || 1;
+    const x = this.ctx(u, target, ab, lvl);
+    ab.run(x);
+    const bob = (this.bonus.bleedOnBasic || 0) + this.eq(u, 'bleedOnBasic');
+    if (ab.cost === 0 && u.side === 'party' && bob && target && !target.dead && Math.random() < bob) this.addStatus(target, 'bleed', 1);
+    this.endTurn(u);
+    return true;
+  }
+
+  brace(u) {
+    this.push({ t: 'act', uid: u.uid, name: 'Brace', fx: 'buff', targets: [u.uid] });
+    u.energy = Math.min(u.maxEnergy, u.energy + 1);
+    this.addStatus(u, 'guard', 0, 1);
+    if (this.has(u, 'primed')) { this.removeStatus(u, 'primed'); this.push({ t: 'float', uid: u.uid, text: 'PIN PULLED!', cls: 'buff big' }); }
+    this.endTurn(u);
+  }
+
+  useItem(u, itemId, targetUid) {
+    const it = SBR.ITEMS[itemId];
+    if (!it || u.usedItem) return false;
+    const idx = SBR.run.items.indexOf(itemId);
+    if (idx < 0) return false;
+    SBR.run.items.splice(idx, 1);
+    u.usedItem = true;
+    const target = targetUid ? this.unit(targetUid) : null;
+    this.push({ t: 'act', uid: u.uid, name: it.name, fx: 'item', targets: target ? [target.uid] : [], item: true });
+    it.use(this.ctx(u, target, { tags: [] }, 1));
+    this.checkEnd();
+    return true;
+  }
+
+  /** Party unit acting on its own (dinosaurified) */
+  autoRaptor(u) {
+    const basic = u.abilities[0];
+    const targets = this.units.filter(t => !t.dead && !t.removed && t !== u);
+    const t = SBR.util.pick(targets);
+    this.push({ t: 'float', uid: u.uid, text: 'RAAARGH!', cls: 'debuff' });
+    const ab = SBR.ABILITIES[basic];
+    this.push({ t: 'act', uid: u.uid, name: ab.name + ' (feral)', fx: ab.fx, targets: [t.uid] });
+    ab.run(this.ctx(u, t, ab, 1));
+    this.endTurn(u);
+  }
+
+  /** Enemy AI */
+  pickPartyTarget() {
+    const cands = this.alive('party');
+    return SBR.util.weighted(cands, p => {
+      let w = 1;
+      if (this.has(p, 'taunt')) w *= 5;
+      if (p.id === 'lucy') w *= 0.6;
+      if (p.hp < p.maxHp * 0.4) w *= 1.3;
+      if (this.has(p, 'evasive')) w *= 0.8;
+      return w;
+    });
+  }
+  enemyAct(u, free = false) {
+    const def = u.def;
+    const x0 = this.ctx(u, null);
+    const cost = a => (a.cost != null ? a.cost : a.cd >= 3 ? 2 : a.cd >= 1 ? 1 : 0);
+    let opts = def.abilities.filter((a, i) => !(u.cds['a' + i] > 0) && cost(a) <= (u.energy || 0) && (!a.cond || a.cond(x0)));
+    if (!opts.length) opts = def.abilities.filter(a => cost(a) === 0);
+    if (!opts.length) opts = [def.abilities[def.abilities.length - 1]];
+    const ab = SBR.util.weighted(opts, a => a.w || 1);
+    const idx = def.abilities.indexOf(ab);
+    if (ab.cd) u.cds['a' + idx] = ab.cd + 1;
+    if (!free) u.energy = Math.max(0, (u.energy || 0) - cost(ab));
+    let target = null;
+    if (ab.target === 'enemy') target = this.pickPartyTarget();
+    else if (ab.target === 'self') target = u;
+    else if (ab.target === 'ally') target = this.friends(u).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
+    const tl = ab.target === 'allEnemies' ? this.alive('party').map(t => t.uid) : ab.target === 'allAllies' ? this.friends(u).map(t => t.uid) : target ? [target.uid] : [];
+    this.push({ t: 'act', uid: u.uid, name: ab.name, fx: ab.fx, targets: tl, enemy: true, special: cost(ab) > 0 });
+    if (!this.preAction(u)) { if (!free) this.endTurn(u); return; }
+    if (this.has(u, 'raptor')) target = this.pickPartyTarget();
+    ab.run(this.ctx(u, target, ab, 1));
+    if (!free) this.endTurn(u);
+  }
+
+  /* ---------- special mechanics used by boss hooks ---------- */
+  summon(id) {
+    if (this.alive('enemy').length >= 5) return null;
+    const u = this.makeEnemyUnit(id);
+    u.init = 0;
+    this.units.push(u);
+    this.order.push(u.uid);
+    const h = u.def.hooks; if (h && h.start) h.start(this.ctx(u, null));
+    this.push({ t: 'summon', uid: u.uid });
+    return u;
+  }
+  kill(u) { if (!u.dead) { u.hp = 0; this.push({ t: 'setHp', uid: u.uid, hp: 0 }); this.onDeathRaw(u); } }
+  onDeathRaw(u) { u.dead = true; this.push({ t: 'death', uid: u.uid }); this.checkEnd(); }
+  killAlly(id) {
+    const u = this.units.find(p => p.side === 'party' && p.id === id && !p.removed);
+    if (!u) return;
+    u.dead = true; u.removed = true; u.hp = 0;
+    this.push({ t: 'death', uid: u.uid, permanent: true });
+  }
+  unlockFlag(flag) {
+    SBR.run.flags[flag] = true;
+    this.party().forEach(p => { p.abilities = SBR.game.memberAbilities(p.ref); });
+    this.push({ t: 'abilities' });
+  }
+  snapshot(key) { this.snaps[key] = this.units.map(u => ({ uid: u.uid, hp: u.hp, dead: u.dead })); }
+  rewind(key) {
+    const s = this.snaps[key];
+    if (!s) return;
+    this.push({ t: 'rewind' });
+    s.forEach(r => { const u = this.unit(r.uid); if (u && !u.dead && !r.dead) { u.hp = Math.max(1, Math.min(u.maxHp, r.hp)); this.push({ t: 'setHp', uid: u.uid, hp: u.hp }); } });
+    this.log('MANDOM — six seconds rewind. Only Ringo remembers.', 'boss');
+  }
+  timeStop(n) {
+    const u = this.alive('enemy').find(e => e.id === 'diego_world');
+    if (!u) return;
+    this.push({ t: 'timestop', on: true });
+    for (let i = 0; i < n && !this.result; i++) this.enemyAct(u, true);
+    this.push({ t: 'timestop', on: false });
+  }
+
+  /* ---------- ability context ---------- */
+  ctx(user, target, ability = null, lvl = 1) {
+    const c = this;
+    return {
+      c, user, target, lvl, round: c.round,
+      get enemies() { return c.foes(user); },
+      get allies() { return c.friends(user); },
+      dmg: (t, base, scale, o = {}) => c.damage(user, t, base, scale, o, ability),
+      heal: (t, base, scale) => c.heal(user, t, base, scale),
+      status: (t, id, stacks = 0, turns = 0) => c.addStatus(t, id, stacks, turns),
+      removeStatus: (t, id) => c.removeStatus(t, id),
+      cleanse: (t, n) => c.cleanse(t, n),
+      stacks: (t, id) => c.stacks(t, id),
+      has: (t, id) => c.has(t, id),
+      roll: p => Math.random() < p,
+      energy: (t, n) => { if (t) { t.energy = Math.min(t.maxEnergy, t.energy + n); c.push({ t: 'float', uid: t.uid, text: `+${n} ENERGY`, cls: 'energy' }); } },
+      log: text => c.log(text),
+      say: (u, text) => u && c.push({ t: 'say', uid: u.uid, text }),
+      summon: id => c.summon(id),
+      kill: u => c.kill(u),
+      killAlly: id => c.killAlly(id),
+      revive: (t, pct) => c.revive(t, pct),
+      randomEnemy: () => SBR.util.pick(c.foes(user)),
+      money: n => { c.loot.money += n; },
+      achieve: id => SBR.game.achieve(id),
+      flag: k => c.flags[k],
+      setFlag: k => { c.flags[k] = true; },
+      unlockFlag: f => c.unlockFlag(f),
+      dialogue: id => c.push({ t: 'dialogue', id }),
+      snapshot: k => c.snapshot(k),
+      getSnapshot: k => c.snaps[k],
+      rewind: k => c.rewind(k),
+      timeStop: n => c.timeStop(n),
+      extraAction: () => { if (!c.result && !user.dead) { c.push({ t: 'float', uid: user.uid, text: 'EXTRA ACTION', cls: 'debuff big' }); c.enemyAct(user, true); } },
+      count: id => c.alive(user.side === 'party' ? 'enemy' : 'party').filter(t => c.has(t, id)).length,
+    };
+  }
+};
