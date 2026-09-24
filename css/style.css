@@ -866,3 +866,27 @@ svg.gi { width: 100%; height: 100%; display: block; overflow: visible; }
 @keyframes hazardIn { 0% { opacity: 0; transform: translateX(-50%) scale(1.6) rotate(-6deg); } 12% { opacity: 1; transform: translateX(-50%) scale(1) rotate(-2deg); } 80% { opacity: 1; } 100% { opacity: 0; } }
 .sprint-ring.blinded svg { filter: blur(6px) brightness(.5); }
 .sprint-ring.blinded::after { content: ''; position: absolute; inset: 10%; border-radius: 50%; background: radial-gradient(circle, #f09ac0 30%, #c8407a 70%); opacity: .85; }
+
+/* ---------- damage types ---------- */
+.float.dmg.dt { color: var(--dmgc, #fff); -webkit-text-stroke: 1.5px #1a1020; }
+.float.dmg.crit.dt { color: var(--gold); text-shadow: 0 0 12px var(--dmgc, transparent), 3px 3px 0 #1a1020; }
+.float.eff { font-family: 'Bangers', Impact, sans-serif; font-size: 16px; letter-spacing: .06em; margin-top: -34px; }
+.float.eff.big { font-size: 24px; }
+.float.eff.weak { color: #ff7a4a; text-shadow: 2px 2px 0 #1a1020; }
+.float.eff.resist { color: #9fb8d0; text-shadow: 2px 2px 0 #1a1020; }
+.res-chip { display: inline-flex; align-items: center; gap: 3px; padding: 1px 6px 1px 2px; margin: 2px 3px 0 0; border-radius: 10px; font-size: 11px; font-weight: 700; border: 1px solid var(--dc); background: color-mix(in srgb, var(--dc) 18%, transparent); white-space: nowrap; }
+.res-chip .gi { width: 16px; height: 16px; }
+.res-chip.good { color: #17663a; } .res-chip.bad { color: #a8281a; }
+.tip-res { display: flex; flex-wrap: wrap; }
+.tip-dt { font-size: 12px; opacity: .9; }
+.tag.dtag { display: inline-flex; align-items: center; gap: 3px; border-color: var(--dc); color: var(--dc); }
+.tag.dtag .gi { width: 14px; height: 14px; }
+
+/* ---------- six gear slots ---------- */
+.eq-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.eq-slot { padding: 5px 4px; gap: 2px; position: relative; min-width: 0; }
+.eq-slot svg, .eq-empty { width: 36px; height: 36px; }
+.eq-empty svg { width: 36px; height: 36px; }
+.eq-name { font-size: 11px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.eq-slot.suppressed { opacity: .55; filter: grayscale(.7); }
+.eq-off { position: absolute; top: 3px; right: 3px; font-size: 8px; font-weight: 700; letter-spacing: .08em; background: var(--red, #c8323c); color: #fff; padding: 1px 3px; }

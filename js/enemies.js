@@ -348,3 +348,48 @@ SBR.FIGHTS = {
   5: [['vguard', 'vguard'], ['vguard', 'parallel', 'parallel'], ['vguard', 'agent', 'agent']],
   6: [['nypd', 'nypd'], ['worldraptor', 'worldraptor', 'nypd']],
 };
+
+/* Damage types and resistances. dtype = what a unit's generic attacks deal (guns are always Gunshot).
+ * res: -0.3 = takes 30% less, +0.5 = takes 50% more, -1 = immune. */
+(() => {
+  const T = {
+    rattlesnake: { dtype: 'bleed', res: { cold: 0.4 } },
+    coyote: { res: { cold: -0.2, sound: 0.25 } },
+    cactus: { res: { bullet: -0.5, phys: 0.3, cold: 0.3 } },
+    robinson: { dtype: 'stand', res: { stand: -0.2, sound: 0.3 } },
+    benjamin: { dtype: 'stand', res: { bullet: -0.25, spin: 0.2 } }, andre: { res: { bullet: -0.15 } }, laboom: { res: { phys: -0.1 } },
+    cougar: { dtype: 'bleed', res: { cold: -0.2 } },
+    agent: { res: { bullet: -0.1 } },
+    raptor: { dtype: 'bleed', res: { phys: -0.2, cold: 0.3, holy: 0.3 } },
+    stroheim: { res: { bullet: -0.3, phys: -0.3, spin: 0.3, holy: 0.2 } },
+    porkpie: { dtype: 'stand', res: { phys: -0.2, bullet: 0.2 } },
+    oyecomova: { dtype: 'stand', res: { phys: 0.15, stand: -0.2, bullet: -0.1 } },
+    diego_rival: { dtype: 'bleed', res: { phys: -0.25, cold: 0.35, holy: 0.3 } },
+    ferdinand: { dtype: 'stand', res: { phys: -0.2, stand: -0.15, cold: 0.4 } },
+    grizzly: { dtype: 'bleed', res: { phys: -0.15, cold: -0.3, bullet: 0.1 } },
+    crow: { res: { bullet: 0.4, cold: 0.2 } },
+    wolf: { dtype: 'bleed', res: { cold: -0.6, holy: 0.1 } },
+    hotpants_foe: { dtype: 'stand', res: { bleed: -0.4, holy: -0.2, cold: 0.2 } },
+    ringo: { res: { bullet: -0.3, stand: -0.1, spin: 0.25 } },
+    blackmore: { dtype: 'cold', res: { cold: -1, bullet: -0.3, spin: 0.3 } },
+    sandman: { dtype: 'sound', res: { sound: -1, phys: -0.2, bullet: 0.15 } },
+    soundstone: { dtype: 'sound', res: { sound: -1, phys: -0.4, spin: 0.4 } },
+    tattoo: { res: { stand: -0.2, spin: 0.2 } },
+    casino_thug: { res: { phys: -0.15, bullet: 0.15 } },
+    magent: { dtype: 'stand', res: { phys: -0.4, bullet: -0.4, cold: 0.4, sound: 0.3 } },
+    wekapipo_foe: { dtype: 'spin', res: { spin: -0.3, bullet: 0.1, stand: 0.1 } },
+    ghost: { dtype: 'stand', res: { phys: -0.6, bullet: -0.6, holy: 0.5, spin: 0.2 } },
+    axl: { dtype: 'stand', res: { stand: -0.2, holy: 0.4, bleed: -0.2 } },
+    vguard: { res: { bullet: -0.15, phys: -0.1 } },
+    parallel: { dtype: 'stand', res: { holy: -0.3 } },
+    disco: { dtype: 'stand', res: { stand: -0.3, bullet: 0.2, sound: 0.2 } },
+    balloon: { res: { bullet: 0.5, phys: 0.3, sound: -0.4 } },
+    mikeo: { dtype: 'stand', res: { phys: -0.2, bullet: 0.25 } },
+    valentine1: { dtype: 'stand', res: { stand: -0.3, bullet: -0.2, spin: 0.25 } },
+    lovetrain: { dtype: 'holy', res: { holy: -1, stand: -0.4, spin: 0.3 } },
+    nypd: { res: { bullet: -0.1 } },
+    worldraptor: { dtype: 'bleed', res: { phys: -0.2, cold: 0.3, holy: 0.3 } },
+    diego_world: { dtype: 'stand', res: { phys: -0.2, stand: -0.2, cold: 0.25, spin: 0.2 } },
+  };
+  for (const [id, o] of Object.entries(T)) if (SBR.ENEMIES[id]) Object.assign(SBR.ENEMIES[id], o);
+})();

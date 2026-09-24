@@ -10,6 +10,39 @@ SBR.STATS = {
   luck:  { name: 'LUCK',    short: 'LCK', color: '#f2c14e', desc: 'Fortune favours you. Crit chance, crit damage, better loot and dice rolls.' },
 };
 
+/* ---------------- Damage types ----------------
+ * Every hit has a type. Units carry resistances as fractions: -0.3 = takes 30% less, +0.5 = takes 50% more, -1 = immune.
+ * Resistances on one unit add together; attacker bonuses (spinDmg, bulletDmg...) multiply on top. */
+SBR.DMG = {
+  phys:   { name: 'Physical', short: 'PHY', color: '#d8c8a8', desc: 'Fists, hooves, claws and blades.' },
+  bullet: { name: 'Gunshot',  short: 'GUN', color: '#e8742a', desc: 'Bullets, nails and anything fired.' },
+  spin:   { name: 'Spin',     short: 'SPN', color: '#3fb8a9', desc: 'The Zeppeli rotation. Pierces what should not be pierced.' },
+  stand:  { name: 'Stand',    short: 'STD', color: '#b070e0', desc: "A Stand's own power." },
+  bleed:  { name: 'Bleed',    short: 'BLD', color: '#c8323c', desc: 'Open wounds and lost blood.' },
+  cold:   { name: 'Cold',     short: 'CLD', color: '#9fd0f0', desc: 'Frozen rain, snowstorms, the northern winter.' },
+  sound:  { name: 'Sound',    short: 'SND', color: '#e8508a', desc: 'Onomatopoeia made real. In a Silent Way.' },
+  holy:   { name: 'Holy',     short: 'HLY', color: '#ffd84a', desc: "The Saint's Corpse. Misfortune and blessing." },
+  true:   { name: 'True',     short: 'TRU', color: '#f6ecd8', desc: 'Ignores every resistance.' },
+};
+
+/** damage type a party ability deals (for tooltips); combat resolves the same way */
+SBR.abilityDtype = a => {
+  if (!a) return null;
+  if (a.dtype) return a.dtype;
+  const t = a.tags || [];
+  if (t.includes('heal') || ['buff', 'heal', 'debuff', 'scan'].includes(a.fx) && !a.base) return null;
+  if (t.includes('spin')) return 'spin';
+  if (t.includes('gun')) return 'bullet';
+  if (t.includes('stand')) return 'stand';
+  return 'phys';
+};
+/** HTML chips for a resistance map: "-30% Cold" etc. */
+SBR.resChips = res => Object.entries(res || {}).filter(([, v]) => v).sort((a, b) => a[1] - b[1]).map(([k, v]) => {
+  const d = SBR.DMG[k]; if (!d) return '';
+  const txt = v <= -1 ? 'IMMUNE' : (v > 0 ? '+' : '') + Math.round(v * 100) + '%';
+  return `<span class="res-chip ${v < 0 ? 'good' : 'bad'}" style="--dc:${d.color}">${SBR.icons.dmg(k)}${d.short} ${txt}</span>`;
+}).join('');
+
 /* ---------------- Status effects ---------------- */
 SBR.STATUS = {
   bleed:     { name: 'Bleed', glyph: '滴', color: '#c8323c', kind: 'debuff', mode: 'stacks', max: 20, desc: s => `Takes ${2 * s} damage at turn start. Loses 1 stack per turn.`, tick: 'bleed' },
@@ -29,7 +62,10 @@ SBR.STATUS = {
   raptor:    { name: 'Dinosaurified', glyph: '恐', color: '#4a8a3a', kind: 'debuff', mode: 'turns', desc: () => 'Mind of a raptor: can only use basic attacks, at random targets. +20% damage.', mods: { dmgOut: 1.2 } },
   primed:    { name: 'Bomb Pin', glyph: '爆', color: '#c8323c', kind: 'debuff', mode: 'turns', desc: s => `A pin has been pressed into the body. Explodes when the timer hits 0 (18 dmg). Brace to pull it out.`, tick: 'primed' },
   magnet:    { name: 'Magnetized', glyph: '磁', color: '#6a7a9a', kind: 'debuff', mode: 'turns', desc: () => 'Iron in the blood. 40% of damage taken is also dealt to other magnetized allies.' },
-  soaked:    { name: 'Soaked', glyph: '雨', color: '#6a8ad0', kind: 'debuff', mode: 'turns', desc: () => 'Raindrops cling to the body. Takes 25% more damage and -10% dodge.', mods: { dmgIn: 1.25, dodge: -0.1 } },
+  soaked:    { name: 'Soaked', glyph: '雨', color: '#6a8ad0', kind: 'debuff', mode: 'turns', desc: () => 'Raindrops cling to the body. +30% Cold damage taken, +10% Physical, -10% dodge.', mods: { dodge: -0.1 }, res: { cold: 0.3, phys: 0.1 } },
+  chilled:   { name: 'Chilled', glyph: '凍', color: '#9fd0f0', kind: 'debuff', mode: 'turns', desc: () => 'Frost in the joints. +20% Cold and +10% Physical damage taken, -5% dodge.', mods: { dodge: -0.05 }, res: { cold: 0.2, phys: 0.1 } },
+  armored:   { name: 'Braced Leather', glyph: '鎧', color: '#a08a6a', kind: 'buff', mode: 'turns', desc: () => '-20% Physical and -20% Gunshot damage taken.', res: { phys: -0.2, bullet: -0.2 } },
+  sanctified:{ name: 'Sanctified', glyph: '聖', color: '#ffe89a', kind: 'buff', mode: 'turns', desc: () => 'The Saint watches over this body. -25% Stand and -25% Bleed damage taken.', res: { stand: -0.25, bleed: -0.25 } },
   sound:     { name: 'Sound Stamp', glyph: '音', color: '#e8508a', kind: 'debuff', mode: 'stacks', max: 6, desc: s => `Silent Way onomatopoeia. When this unit acts, it takes ${6 * s} damage and the stamp is removed.` },
   leftblind: { name: 'Left-Side Blind', glyph: '左', color: '#4a5a8a', kind: 'debuff', mode: 'turns', desc: () => 'Cannot perceive the left. 35% chance for actions to fail. -15% dodge.', mods: { dodge: -0.15 } },
   guilt:     { name: 'Guilt', glyph: '罪', color: '#8a1a2a', kind: 'debuff', mode: 'stacks', max: 15, desc: s => `Buried sins resurface: ${2 * s} damage at turn start, grows by 1 each turn.`, tick: 'guilt' },
@@ -211,17 +247,17 @@ SBR.CHARS = {
 
 /* ---------------- Horses (your "race") ---------------- */
 SBR.HORSES = {
-  slowdancer: { name: 'Slow Dancer', breed: 'Appaloosa-cross Mare', coat: '#7a4a2a', mane: '#e8e0d0', wrap: '#8a5ad0', speed: 6, stamina: 7,
+  slowdancer: { name: 'Slow Dancer', breed: 'Appaloosa-cross Mare', coat: '#7a4a2a', mane: '#e8e0d0', wrap: '#8a5ad0', res: { bleed: -0.2 }, speed: 6, stamina: 7,
     desc: 'Johnny\'s steady partner. Calm under fire.', bonus: { dodge: 0.05, ride: 2 }, perk: 'Steady Gait: +5% dodge for Johnny, +2 RIDING.' },
-  mustang: { name: 'Dust Devil', breed: 'Wild Mustang', coat: '#b8703a', mane: '#3a1a10', wrap: '#c8323c', speed: 8, stamina: 4,
+  mustang: { name: 'Dust Devil', breed: 'Wild Mustang', coat: '#b8703a', mane: '#3a1a10', wrap: '#c8323c', res: { phys: 0.1, bullet: -0.15 }, speed: 8, stamina: 4,
     desc: 'Caught in the badlands. Fast and headstrong.', bonus: { init: 3, sprint: 0.1 }, perk: 'Wild Start: +3 initiative for the party. Faster sprints.' },
-  ironhoof: { name: 'Iron Hoof', breed: 'Percheron Draft', coat: '#4a4a52', mane: '#1a1020', wrap: '#f2c14e', speed: 4, stamina: 10,
+  ironhoof: { name: 'Iron Hoof', breed: 'Percheron Draft', coat: '#4a4a52', mane: '#1a1020', wrap: '#f2c14e', res: { phys: -0.15, spin: 0.1 }, speed: 4, stamina: 10,
     desc: 'A plough horse who refused to quit.', bonus: { maxHp: 12, block: 0.05 }, perk: 'Plough Strength: Johnny +12 max HP, +5% block for the party.', unlock: 'Clear Act I.' },
-  desertrose: { name: 'Desert Rose', breed: 'Arabian Mare', coat: '#e8d8c0', mane: '#b8a080', wrap: '#3fb8a9', speed: 7, stamina: 6,
+  desertrose: { name: 'Desert Rose', breed: 'Arabian Mare', coat: '#e8d8c0', mane: '#b8a080', wrap: '#3fb8a9', res: { cold: 0.2, holy: -0.15, sound: -0.1 }, speed: 7, stamina: 6,
     desc: 'Graceful and tireless in heat.', bonus: { energyChance: 0.12 }, perk: 'Tireless: +12% chance for bonus Energy each turn, for everyone.', unlock: 'Reach Act III.' },
-  silverbullet: { name: 'Silver Bullet', breed: 'Thoroughbred Stallion', coat: '#c8c8d0', mane: '#f6ecd8', wrap: '#1f2a6a', speed: 9, stamina: 5,
+  silverbullet: { name: 'Silver Bullet', breed: 'Thoroughbred Stallion', coat: '#c8c8d0', mane: '#f6ecd8', wrap: '#1f2a6a', res: { bullet: -0.2, stand: 0.1 }, speed: 9, stamina: 5,
     desc: 'The finest horse money can buy — Diego\'s own bloodline.', bonus: { firstCrit: true, init: 2, sprint: 0.15 }, perk: 'Thoroughbred: first attack of each battle always crits. +2 initiative.', unlock: 'Defeat Diego in a rival encounter.' },
-  steppe: { name: 'Khan', breed: 'Mongolian Steppe Pony', coat: '#8a6a4a', mane: '#2a1a10', wrap: '#e8742a', spots: '#6a4a2a', speed: 6, stamina: 9,
+  steppe: { name: 'Khan', breed: 'Mongolian Steppe Pony', coat: '#8a6a4a', mane: '#2a1a10', wrap: '#e8742a', spots: '#6a4a2a', res: { cold: -0.3, phys: -0.05 }, speed: 6, stamina: 9,
     desc: 'Crossed the steppes with Dot Han\'s clan.', bonus: { regen: 2, pace: 10 }, perk: 'Endurance: party heals 2 HP each turn. +10 pace every act.', unlock: 'Finish a full race.' },
 };
 
@@ -328,6 +364,14 @@ SBR.ACHIEVEMENTS = {
   wipe:        { name: 'The Journey Is the Shortest Path', desc: 'Lose a run.', rp: 5 },
 };
 
+/* Innate resistances of a party member: their horse (the race in AAC terms) plus their Path */
+SBR.memberRes = m => {
+  const r = Object.assign({}, (SBR.HORSES[SBR.run.horse] || {}).res);
+  const p = SBR.pathOf && SBR.pathOf(m);
+  if (p && p.res) for (const k in p.res) r[k] = (r[k] || 0) + p.res[k];
+  return r;
+};
+
 /* Aggregated passive bonuses from horse, relics and equipped techniques */
 SBR.bonus = () => {
   const b = {};
@@ -336,6 +380,7 @@ SBR.bonus = () => {
     for (const [k, v] of Object.entries(src)) {
       if (typeof v === 'number') b[k] = (b[k] || 0) + v;
       else if (Array.isArray(v)) b[k] = (b[k] || []).concat(v);
+      else if (v && typeof v === 'object') { const o = b[k] = Object.assign({}, b[k]); for (const t in v) o[t] = (o[t] || 0) + v[t]; }
       else b[k] = v;
     }
   };

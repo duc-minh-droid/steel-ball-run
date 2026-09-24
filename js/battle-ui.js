@@ -57,7 +57,10 @@ SBR.battle = (() => {
     const lines = [`<b>${u.fullName || u.name}</b>${u.def && u.def.title ? ` — <i>${u.def.title}</i>` : ''}`];
     lines.push(`HP ${u.hp}/${u.maxHp}`);
     lines.push(`Dodge ${Math.round(c.dodgeChance(u) * 100)}% · Block ${Math.round(c.blockChance(u) * 100)}% · Crit ${Math.round(c.critChance(u) * 100)}%`);
-    if (u.def && u.def.passive) lines.push(`<span class="tip-passive">${u.def.passive}</span>`);
+    const rc = SBR.resChips(c.resOf(u));
+    if (rc) lines.push(`<span class="tip-res">${rc}</span>`);
+    if (u.side === 'enemy' && u.def.dtype) lines.push(`<span class="tip-dt">Attacks deal <b style="color:${SBR.DMG[u.def.dtype].color}">${SBR.DMG[u.def.dtype].name}</b></span>`);
+    if (u.side === 'enemy' && u.def.passive) lines.push(`<span class="tip-passive">${u.def.passive}</span>`);
     if (u.side === 'party' && u.def.passive) lines.push(`<span class="tip-passive">${u.def.passive.name}: ${u.def.passive.desc}</span>`);
     return lines.join('<br>');
   }
@@ -245,11 +248,14 @@ SBR.battle = (() => {
         setHp(u, e.hp);
         const card = cards[e.uid];
         if (e.amount > 0 || e.absorbed) {
+          const dcol = e.dtype && SBR.DMG[e.dtype] ? SBR.DMG[e.dtype].color : null;
+          if (dcol && card) card.style.setProperty('--dmgc', dcol);
+          if (e.eff !== undefined && e.eff !== null && e.eff !== 1 && e.dtype !== 'true') floatText(e.uid, e.eff >= 1.2 ? 'WEAK!' : e.eff > 1 ? 'weak' : e.eff <= 0.6 ? 'RESIST' : 'resist', 'eff ' + (e.eff > 1 ? 'weak' : 'resist') + (e.eff >= 1.2 || e.eff <= 0.6 ? ' big' : ''));
           if (card) { card.classList.remove('hit'); void card.offsetWidth; card.classList.add('hit'); }
           if (e.label) SBR.fx.dot(e.label, center(e.uid)); else SBR.fx.impact(center(e.uid), e.crit, e.blocked);
-          if (e.crit) { floatText(e.uid, e.amount, 'dmg crit'); floatText(e.uid, 'CRITICAL!', 'critword'); SBR.audio.play('crit'); ui.shake(undefined, true); }
+          if (e.crit) { floatText(e.uid, e.amount, 'dmg crit' + (e.dtype ? ' dt' : '')); floatText(e.uid, 'CRITICAL!', 'critword'); SBR.audio.play('crit'); ui.shake(undefined, true); }
           else if (e.blocked) { floatText(e.uid, e.amount, 'dmg blocked'); floatText(e.uid, 'BLOCK', 'block'); SBR.audio.play('block'); }
-          else { floatText(e.uid, e.amount, 'dmg' + (e.label ? ' dot' : '')); SBR.audio.play('hit'); if (u && u.side === 'party') ui.shake(); }
+          else { floatText(e.uid, e.amount, 'dmg' + (e.label ? ' dot' : '') + (e.dtype ? ' dt' : '')); SBR.audio.play('hit'); if (u && u.side === 'party') ui.shake(); }
           if (e.absorbed) floatText(e.uid, `(${e.absorbed} shielded)`, 'block');
           if (e.label && !['BLEED', 'HOLE', 'GUILT', '∞'].includes(e.label)) floatText(e.uid, e.label, 'label');
           else if (e.label) floatText(e.uid, e.label, 'label small');

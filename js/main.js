@@ -7,7 +7,7 @@ SBR.game = (() => {
   /* ---------- members ---------- */
   function makeMember(id, level = 1) {
     const c = SBR.CHARS[id];
-    const m = { id, equip: { weapon: null, gear: null, charm: null }, level: 1, xp: 0, stats: Object.assign({}, c.stats), maxHp: c.hp + c.stats.grit * 2, hp: 0, points: 0, exhaustion: 0, upgrades: {} };
+    const m = { id, equip: SBR.emptyEquip(), level: 1, xp: 0, stats: Object.assign({}, c.stats), maxHp: c.hp + c.stats.grit * 2, hp: 0, points: 0, exhaustion: 0, upgrades: {} };
     const b = SBR.bonus();
     m.maxHp += b.maxHp || 0;
     if (id === 'johnny') { m.maxHp += SBR.HORSES[SBR.run.horse].bonus.maxHp || 0; if (b.johnnyAll) m.maxHp += 20; }
@@ -195,7 +195,7 @@ SBR.game = (() => {
     SBR.run.party.push(makeMember('johnny'));
     G.relic(starter);
     const si = SBR.run.gear.indexOf(starter);
-    if (si >= 0) equip(SBR.run.party[0], SBR.EQUIPMENT[starter].slot, si);
+    if (si >= 0) equip(SBR.run.party[0], freeSlot(SBR.run.party[0], SBR.EQUIPMENT[starter].slot), si);
     SBR.meta.stats.runs++;
     SBR.saveMeta();
   }
@@ -503,6 +503,11 @@ SBR.game = (() => {
     r.crafted = (r.crafted || []).concat(en.id);
     SBR.saveRun();
   }
+  /** first slot on a member that takes this item type (an empty one if possible) */
+  function freeSlot(m, type) {
+    const ok = SBR.SLOTS.filter(s => s.type === type);
+    return (ok.find(s => !m.equip[s.key]) || ok[0]).key;
+  }
   function equip(m, slot, gearIdx) {
     const r = SBR.run;
     const id = r.gear[gearIdx];
@@ -636,7 +641,7 @@ SBR.game = (() => {
     if (!r || !r.act) { SBR.clearRun(); return titleScreen(); }
     r.mats = r.mats || {}; r.gear = r.gear || [];
     (r.relics || []).forEach(id => G.relic(id)); delete r.relics;
-    r.party.concat(r.reserve).forEach(m => { m.equip = m.equip || { weapon: null, gear: null, charm: null }; });
+    r.party.concat(r.reserve).forEach(m => SBR.migrateEquip(m));
     const act = SBR.ACTS[r.act];
     if (r.stage > act.stages) return actFinish();
     showStage();
@@ -821,7 +826,7 @@ SBR.game = (() => {
   });
 
   const _debug = { newRun, startAct, fight, bossStage, playScene, showStage, actFinish };
-  return { canCraft, craft, equip, unequip, _debug, makeMember, memberAbilities, xpToNext, autoAssign, beltSize, achieve, standings, playerRank, G, bestFor, checkMod, fieldUseItem, toTitle, titleScreen, lobbyScreen };
+  return { canCraft, craft, equip, unequip, freeSlot, _debug, makeMember, memberAbilities, xpToNext, autoAssign, beltSize, achieve, standings, playerRank, G, bestFor, checkMod, fieldUseItem, toTitle, titleScreen, lobbyScreen };
 })();
 
 /* boot */

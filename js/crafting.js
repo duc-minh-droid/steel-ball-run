@@ -82,38 +82,59 @@ SBR.EQUIPMENT = {
   sound_spear:    { slot: 'weapon', name: 'Silent Way Spear', rarity: 'remnant', stats: { aim: 6, ride: 5 }, bonus: {}, ability: 'sound_stamp', recipe: { leather: 2, feather: 2 }, remnant: 'rem_sandman' },
   wrecking_core:  { slot: 'weapon', name: 'Wrecking Core', rarity: 'remnant', stats: { spin: 8, grit: 3 }, bonus: { spinDmg: 0.15 }, ability: 'satellites', recipe: { scrap: 3, ballfrag: 2 }, remnant: 'rem_weka' },
   tubular_needle: { slot: 'weapon', name: 'Tubular Needle', rarity: 'remnant', stats: { aim: 7 }, bonus: { crit: 0.05 }, ability: 'balloon_needle', recipe: { wire: 2, silver: 1 }, remnant: 'rem_mikeo' },
-  // ---- gear (clothing / armour)
-  duster:         { slot: 'gear', name: 'Canvas Duster', rarity: 'common', stats: { grit: 2 }, bonus: { maxHp: 8 }, recipe: { cloth: 3, leather: 1 }, price: 40 },
-  chaps:          { slot: 'gear', name: 'Leather Chaps', rarity: 'common', stats: { ride: 3 }, bonus: { dodge: 0.04 }, recipe: { leather: 3 }, price: 40 },
-  poncho:         { slot: 'gear', name: 'Wool Poncho', rarity: 'common', stats: { res: 3 }, bonus: { maxHp: 6 }, recipe: { cloth: 2, pelt: 1 }, price: 40 },
-  pelt_coat:      { slot: 'gear', name: 'Coyote Pelt Coat', rarity: 'uncommon', stats: { grit: 4 }, bonus: { maxHp: 12 }, recipe: { pelt: 3, leather: 2 }, price: 70 },
-  scale_vest:     { slot: 'gear', name: 'Dino-Scale Vest', rarity: 'uncommon', stats: { grit: 5 }, bonus: { block: 0.08 }, recipe: { scale: 4, leather: 2 }, price: 85 },
-  silks:          { slot: 'gear', name: 'Racing Silks', rarity: 'uncommon', stats: { ride: 5 }, bonus: { init: 3, dodge: 0.06 }, recipe: { cloth: 3, horsehair: 2, silver: 1 }, price: 90 },
-  plated_vest:    { slot: 'gear', name: 'Iron-Plated Vest', rarity: 'uncommon', stats: { grit: 6 }, bonus: { block: 0.1, dodge: -0.03 }, recipe: { scrap: 5, leather: 2 }, price: 90 },
-  wolf_cloak:     { slot: 'gear', name: 'Wolf Fur Cloak', rarity: 'rare', stats: { grit: 6, res: 2 }, bonus: { maxHp: 18 }, recipe: { wolfpelt: 3, cloth: 2 }, price: 120 },
-  bear_mantle:    { slot: 'gear', name: 'Grizzly Mantle', rarity: 'rare', stats: { grit: 8 }, bonus: { block: 0.1, maxHp: 10 }, recipe: { claw: 2, wolfpelt: 2, leather: 1 }, price: 130 },
-  century_plate:  { slot: 'gear', name: '20th Century Plate', rarity: 'remnant', stats: { grit: 7 }, bonus: { block: 0.08 }, ability: 'kneel', recipe: { scrap: 4 }, remnant: 'rem_magent' },
+  // ---- clothing: hats, coats, boots
+  duster:         { slot: 'coat', name: 'Canvas Duster', rarity: 'common', stats: { grit: 2 }, bonus: { maxHp: 8 }, recipe: { cloth: 3, leather: 1 }, price: 40 },
+  chaps:          { slot: 'boots', name: 'Leather Chaps', rarity: 'common', stats: { ride: 3 }, bonus: { dodge: 0.04 }, recipe: { leather: 3 }, price: 40 },
+  poncho:         { slot: 'coat', name: 'Wool Poncho', rarity: 'common', stats: { res: 3 }, bonus: { maxHp: 6 }, recipe: { cloth: 2, pelt: 1 }, price: 40 },
+  pelt_coat:      { slot: 'coat', name: 'Coyote Pelt Coat', rarity: 'uncommon', stats: { grit: 4 }, bonus: { maxHp: 12 }, recipe: { pelt: 3, leather: 2 }, price: 70 },
+  scale_vest:     { slot: 'coat', name: 'Dino-Scale Vest', rarity: 'uncommon', stats: { grit: 5 }, bonus: { block: 0.08 }, recipe: { scale: 4, leather: 2 }, price: 85 },
+  silks:          { slot: 'coat', name: 'Racing Silks', rarity: 'uncommon', stats: { ride: 5 }, bonus: { init: 3, dodge: 0.06 }, recipe: { cloth: 3, horsehair: 2, silver: 1 }, price: 90 },
+  plated_vest:    { slot: 'coat', name: 'Iron-Plated Vest', rarity: 'uncommon', stats: { grit: 6 }, bonus: { block: 0.1, dodge: -0.03 }, recipe: { scrap: 5, leather: 2 }, price: 90 },
+  wolf_cloak:     { slot: 'coat', name: 'Wolf Fur Cloak', rarity: 'rare', stats: { grit: 6, res: 2 }, bonus: { maxHp: 18 }, recipe: { wolfpelt: 3, cloth: 2 }, price: 120 },
+  bear_mantle:    { slot: 'coat', name: 'Grizzly Mantle', rarity: 'rare', stats: { grit: 8 }, bonus: { block: 0.1, maxHp: 10 }, recipe: { claw: 2, wolfpelt: 2, leather: 1 }, price: 130 },
+  century_plate:  { slot: 'coat', name: '20th Century Plate', rarity: 'remnant', stats: { grit: 7 }, bonus: { block: 0.08 }, ability: 'kneel', recipe: { scrap: 4 }, remnant: 'rem_magent' },
   // ---- charms
-  silver_dollar:  { slot: 'charm', name: 'Silver Dollar', rarity: 'common', stats: { luck: 4 }, bonus: {}, recipe: { silver: 2 }, price: 45 },
-  eagle_feather:  { slot: 'charm', name: 'Eagle Feather', rarity: 'common', stats: { ride: 3 }, bonus: { dodge: 0.05 }, recipe: { feather: 2, horsehair: 1 }, price: 50 },
-  sage_bundle:    { slot: 'charm', name: 'Sage Bundle', rarity: 'common', stats: { res: 4 }, bonus: { regen: 1 }, recipe: { herb: 3 }, price: 45 },
-  telegraph_coil: { slot: 'charm', name: 'Telegraph Coil', rarity: 'uncommon', stats: { res: 2 }, bonus: { energyStart: 1 }, recipe: { wire: 3, scrap: 1 }, price: 80 },
-  gold_ring:      { slot: 'charm', name: 'Gold Ring', rarity: 'rare', stats: { luck: 3 }, bonus: { crit: 0.06, critDmg: 0.1 }, recipe: { gold: 2 }, price: 110 },
-  sap_amulet:     { slot: 'charm', name: 'Golden Sap Amulet', rarity: 'rare', stats: { spin: 2, aim: 2, grit: 2, ride: 2, res: 2, luck: 2 }, bonus: {}, recipe: { sap: 2, gold: 1 }, price: 140 },
-  menger_cube:    { slot: 'charm', name: 'Menger Cube', rarity: 'rare', stats: {}, bonus: { dmg: 0.12 }, recipe: { menger: 3, silver: 1 }, price: 130 },
-  medal:          { slot: 'charm', name: 'Prussian Medal', rarity: 'remnant', stats: { grit: 4 }, bonus: { block: 0.06 }, recipe: { cloth: 1 }, remnant: 'rem_stroheim' },
-  dio_tooth:      { slot: 'charm', name: 'Tooth of Dio', rarity: 'remnant', stats: { ride: 6 }, bonus: { dodge: 0.08, init: 2 }, recipe: { leather: 1, fang: 1 }, remnant: 'rem_diego' },
-  fossil_charm:   { slot: 'charm', name: 'Primal Fossil', rarity: 'remnant', stats: { ride: 3 }, bonus: { immune: ['fossil', 'raptor'] }, ability: 'primal_surge', recipe: { fossil: 2 }, remnant: 'rem_ferdinand' },
-  flesh_charm:    { slot: 'charm', name: 'Cream Starter Flesh', rarity: 'remnant', stats: { res: 5 }, bonus: { heal: 0.2, regen: 2 }, recipe: { herb: 2 }, remnant: 'rem_hotpants' },
-  mandom_watch:   { slot: 'charm', name: 'Mandom Watch', rarity: 'remnant', stats: { aim: 3 }, bonus: { selfRewind: 1 }, recipe: { silver: 1, scrap: 1 }, remnant: 'rem_ringo', note: 'Once per battle, when the wearer falls, time rewinds: back at 40% HP.' },
-  guilt_rosary:   { slot: 'charm', name: 'Civil War Rosary', rarity: 'remnant', stats: { res: 4 }, bonus: { immune: ['guilt'] }, ability: 'transfer_sin', recipe: { silver: 1 }, remnant: 'rem_axl' },
-  disco_tile:     { slot: 'charm', name: 'Disco Tile', rarity: 'remnant', stats: { aim: 4 }, bonus: { crit: 0.05 }, ability: 'grid_teleport', recipe: { scrap: 2 }, remnant: 'rem_disco' },
-  napkin:         { slot: 'charm', name: 'The First Napkin', rarity: 'remnant', stats: { grit: 3, luck: 3 }, bonus: { dmg: 0.15, dodge: 0.08 }, ability: 'first_napkin', recipe: { cloth: 2, gold: 1 }, remnant: 'rem_valentine' },
+  silver_dollar:  { slot: 'charm', family: 'coin', name: 'Silver Dollar', rarity: 'common', stats: { luck: 4 }, bonus: {}, recipe: { silver: 2 }, price: 45 },
+  eagle_feather:  { slot: 'charm', family: 'totem', name: 'Eagle Feather', rarity: 'common', stats: { ride: 3 }, bonus: { dodge: 0.05 }, recipe: { feather: 2, horsehair: 1 }, price: 50 },
+  sage_bundle:    { slot: 'charm', family: 'totem', name: 'Sage Bundle', rarity: 'common', stats: { res: 4 }, bonus: { regen: 1 }, recipe: { herb: 3 }, price: 45 },
+  telegraph_coil: { slot: 'charm', family: 'device', name: 'Telegraph Coil', rarity: 'uncommon', stats: { res: 2 }, bonus: { energyStart: 1 }, recipe: { wire: 3, scrap: 1 }, price: 80 },
+  gold_ring:      { slot: 'charm', family: 'coin', name: 'Gold Ring', rarity: 'rare', stats: { luck: 3 }, bonus: { crit: 0.06, critDmg: 0.1 }, recipe: { gold: 2 }, price: 110 },
+  sap_amulet:     { slot: 'charm', family: 'holy', name: 'Golden Sap Amulet', rarity: 'rare', stats: { spin: 2, aim: 2, grit: 2, ride: 2, res: 2, luck: 2 }, bonus: {}, recipe: { sap: 2, gold: 1 }, price: 140 },
+  menger_cube:    { slot: 'charm', family: 'device', name: 'Menger Cube', rarity: 'rare', stats: {}, bonus: { dmg: 0.12 }, recipe: { menger: 3, silver: 1 }, price: 130 },
+  medal:          { slot: 'charm', family: 'trophy', name: 'Prussian Medal', rarity: 'remnant', stats: { grit: 4 }, bonus: { block: 0.06 }, recipe: { cloth: 1 }, remnant: 'rem_stroheim' },
+  dio_tooth:      { slot: 'charm', family: 'trophy', name: 'Tooth of Dio', rarity: 'remnant', stats: { ride: 6 }, bonus: { dodge: 0.08, init: 2 }, recipe: { leather: 1, fang: 1 }, remnant: 'rem_diego' },
+  fossil_charm:   { slot: 'charm', family: 'totem', name: 'Primal Fossil', rarity: 'remnant', stats: { ride: 3 }, bonus: { immune: ['fossil', 'raptor'] }, ability: 'primal_surge', recipe: { fossil: 2 }, remnant: 'rem_ferdinand' },
+  flesh_charm:    { slot: 'charm', family: 'holy', name: 'Cream Starter Flesh', rarity: 'remnant', stats: { res: 5 }, bonus: { heal: 0.2, regen: 2 }, recipe: { herb: 2 }, remnant: 'rem_hotpants' },
+  mandom_watch:   { slot: 'charm', family: 'device', name: 'Mandom Watch', rarity: 'remnant', stats: { aim: 3 }, bonus: { selfRewind: 1 }, recipe: { silver: 1, scrap: 1 }, remnant: 'rem_ringo', note: 'Once per battle, when the wearer falls, time rewinds: back at 40% HP.' },
+  guilt_rosary:   { slot: 'charm', family: 'holy', name: 'Civil War Rosary', rarity: 'remnant', stats: { res: 4 }, bonus: { immune: ['guilt'] }, ability: 'transfer_sin', recipe: { silver: 1 }, remnant: 'rem_axl' },
+  disco_tile:     { slot: 'charm', family: 'trophy', name: 'Disco Tile', rarity: 'remnant', stats: { aim: 4 }, bonus: { crit: 0.05 }, ability: 'grid_teleport', recipe: { scrap: 2 }, remnant: 'rem_disco' },
+  napkin:         { slot: 'charm', family: 'trophy', name: 'The First Napkin', rarity: 'remnant', stats: { grit: 3, luck: 3 }, bonus: { dmg: 0.15, dodge: 0.08 }, ability: 'first_napkin', recipe: { cloth: 2, gold: 1 }, remnant: 'rem_valentine' },
+  // new clothing (resistances live here)
+  straw_hat:      { slot: 'hat', name: 'Straw Sombrero', rarity: 'common', stats: { res: 2 }, bonus: { dodge: 0.03, res: { cold: 0.1, holy: -0.1 } }, recipe: { cloth: 2, herb: 1 }, price: 35, note: 'Shade from the Arizona sun.' },
+  fur_cap:        { slot: 'hat', name: 'Trapper\'s Fur Cap', rarity: 'uncommon', stats: { grit: 2 }, bonus: { maxHp: 4, res: { cold: -0.25 } }, recipe: { pelt: 2, leather: 1 }, price: 60 },
+  sheriff_hat:    { slot: 'hat', name: 'Sheriff\'s Stetson', rarity: 'uncommon', stats: { aim: 3 }, bonus: { res: { bullet: -0.12 } }, recipe: { leather: 2, cloth: 1, silver: 1 }, price: 70 },
+  jockey_cap:     { slot: 'hat', name: 'Jockey\'s Helmet', rarity: 'uncommon', stats: { ride: 3 }, bonus: { init: 2, res: { phys: -0.1 } }, recipe: { leather: 2, horsehair: 2 }, price: 65 },
+  starred_cap:    { slot: 'hat', name: 'Starred Beanie', rarity: 'rare', stats: { luck: 3, aim: 2 }, bonus: { crit: 0.05, res: { stand: -0.1 } }, recipe: { cloth: 2, gold: 1 }, price: 110, note: 'Knitted with five-pointed stars. Someone else wears one just like it.' },
+  nun_veil:       { slot: 'hat', name: 'Sister\'s Veil', rarity: 'rare', stats: { res: 4 }, bonus: { heal: 0.1, res: { holy: -0.2, stand: -0.1 } }, recipe: { cloth: 3, silver: 1 }, price: 115 },
+  riding_boots:   { slot: 'boots', name: 'Riding Boots', rarity: 'common', stats: { ride: 2 }, bonus: { dodge: 0.03 }, recipe: { leather: 3 }, price: 35 },
+  snowshoes:      { slot: 'boots', name: 'Lakeland Snowshoes', rarity: 'uncommon', stats: { grit: 2 }, bonus: { dodge: 0.03, res: { cold: -0.2 } }, recipe: { wolfpelt: 1, leather: 2 }, price: 60 },
+  moccasins:      { slot: 'boots', name: 'Runner\'s Moccasins', rarity: 'uncommon', stats: { ride: 5 }, bonus: { dodge: 0.06, res: { sound: -0.2 } }, recipe: { leather: 2, feather: 1 }, price: 75, note: 'Sandman\'s people run in these. Silent on stone.' },
+  cavalry_boots:  { slot: 'boots', name: 'Cavalry Boots', rarity: 'rare', stats: { aim: 3, ride: 3 }, bonus: { bulletDmg: 0.08, res: { phys: -0.05 } }, recipe: { leather: 3, scrap: 2, silver: 1 }, price: 105 },
+  irontoe_boots:  { slot: 'boots', name: 'Iron-Toe Boots', rarity: 'rare', stats: { grit: 5 }, bonus: { block: 0.06, res: { phys: -0.1, bleed: -0.1 } }, recipe: { scrap: 4, leather: 2 }, price: 100 },
+  oilskin:        { slot: 'coat', name: 'Oilskin Slicker', rarity: 'uncommon', stats: { grit: 3 }, bonus: { immune: ['soaked'], res: { cold: -0.15 } }, recipe: { cloth: 2, leather: 2 }, price: 75, note: 'Blackmore\'s rain slides right off.' },
+  buffalo_coat:   { slot: 'coat', name: 'Buffalo Hide Coat', rarity: 'rare', stats: { grit: 5 }, bonus: { maxHp: 10, res: { cold: -0.25, bleed: -0.1 } }, recipe: { wolfpelt: 2, claw: 1, leather: 2 }, price: 125 },
+  cassock:        { slot: 'coat', name: 'Priest\'s Cassock', rarity: 'rare', stats: { res: 5 }, bonus: { regen: 1, res: { holy: -0.2, stand: -0.15 } }, recipe: { cloth: 4, gold: 1 }, price: 130 },
+  // new charms
+  powder_horn:    { slot: 'charm', family: 'ammo', name: 'Powder Horn', rarity: 'common', stats: { aim: 2 }, bonus: { bulletDmg: 0.08 }, recipe: { powder: 2, fang: 1 }, price: 45 },
+  silver_rounds:  { slot: 'charm', family: 'ammo', name: 'Silver Rounds', rarity: 'rare', stats: { aim: 2 }, bonus: { bulletDmg: 0.15, crit: 0.03 }, recipe: { silver: 2, powder: 2 }, price: 120 },
+  rattle_totem:   { slot: 'charm', family: 'totem', name: 'Rattle Totem', rarity: 'uncommon', stats: { ride: 2, res: 2 }, bonus: { res: { sound: -0.2, bleed: -0.1 } }, recipe: { venom: 1, feather: 1, herb: 1 }, price: 70 },
+  saint_bandage:  { slot: 'charm', family: 'holy', name: 'Linen of the Saint', rarity: 'rare', stats: { res: 3 }, bonus: { res: { holy: -0.25, stand: -0.1 }, heal: 0.1 }, recipe: { cloth: 2, sap: 1 }, price: 130, note: 'A strip of burial cloth. It is warm.' },
 };
+
 
 /* Relics no longer exist as a category: each old relic becomes equipment, and the Saint's Corpse parts become holy materials. */
 (() => {
-  const SLOT = { colt: 'weapon', spareballs: 'weapon', cavalry: 'weapon', hat: 'gear', stirrups: 'gear', bandolier: 'gear', badge: 'gear' };
+  const SLOT = { colt: 'weapon', spareballs: 'weapon', cavalry: 'weapon', hat: 'hat', badge: 'hat', stirrups: 'boots', spurs: 'boots', bandolier: 'coat' };
   Object.entries(SBR.RELICS).forEach(([id, R]) => {
     if (R.corpse) {
       SBR.MATERIALS[id] = { name: R.name, rarity: 'holy', holy: true, bonus: R.bonus, desc: R.desc + ' Blesses the whole party while you carry it.' };
@@ -198,14 +219,46 @@ SBR.SCAVENGE_MATS = {
 };
 
 /* Aggregate one member's equipment into {stats, bonus, abilities} */
+/* Six slots per rider. Two charms of the same family don't stack: only the rarer one counts. */
+SBR.SLOTS = [
+  { key: 'weapon', type: 'weapon', label: 'Weapon' },
+  { key: 'hat', type: 'hat', label: 'Hat' },
+  { key: 'coat', type: 'coat', label: 'Coat' },
+  { key: 'boots', type: 'boots', label: 'Boots' },
+  { key: 'charm1', type: 'charm', label: 'Charm' },
+  { key: 'charm2', type: 'charm', label: 'Charm' },
+];
+SBR.emptyEquip = () => ({ weapon: null, hat: null, coat: null, boots: null, charm1: null, charm2: null });
+SBR.slotType = key => (SBR.SLOTS.find(s => s.key === key) || {}).type;
+SBR.RARITY_RANK = { common: 0, uncommon: 1, rare: 2, remnant: 3 };
+SBR.FAMILY = { coin: 'Coin', totem: 'Totem', device: 'Device', holy: 'Holy', trophy: 'Trophy', ammo: 'Ammo' };
+/** charm slots switched off because a stronger charm of the same family is worn */
+SBR.suppressedCharms = m => {
+  const a = m.equip && m.equip.charm1, b = m.equip && m.equip.charm2;
+  const A = a && SBR.EQUIPMENT[a], B = b && SBR.EQUIPMENT[b];
+  if (!A || !B || !A.family || A.family !== B.family) return [];
+  return [(SBR.RARITY_RANK[B.rarity] || 0) > (SBR.RARITY_RANK[A.rarity] || 0) ? 'charm1' : 'charm2'];
+};
+/** move old 3-slot saves (weapon/gear/charm) onto the six slots */
+SBR.migrateEquip = m => {
+  const e = m.equip || {};
+  if ('hat' in e && 'charm1' in e) return;
+  const n = SBR.emptyEquip();
+  n.weapon = e.weapon || null;
+  if (e.gear) { const t = (SBR.EQUIPMENT[e.gear] || {}).slot; n[t && t in n ? t : 'coat'] = e.gear; }
+  if (e.charm) n.charm1 = e.charm;
+  m.equip = n;
+};
 SBR.equipBonus = m => {
   const out = { stats: {}, bonus: {}, abilities: [] };
-  Object.values(m.equip || {}).forEach(id => {
+  const off = SBR.suppressedCharms(m);
+  Object.entries(m.equip || {}).forEach(([slot, id]) => {
     const e = id && SBR.EQUIPMENT[id];
-    if (!e) return;
+    if (!e || off.includes(slot)) return;
     for (const [k, v] of Object.entries(e.stats || {})) out.stats[k] = (out.stats[k] || 0) + v;
     for (const [k, v] of Object.entries(e.bonus || {})) {
       if (Array.isArray(v)) out.bonus[k] = (out.bonus[k] || []).concat(v);
+      else if (v && typeof v === 'object') { const o = out.bonus[k] = out.bonus[k] || {}; for (const t in v) o[t] = (o[t] || 0) + v[t]; }
       else out.bonus[k] = (out.bonus[k] || 0) + v;
     }
     if (e.ability) out.abilities.push(e.ability);
@@ -216,7 +269,7 @@ SBR.equipDesc = id => {
   const e = SBR.EQUIPMENT[id];
   if (e.descText) return e.descText + (e.ability ? ` · Grants <b>${SBR.ABILITIES[e.ability].name}</b>` : '');
   const parts = Object.entries(e.stats || {}).map(([k, v]) => `${v > 0 ? '+' : ''}${v} ${SBR.STATS[k].short}`);
-  const B = { crit: 'crit', critDmg: 'crit dmg', dodge: 'dodge', block: 'block', dmg: 'damage', spinDmg: 'Spin dmg', gunDmg: 'gun dmg', heal: 'healing', bleedOnBasic: 'basic-attack Bleed' };
+  const B = { crit: 'crit', critDmg: 'crit dmg', dodge: 'dodge', block: 'block', dmg: 'damage', spinDmg: 'Spin dmg', gunDmg: 'Gunshot dmg', bulletDmg: 'Gunshot dmg', standDmg: 'Stand dmg', coldDmg: 'Cold dmg', holyDmg: 'Holy dmg', bleedDmg: 'Bleed dmg', physDmg: 'Physical dmg', soundDmg: 'Sound dmg', heal: 'healing', bleedOnBasic: 'basic-attack Bleed' };
   for (const [k, v] of Object.entries(e.bonus || {})) {
     if (B[k]) parts.push(`${v > 0 ? '+' : ''}${Math.round(v * 100)}% ${B[k]}`);
     else if (k === 'maxHp') parts.push(`+${v} max HP`);
@@ -224,7 +277,9 @@ SBR.equipDesc = id => {
     else if (k === 'init') parts.push(`+${v} initiative`);
     else if (k === 'energyStart') parts.push(`+${v} starting Energy`);
     else if (k === 'immune') parts.push(`immune: ${v.map(s => SBR.STATUS[s].name).join(', ')}`);
+    else if (k === 'res') parts.push(Object.entries(v).map(([t, n]) => `<b style="color:${SBR.DMG[t].color}">${n < 0 ? '' : '+'}${Math.round(n * 100)}% ${SBR.DMG[t].name}</b> taken`).join(', '));
   }
+  if (e.family) parts.push(`<i>${SBR.FAMILY[e.family]} charm: doesn't stack with another ${SBR.FAMILY[e.family]}</i>`);
   if (e.note) parts.push(e.note);
   if (e.ability) parts.push(`Grants <b>${SBR.ABILITIES[e.ability].name}</b>`);
   return parts.join(' · ');

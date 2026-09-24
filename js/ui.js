@@ -80,7 +80,8 @@ SBR.ui = (() => {
   }
   function abilityTip(id, lvl = 1, unit) {
     const a = SBR.ABILITIES[id];
-    const tags = (a.tags || []).map(t => `<span class="tag tag-${t}">${t}</span>`).join(' ');
+    const dt = SBR.abilityDtype(a);
+    const tags = (dt ? `<span class="tag dtag" style="--dc:${SBR.DMG[dt].color}">${SBR.icons.dmg(dt)}${SBR.DMG[dt].name}</span> ` : '') + (a.tags || []).filter(t => t !== 'gun' && t !== 'spin').map(t => `<span class="tag tag-${t}">${t}</span>`).join(' ');
     return `<div class="tip-ab">${SBR.icons.ability(id)}<div><b>${a.name}</b>${lvl > 1 ? ' <span class="lv2">Lv.2</span>' : ''}<br><span class="tip-cost">${'◆'.repeat(a.cost) || 'Free'}</span>${a.cd ? ` · CD ${a.cd}` : ''}${a.pierce ? ' · <b class="pierce">PIERCING</b>' : ''}<br>${a.desc(lvl)}<br>${tags}</div></div>`;
   }
   function relicTip(id) {
@@ -106,7 +107,7 @@ SBR.ui = (() => {
     SBR.tip.bind(c, () => `<b>${m.name}</b> <i>${m.rarity === 'remnant' ? 'Stand Remnant' : m.rarity + ' material'}</i><br>${m.desc}`);
     return c;
   }
-  function equipTip(id) { const e = SBR.EQUIPMENT[id]; return `<b>${e.name}</b> <i>${e.rarity} ${e.slot}</i><br>${SBR.equipDesc(id)}`; }
+  function equipTip(id) { const e = SBR.EQUIPMENT[id]; return `<b>${e.name}</b> <i>${e.rarity} ${e.slot}${e.family ? ' · ' + SBR.FAMILY[e.family] : ''}</i><br>${SBR.equipDesc(id)}`; }
   function equipChip(id, extra = '') {
     const e = SBR.EQUIPMENT[id];
     const c = el('div', { class: 'icon-chip equip rarity-' + e.rarity + ' ' + extra, html: SBR.icons.equip(id) });
@@ -490,10 +491,11 @@ SBR.ui = (() => {
       const passive = el('div', { class: 'cs-passive', html: `<div class="cs-sub">PASSIVE</div><b>${c.passive.name}</b><p>${c.passive.desc}</p><p class="cs-bio">${c.bio}</p>` });
       const eqBox = el('div', { class: 'cs-equip' }, el('div', { class: 'cs-sub' }, 'EQUIPMENT' + (SBR.inBattle ? '' : ' — click a slot to change')));
       const slots = el('div', { class: 'eq-slots' });
-      m.equip = m.equip || { weapon: null, gear: null, charm: null };
-      ['weapon', 'gear', 'charm'].forEach(slot => {
+      SBR.migrateEquip(m);
+      const off = SBR.suppressedCharms(m);
+      SBR.SLOTS.forEach(({ key: slot, type, label }) => {
         const id = m.equip[slot];
-        const sl = el('button', { class: 'eq-slot' + (id ? ' filled rarity-' + SBR.EQUIPMENT[id].rarity : ''), html: `<span class="eq-label">${slot}</span>${id ? SBR.icons.equip(id) : `<span class="eq-empty">${slot === 'weapon' ? '⚔' : slot === 'gear' ? '⛨' : '✦'}</span>`}<span class="eq-name">${id ? SBR.EQUIPMENT[id].name : 'Empty'}</span>` });
+        const sl = el('button', { class: 'eq-slot' + (id ? ' filled rarity-' + SBR.EQUIPMENT[id].rarity : '') + (off.includes(slot) ? ' suppressed' : ''), html: `<span class="eq-label">${label}</span>${id ? SBR.icons.equip(id) : `<span class="eq-empty">${SBR.icons.slot(type)}</span>`}<span class="eq-name">${id ? SBR.EQUIPMENT[id].name : 'Empty'}</span>${off.includes(slot) ? '<span class="eq-off">NO STACK</span>' : ''}` });
         if (id) SBR.tip.bind(sl, () => equipTip(id));
         if (!SBR.inBattle) sl.onclick = async () => { SBR.tip.hide(); await equipPicker(m, slot); renderTabs(); renderSheet(); };
         slots.appendChild(sl);
@@ -699,10 +701,11 @@ SBR.ui = (() => {
     return new Promise(resolve => {
       const r = SBR.run;
       const box = el('div', { class: 'chooser' });
-      box.appendChild(el('p', {}, `Equip ${slot} for ${SBR.CHARS[m.id].short}:`));
+      const type = SBR.slotType(slot);
+      box.appendChild(el('p', {}, `Equip ${type} for ${SBR.CHARS[m.id].short}:`));
       const list = el('div', { class: 'chooser-list' });
-      const owned = r.gear.map((id, i) => ({ id, i })).filter(x => SBR.EQUIPMENT[x.id].slot === slot);
-      if (!owned.length) list.appendChild(el('p', { class: 'muted' }, 'No unequipped ' + slot + ' in your saddlebags. Craft or buy some!'));
+      const owned = r.gear.map((id, i) => ({ id, i })).filter(x => SBR.EQUIPMENT[x.id].slot === type);
+      if (!owned.length) list.appendChild(el('p', { class: 'muted' }, 'No unequipped ' + type + ' in your saddlebags. Craft or buy some!'));
       owned.forEach(({ id, i }) => {
         const b = el('button', { class: 'chooser-ab eq-choice rarity-' + SBR.EQUIPMENT[id].rarity, html: `<span class="pt-port">${SBR.icons.equip(id)}</span><div><b>${SBR.EQUIPMENT[id].name}</b><p>${SBR.equipDesc(id)}</p></div>` });
         b.onclick = () => { SBR.game.equip(m, slot, i); SBR.audio.play('select'); closeModal(w); resolve(); };
@@ -729,7 +732,7 @@ SBR.ui = (() => {
       keys.sort((a, b) => (SBR.MATERIALS[a].remnant ? 1 : 0) - (SBR.MATERIALS[b].remnant ? 1 : 0)).forEach(k => grid.appendChild(matChip(k, r.mats[k])));
       inv.appendChild(grid);
       const tabs = el('div', { class: 'craft-tabs' });
-      [['weapon', 'Weapons'], ['gear', 'Gear'], ['charm', 'Charms'], ['item', 'Consumables']].forEach(([k, l]) => {
+      [['weapon', 'Weapons'], ['gear', 'Clothing'], ['charm', 'Charms'], ['item', 'Consumables']].forEach(([k, l]) => {
         const t = el('button', { class: 'lobby-tab' + (tab === k ? ' active' : '') }, l);
         t.onclick = () => { tab = k; SBR.audio.play('click'); render(); };
         tabs.appendChild(t);
@@ -737,7 +740,7 @@ SBR.ui = (() => {
       const list = el('div', { class: 'recipe-grid' });
       const entries = tab === 'item'
         ? Object.entries(SBR.ITEM_RECIPES).map(([id, rec]) => ({ id, kind: 'item', rec, name: SBR.ITEMS[id].name, desc: SBR.ITEMS[id].desc, icon: SBR.icons.item(id), rarity: 'common' }))
-        : Object.entries(SBR.EQUIPMENT).filter(([, e]) => e.slot === tab).map(([id, e]) => ({ id, kind: 'equip', rec: e.recipe, remnant: e.remnant, name: e.name, desc: SBR.equipDesc(id), icon: SBR.icons.equip(id), rarity: e.rarity }));
+        : Object.entries(SBR.EQUIPMENT).filter(([, e]) => (tab === 'gear' ? ['hat', 'coat', 'boots'].includes(e.slot) : e.slot === tab) && e.recipe).map(([id, e]) => ({ id, kind: 'equip', rec: e.recipe, remnant: e.remnant, name: e.name, desc: SBR.equipDesc(id), icon: SBR.icons.equip(id), rarity: e.rarity }));
       entries.sort((a, b) => SBR.game.canCraft(b) - SBR.game.canCraft(a));
       entries.forEach(en => {
         const known = !en.remnant || (r.mats[en.remnant] || 0) > 0 || (r.crafted || []).includes(en.id);

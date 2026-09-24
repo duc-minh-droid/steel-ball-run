@@ -71,7 +71,7 @@ SBR.Combat = class Combat {
     return {
       uid: SBR.util.uid('p'), id: m.id, name: def.short, fullName: def.name, side: 'party', ref: m, def,
       art: { kind: 'portrait', key: def.portrait }, stats, maxHp, hp: Math.min(m.hp, maxHp), energy: 2, maxEnergy: 6,
-      cds: {}, statuses: [], dead: m.hp <= 0, exhaustion: exh, eqb: eb.bonus, abilities: SBR.game.memberAbilities(m), upgrades: m.upgrades || {},
+      cds: {}, statuses: [], dead: m.hp <= 0, exhaustion: exh, eqb: eb.bonus, baseRes: SBR.memberRes ? SBR.memberRes(m) : (SBR.HORSES[SBR.run.horse].res || {}), abilities: SBR.game.memberAbilities(m), upgrades: m.upgrades || {},
     };
   }
   makeEnemyUnit(id) {
@@ -81,7 +81,7 @@ SBR.Combat = class Combat {
     return {
       uid: SBR.util.uid('e'), id, name: def.name, side: 'enemy', def, art: def.art,
       stats: Object.assign({ spin: 0, aim: 0, grit: 0, ride: 0, res: 0, luck: 0 }, def.stats),
-      maxHp, hp: maxHp, cds: {}, statuses: [], dead: false, tier: def.tier || 'mob', energy: def.tier === 'boss' ? 2 : 1, maxEnergy: 6,
+      maxHp, hp: maxHp, cds: {}, statuses: [], dead: false, baseRes: Object.assign({}, def.res), tier: def.tier || 'mob', energy: def.tier === 'boss' ? 2 : 1, maxEnergy: 6,
     };
   }
 
@@ -98,6 +98,50 @@ SBR.Combat = class Combat {
   current() { return this.unit(this.order[this.turnIdx]); }
 
   eq(u, k) { return (u.eqb && u.eqb[k]) || 0; }
+
+  /* ---------- damage types ---------- */
+  dtypeOf(src, ability, opts, tags) {
+    if (opts.dtype) return opts.dtype;
+    if (ability && ability.dtype) return ability.dtype;
+    if (tags.includes('spin')) return 'spin';
+    if (tags.includes('gun')) return 'bullet';
+    const fx = ability && ability.fx;
+    if (fx === 'gun' || fx === 'nail') return 'bullet';
+    if (['ball', 'golden', 'ballbreaker', 'wormhole'].includes(fx)) return 'spin';
+    if (fx === 'sound') return 'sound';
+    if (fx === 'rain') return 'cold';
+    if (src && src.def && src.def.dtype && src.side === 'enemy') return src.def.dtype;
+    if (tags.includes('stand')) return 'stand';
+    return 'phys';
+  }
+  /** all resistances on a unit: innate (enemy def / horse), equipment, statuses */
+  resOf(u) {
+    const r = {};
+    const add = o => { if (o) for (const k in o) r[k] = (r[k] || 0) + o[k]; };
+    add(u.baseRes);
+    if (u.side === 'party') { add(u.eqb && u.eqb.res); add(this.bonus && this.bonus.res); }
+    for (const s of u.statuses) { const d = SBR.STATUS[s.id]; if (d && d.res) add(d.res); }
+    return r;
+  }
+  resMult(u, type) {
+    if (type === 'true') return 1;
+    return Math.max(0, 1 + (this.resOf(u)[type] || 0));
+  }
+  /** attacker's bonus for a damage type (party only) */
+  typeBonus(src, type) {
+    if (!src || src.side !== 'party') return 1;
+    const b = this.bonus;
+    let v = (b[type + 'Dmg'] || 0) + this.eq(src, type + 'Dmg');
+    if (type === 'bullet') v += (b.gunDmg || 0) + this.eq(src, 'gunDmg');
+    if (type === 'spin') v += this.stacks(src, 'rotation') * 0.08;
+    return 1 + v;
+  }
+  /** damage-over-time and other sourceless damage still respects resistances */
+  typedHp(u, amount, type, label) {
+    const m = this.resMult(u, type);
+    if (m <= 0) { this.push({ t: 'float', uid: u.uid, text: 'IMMUNE', cls: 'block' }); return; }
+    this.applyHp(u, Math.max(1, Math.round(amount * m)), false, label, null, false, { dtype: type, eff: m });
+  }
   /* ---------- derived stats ---------- */
   statMod(u, key, mode = 'add') {
     let v = mode === 'mul' ? 1 : 0;
@@ -188,14 +232,13 @@ SBR.Combat = class Combat {
     const tags = opts.tags || (ability && ability.tags) || [];
     const pierce = opts.pierce || (ability && ability.pierce && opts.pierce !== false);
     let raw = src ? this.scaleVal(src, base, scale) : base;
-    let mult = 1;
+    const dtype = this.dtypeOf(src, ability, opts, tags);
+    let mult = this.typeBonus(src, dtype);
     if (src) {
       mult *= this.statMod(src, 'dmgOut', 'mul');
       if (src.side === 'party') {
         const b = this.bonus;
         mult *= 1 + (b.dmg || 0) + this.eq(src, 'dmg');
-        if (tags.includes('spin')) mult *= 1 + (b.spinDmg || 0) + this.eq(src, 'spinDmg') + this.stacks(src, 'rotation') * 0.08;
-        if (tags.includes('gun')) mult *= 1 + (b.gunDmg || 0) + this.eq(src, 'gunDmg');
         mult *= 1 - 0.15 * (src.exhaustion || 0);
       }
       // miss from blindness
@@ -255,9 +298,13 @@ SBR.Combat = class Combat {
       const copy = this.friends(tgt).find(o => o.id === 'parallel');
       if (copy && Math.random() < 0.5) { this.push({ t: 'float', uid: tgt.uid, text: 'DOJYAAAN~', cls: 'block' }); tgt = copy; }
     }
+    // damage type vs resistances (after redirects, so the unit that actually takes the hit decides)
+    const eff = this.resMult(tgt, dtype);
+    if (eff <= 0) { this.push({ t: 'float', uid: tgt.uid, text: 'IMMUNE', cls: 'block' }); this.push({ t: 'resist', uid: tgt.uid, dtype, eff: 0 }); return { hit: false, immune: true }; }
+    amount *= eff;
     amount = Math.max(1, Math.round(amount));
     if (src && this.has(tgt, 'reflect') && src !== tgt) { const back = Math.max(1, Math.round(amount * 0.4)); this.push({ t: 'float', uid: tgt.uid, text: 'REFLECTED', cls: 'block' }); this.applyHp(src, back, false, 'GRID', null); }
-    const res = this.applyHp(tgt, amount, crit, opts.label, src, blocked);
+    const res = this.applyHp(tgt, amount, crit, opts.label, src, blocked, { dtype, eff });
     // magnet share
     if (this.has(tgt, 'magnet') && !opts.noShare) {
       this.friends(tgt).filter(o => o !== tgt && this.has(o, 'magnet')).forEach(o => this.applyHp(o, Math.max(1, Math.round(amount * 0.4)), false, 'MAGNET', src));
@@ -267,7 +314,7 @@ SBR.Combat = class Combat {
     return Object.assign({ hit: true, crit, blocked }, res);
   }
 
-  applyHp(tgt, amount, crit, label, src, blocked) {
+  applyHp(tgt, amount, crit, label, src, blocked, info) {
     const sh = this.st(tgt, 'shield');
     let absorbed = 0;
     if (sh) {
@@ -276,7 +323,7 @@ SBR.Combat = class Combat {
       if (sh.stacks <= 0) this.removeStatus(tgt, 'shield');
     }
     tgt.hp = Math.max(0, tgt.hp - amount);
-    this.push({ t: 'dmg', uid: tgt.uid, amount, absorbed, crit, blocked, label, hp: tgt.hp, src: src && src.uid });
+    this.push({ t: 'dmg', uid: tgt.uid, amount, absorbed, crit, blocked, label, hp: tgt.hp, src: src && src.uid, dtype: info && info.dtype, eff: info && info.eff });
     if (tgt.side === 'enemy' && tgt.def.hooks && tgt.def.hooks.damaged && tgt.hp > 0) tgt.def.hooks.damaged(this.ctx(tgt, null));
     if (tgt.hp <= 0) this.onDeath(tgt, src);
     return { amount };
@@ -401,14 +448,14 @@ SBR.Combat = class Combat {
       const d = SBR.STATUS[s.id];
       if (!d.tick) continue;
       switch (d.tick) {
-        case 'bleed': this.applyHp(u, 2 * s.stacks, false, 'BLEED'); s.stacks--; if (s.stacks <= 0) this.removeStatus(u, s.id); break;
-        case 'holed': this.applyHp(u, 3 * s.stacks, false, 'HOLE'); break;
-        case 'guilt': this.applyHp(u, 2 * s.stacks, false, 'GUILT'); s.stacks = Math.min(d.max, s.stacks + 1); break;
-        case 'infinite': this.applyHp(u, Math.max(3, Math.round(u.maxHp * 0.08)), false, '∞'); break;
+        case 'bleed': this.typedHp(u, 2 * s.stacks, 'bleed', 'BLEED'); s.stacks--; if (s.stacks <= 0) this.removeStatus(u, s.id); break;
+        case 'holed': this.typedHp(u, 3 * s.stacks, 'spin', 'HOLE'); break;
+        case 'guilt': this.typedHp(u, 2 * s.stacks, 'stand', 'GUILT'); s.stacks = Math.min(d.max, s.stacks + 1); break;
+        case 'infinite': this.typedHp(u, Math.max(3, Math.round(u.maxHp * 0.08)), 'true', '∞'); break;
         case 'regen': this.heal(null, u, 4); break;
         case 'primed':
           s.turns--;
-          if (s.turns <= 0) { this.removeStatus(u, 'primed'); this.push({ t: 'fx', kind: 'boom', uid: u.uid }); this.applyHp(u, 18, false, 'BOOM'); }
+          if (s.turns <= 0) { this.removeStatus(u, 'primed'); this.push({ t: 'fx', kind: 'boom', uid: u.uid }); this.typedHp(u, 18, 'phys', 'BOOM'); }
           else this.push({ t: 'float', uid: u.uid, text: `PIN ${s.turns}`, cls: 'debuff' });
           break;
       }

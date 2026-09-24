@@ -108,6 +108,25 @@ SBR.icons = (() => {
     medal: () => `<path d="M16 4h16l-4 14h-8z" fill="#c8323c" ${st}/><circle cx="24" cy="30" r="12" fill="#c0a040" ${st}/><path d="M24 22v16M16 30h16" stroke="${K}" stroke-width="3"/>`,
     mandom_watch: () => P.watch('#e8c070') + `<path d="M34 20a12 12 0 0 1 0 14" stroke="#c8323c" stroke-width="2" fill="none"/><path d="M34 34l3-3-4-1" fill="#c8323c"/>`,
     wrecking_core: () => P.ball('#8a8aa0', '#c8c8d8') + [0, 1, 2, 3, 4, 5, 6, 7].map(i => `<circle cx="${24 + Math.cos(i * .785) * 20}" cy="${24 + Math.sin(i * .785) * 20}" r="2.4" fill="#c8c8d8" ${st} stroke-width="1"/>`).join(''),
+    // ---- new clothing
+    straw_hat: () => P.hat('#e8c878', '#c8323c') + `<path d="M8 28q16 6 32 0" stroke="#b89848" stroke-width="1.4" fill="none"/><path d="M18 18l12 0M17 22h14" stroke="#b89848" stroke-width="1.2"/>`,
+    fur_cap: () => `<path d="M12 28q0-18 12-18t12 18z" fill="#8a6a4a" ${st}/><path d="M8 26q16-6 32 0v6q-16 4-32 0z" fill="#d8c8a8" ${st}/><path d="M12 32q-4 8 0 12l4-2q-2-6 0-10M36 32q4 8 0 12l-4-2q2-6 0-10" fill="#d8c8a8" ${st} stroke-width="1.6"/><path d="M36 14q6-2 8 4-4 2-8-4z" fill="#8a6a4a" ${st} stroke-width="1.4"/>`,
+    sheriff_hat: () => P.hat('#6a4a2a', '#1a1020') + `<g transform="translate(15 13) scale(.38)">${P.badge('#f2c14e')}</g>`,
+    jockey_cap: () => `<path d="M10 30q0-20 14-20t14 20z" fill="#e8508a" ${st}/><path d="M24 10v20M14 16q10 6 20 0" stroke="#f2c14e" stroke-width="3" fill="none"/><path d="M36 28q8 0 10 4H34z" fill="#1a1020" ${st} stroke-width="1.6"/><path d="M10 30h26" ${st}/>${shine(18, 18, 2.5)}`,
+    starred_cap: () => `<path d="M10 32q0-22 14-22t14 22z" fill="#6b5bd6" ${st}/><path d="M8 30h32v6H8z" fill="#f6ecd8" ${st}/>` + [[17, 20], [26, 16], [31, 25]].map(([x, y]) => `<path d="M${x} ${y - 4}l1.3 2.8 3 .3-2.3 2 .7 3-2.7-1.6-2.7 1.6.7-3-2.3-2 3-.3z" fill="#f2c14e" stroke="${K}" stroke-width=".8"/>`).join('') + `<circle cx="24" cy="8" r="3" fill="#f6ecd8" ${st} stroke-width="1.4"/>`,
+    nun_veil: () => `<path d="M24 6q-14 0-16 16L6 44h36l-2-22Q38 6 24 6z" fill="#1a1a2a" ${st}/><path d="M24 12q-9 0-9 12t9 12 9-12-9-12z" fill="#f6ecd8" ${st}/><path d="M12 14q12-6 24 0" stroke="#f6ecd8" stroke-width="3" fill="none"/><path d="M24 38v6M21 41h6" stroke="#f2c14e" stroke-width="2"/>`,
+    riding_boots: () => BOOT('#7a4a2a', '#c8a070'),
+    snowshoes: () => `<ellipse cx="24" cy="36" rx="18" ry="8" fill="none" stroke="${K}" stroke-width="5"/><ellipse cx="24" cy="36" rx="18" ry="8" fill="none" stroke="#c8a070" stroke-width="2.6"/><path d="M10 36h28M16 30v12M24 28v16M32 30v12" stroke="#8a6a40" stroke-width="1.2"/>` + `<g transform="translate(8 -6) scale(.66)">${BOOT('#d8c8b0', '#8a9ab0')}</g>`,
+    moccasins: () => `<path d="M6 34q0-10 12-12h12q12 0 12 10v4q0 4-6 4H10q-4 0-4-6z" fill="#b8844a" ${st}/><path d="M14 24q10-6 16 0" fill="#c8a070" ${st} stroke-width="1.6"/>` + [0, 1, 2, 3, 4].map(i => `<circle cx="${14 + i * 5}" cy="30" r="1.6" fill="${['#c8323c', '#3fb8a9', '#f2c14e', '#3fb8a9', '#c8323c'][i]}"/>`).join('') + `<path d="M36 26l6-8M38 28l7-5" stroke="#6a4a2a" stroke-width="1.6"/>`,
+    cavalry_boots: () => BOOT('#1a1a2a', '#f2c14e') + `<path d="M12 12h14" stroke="#f2c14e" stroke-width="2.4"/>`,
+    irontoe_boots: () => BOOT('#5a3a20', '#8a8a9a') + `<path d="M28 38q10 0 12 4H28z" fill="#9aa0b0" ${st} stroke-width="1.6"/><circle cx="33" cy="40" r="1" fill="${K}"/>`,
+    oilskin: () => P.coat('#c8a030', '#8a6a10', `<path d="M16 22q2 10 0 20M32 22q-2 10 0 20" stroke="#fff" stroke-width="1.6" opacity=".5"/><path d="M34 8l3 5-3 2M14 8l-3 5 3 2" fill="#9fc7e8" ${st} stroke-width="1"/>`),
+    buffalo_coat: () => `<path d="M14 6h20l10 10-4 8-4-2v22H12V22l-4 2-4-8z" fill="#5a3a20" ${st}/><path d="M12 8q12 8 24 0l2 6q-14 8-28 0z" fill="#8a6a4a" ${st}/><g stroke="#3a2010" stroke-width="1.4" opacity=".7"><path d="M16 26l2 4M22 28l1 5M28 26l2 4M18 36l1 4M28 36l2 4"/></g><path d="M24 14v30" ${st}/>`,
+    cassock: () => `<path d="M16 6h16l8 38H8z" fill="#1a1a2a" ${st}/><path d="M20 6l4 6 4-6" fill="#f6ecd8" ${st} stroke-width="1.4"/><path d="M24 12v30" stroke="#6a6a8a" stroke-width="1.2"/>` + [16, 21, 26, 31, 36].map(y => `<circle cx="24" cy="${y}" r="1.2" fill="#c8323c"/>`).join('') + `<path d="M24 16v10M20 20h8" stroke="#f2c14e" stroke-width="2"/>`,
+    powder_horn: () => `<path d="M8 12q24-6 34 20l-6 4Q30 18 10 20z" fill="#e8d8b8" ${st}/><path d="M36 30l6 4-4 6-6-4z" fill="#8a5a30" ${st}/><path d="M16 14l2 6M24 14l2 6M32 18l-1 6" stroke="#8a5a30" stroke-width="2.4"/><path d="M6 10q-2 4 2 6" stroke="#8a5a30" stroke-width="3" fill="none"/>`,
+    silver_rounds: () => [0, 1, 2].map(i => `<g transform="translate(${8 + i * 11} ${6 + (i % 2) * 4})"><path d="M2 12q0-10 5-12 5 2 5 12z" fill="#e0e4f0" ${st} stroke-width="1.6"/><rect x="2" y="12" width="10" height="20" fill="#c8a040" ${st} stroke-width="1.6"/><path d="M2 28h10" stroke="${K}" stroke-width="1.2"/></g>`).join('') + shine(12, 12, 1.6),
+    rattle_totem: () => `<path d="M24 44V20" stroke="#6a4a2a" stroke-width="4"/><path d="M24 44V20" stroke="#c8a070" stroke-width="2"/>` + [0, 1, 2, 3].map(i => `<ellipse cx="24" cy="${8 + i * 5}" rx="${6 - i * .6}" ry="3" fill="#d8c090" ${st} stroke-width="1.6"/>`).join('') + `<path d="M16 30l-8 6M32 30l8 6" stroke="#c8323c" stroke-width="2"/>` + `<g transform="translate(26 20) scale(.45)">${P.feather('#3a2a1a', '#f6ecd8')}</g>`,
+    saint_bandage: () => `<path d="M8 14q16-8 32 0v8q-16-8-32 0z" fill="#f0e8d0" ${st}/><path d="M8 22q16-8 32 0v8q-16-8-32 0z" fill="#e8dcc0" ${st}/><path d="M8 30q16-8 32 0v8q-16-8-32 0z" fill="#f0e8d0" ${st}/>` + P.halo('#ffd84a').replace('cy="10"', 'cy="6"') + `<path d="M24 18v14M19 23h10" stroke="#e8c050" stroke-width="2.2"/>`,
     duster: () => P.coat('#c8a070', '#8a6a40'),
     chaps: () => `<path d="M10 6h28l-2 38h-8l-4-26-4 26h-8z" fill="#8a5a30" ${st}/><path d="M10 12h28" stroke="#c8a040" stroke-width="3"/><g stroke="#f6ecd8" stroke-width="1.4"><path d="M12 20l-3 2M12 28l-3 2M12 36l-3 2M36 20l3 2M36 28l3 2M36 36l3 2"/></g>`,
     poncho: () => `<path d="M24 6l20 20-6 16H10L4 26z" fill="#c85a3a" ${st}/><path d="M8 30h32M10 36h28" stroke="#f2c14e" stroke-width="2.4"/><path d="M12 33h24" stroke="#3fb8a9" stroke-width="2" stroke-dasharray="3 3"/><circle cx="24" cy="12" r="4" fill="#3a2a1a" ${st}/>`,
@@ -254,7 +273,35 @@ SBR.icons = (() => {
     refreshed: () => P.drop('#6ad0c8') + `<path d="M36 8l2 4 4 2-4 2-2 4-2-4-4-2 4-2z" fill="#fff" ${st} stroke-width="1"/>`,
     calm: () => `<circle cx="24" cy="24" r="16" fill="#e8f4ff" ${st}/><path d="M12 28q12-10 24 0M16 20q8-6 16 0" stroke="#6a8ad0" stroke-width="2.6" fill="none"/>`,
     reflect: () => EQ.disco_tile(),
+    chilled: () => DT.cold(),
+    armored: () => EQ.duster ? EQ.duster() : P.coat('#a08a6a', '#6a4a2a'),
+    sanctified: () => DT.holy(),
     phase: () => `<path d="M12 42V20a12 12 0 0 1 24 0v22l-4-4-4 4-4-4-4 4-4-4z" fill="#f6ecd8" opacity=".85" ${st}/><circle cx="20" cy="20" r="2.4" fill="#c8323c"/><circle cx="28" cy="20" r="2.4" fill="#c8323c"/>`,
+  };
+
+  /* ---------- clothing primitives & empty-slot silhouettes ---------- */
+  function BOOT(c, trim) {
+    return `<path d="M14 6h14v24l12 6q4 2 2 8H10l2-8z" fill="${c}" ${st}/><path d="M14 10h14" stroke="${trim}" stroke-width="3"/><path d="M12 36h28" stroke="${K}" stroke-width="1.2" opacity=".5"/><path d="M28 30q-6 2-8 6" stroke="${trim}" stroke-width="1.6" fill="none"/><circle cx="8" cy="40" r="3" fill="none" stroke="#c8c8d8" stroke-width="1.6"/>${shine(18, 18, 2)}`;
+  }
+  const SLOTG = {
+    weapon: () => `<g opacity=".32">${P.revolver('#1a1020', '#1a1020')}</g>`,
+    hat: () => `<g opacity=".32">${P.hat('#1a1020', '#1a1020')}</g>`,
+    coat: () => `<g opacity=".32">${P.coat('#1a1020', '#1a1020')}</g>`,
+    boots: () => `<g opacity=".32">${BOOT('#1a1020', '#1a1020')}</g>`,
+    charm: () => `<g opacity=".32">${P.coin('#1a1020', '✦')}</g>`,
+  };
+
+  /* ---------- damage type glyphs ---------- */
+  const DT = {
+    phys: () => `<path d="M12 30q-2-12 6-16l4-6 4 3-2 5 6-4 3 3-5 5 6-2 2 3-6 4q4 6-2 12l-6 4H16z" fill="#d8c8a8" ${st}/><path d="M18 22l6 4M22 18l5 5" stroke="${K}" stroke-width="1.4" opacity=".5"/>`,
+    bullet: () => `<path d="M8 20h20q12 0 14 4-2 4-14 4H8z" fill="#c8a040" ${st}/><path d="M8 20v8" ${st}/><path d="M28 20v8" stroke="${K}" stroke-width="1.4" opacity=".5"/><path d="M2 18l3 2M1 24h4M2 30l3-2" stroke="#e8742a" stroke-width="2.4" stroke-linecap="round"/>${shine(20, 22, 1.6)}`,
+    spin: () => P.spiral('#3fb8a9', 3.4) + `<circle cx="24" cy="24" r="3" fill="#f2c14e" ${st} stroke-width="1.2"/>`,
+    stand: () => `<path d="M24 6q10 0 12 10 1 8-4 12l2 12H14l2-12q-5-4-4-12 2-10 12-10z" fill="#b070e0" opacity=".85" ${st}/><path d="M18 16l4 2M30 16l-4 2" stroke="${K}" stroke-width="2"/><path d="M19 23q5 3 10 0" stroke="${K}" stroke-width="1.6" fill="none"/><path d="M6 12l4 3M42 12l-4 3M8 30l4-1M40 30l-4-1" stroke="#f2c14e" stroke-width="2.4" stroke-linecap="round"/>`,
+    bleed: () => P.drop('#c8323c') + `<path d="M34 10q-4 7-4 10a4 4 0 0 0 8 0q0-3-4-10z" fill="#c8323c" ${st} stroke-width="1.4"/>`,
+    cold: () => `<g stroke="${K}" stroke-width="5" stroke-linecap="round"><path d="M24 4v40M7 14l34 20M7 34l34-20"/></g><g stroke="#9fd0f0" stroke-width="2.6" stroke-linecap="round"><path d="M24 4v40M7 14l34 20M7 34l34-20M19 7l5 4 5-4M19 41l5-4 5 4"/></g><circle cx="24" cy="24" r="4" fill="#fff" ${st} stroke-width="1.4"/>`,
+    sound: () => `<text x="24" y="31" text-anchor="middle" font-family="Bangers,Impact,sans-serif" font-size="22" fill="#e8508a" stroke="${K}" stroke-width="1.6" paint-order="stroke">ドン</text><path d="M4 10q4 4 0 8M44 10q-4 4 0 8M4 32q4 4 0 8M44 32q-4 4 0 8" stroke="#e8508a" stroke-width="2" fill="none"/>`,
+    holy: () => P.halo('#ffd84a').replace('cy="10"', 'cy="9"') + `<path d="M24 14v28M14 22h20" stroke="${K}" stroke-width="7" stroke-linecap="round"/><path d="M24 14v28M14 22h20" stroke="#ffd84a" stroke-width="4" stroke-linecap="round"/>`,
+    true: () => `<path d="M24 4l6 14 14 6-14 6-6 14-6-14-14-6 14-6z" fill="#f6ecd8" ${st}/><circle cx="24" cy="24" r="4" fill="${K}"/>`,
   };
 
   const get = (table, id, fallback) => (table[id] ? wrap(table[id]()) : fallback ? wrap(fallback()) : wrap(`<circle cx="24" cy="24" r="14" fill="#aab" ${st}/>`));
@@ -266,6 +313,8 @@ SBR.icons = (() => {
     relic: id => get(RELIC, id),
     ability: id => get(AB, id, () => nailStar(24, 24, 1.4, '#aab')),
     status: id => get(STATUS, id),
+    dmg: id => get(DT, id),
+    slot: type => get(SLOTG, type),
     has: (kind, id) => !!({ item: ITEM, mat: MAT, equip: EQ, relic: RELIC, ability: AB, status: STATUS }[kind] || {})[id],
     P, wrap,
   };
