@@ -117,7 +117,9 @@ SBR.ui = (() => {
 
   /* ---------- Dialogue ---------- */
   function dialogue(sceneId) {
-    const scene = SBR.STORY[sceneId];
+    const scene0 = SBR.STORY[sceneId];
+    const lead = SBR.run && SBR.run.lead;
+    const scene = scene0 && scene0.leadLines && scene0.leadLines[lead] ? Object.assign({}, scene0, { lines: scene0.leadLines[lead] }) : scene0;
     if (!scene || !scene.lines || !scene.lines.length) return Promise.resolve();
     return new Promise(resolve => {
       const wrap = el('div', { class: 'dlg-wrap' });
@@ -232,7 +234,7 @@ SBR.ui = (() => {
       const box = el('div', { class: 'event-panel' });
       const pic = el('div', { class: 'event-art', html: ev.art ? portraitOf(ev.art) : `<div class="event-icon">${art.icon(ev.icon || 'question', 96)}</div>` });
       const body = el('div', { class: 'event-body' });
-      body.append(el('h2', {}, ev.title), el('p', { class: 'event-text' }, ev.text || ''));
+      body.append(el('h2', {}, ev.title), ev.html ? el('p', { class: 'event-text', html: ev.html }) : el('p', { class: 'event-text' }, ev.text || ''));
       const list = el('div', { class: 'choices' });
       (ev.choices || []).forEach((ch, i) => {
         const g = SBR.game;
@@ -242,7 +244,7 @@ SBR.ui = (() => {
         const b = el('button', { class: 'choice' + (!afford || !reqOk ? ' disabled' : '') });
         b.append(el('span', { class: 'choice-n' }, String(i + 1)), el('span', { class: 'choice-label' }, ch.label));
         if (ch.check) {
-          const best = g.bestFor(ch.check.stat);
+          const best = (ch.check.who && SBR.run.party.find(m => m.id === ch.check.who && m.hp > 0)) || g.bestFor(ch.check.stat);
           const mod = g.checkMod(best, ch.check.stat);
           const pct = Math.round(Math.max(0.05, Math.min(0.95, (21 - (ch.check.dc - mod)) / 20)) * 100);
           b.append(el('span', { class: 'choice-check', style: { '--c': SBR.STATS[ch.check.stat].color } }, `${SBR.STATS[ch.check.stat].short} DC${ch.check.dc} · ${pct}%`));
@@ -501,6 +503,7 @@ SBR.ui = (() => {
         slots.appendChild(sl);
       });
       eqBox.appendChild(slots);
+      eqBox.appendChild(pathRow(m));
       const cols = el('div', { class: 'cs-cols' }, el('div', {}, eqBox, statsBox, passive), abil);
       sheet.appendChild(cols);
       // swapping
@@ -697,6 +700,56 @@ SBR.ui = (() => {
   }
 
   /* ---------- Equipment picker ---------- */
+  /** the Path strip on a character sheet: emblem, name, and the three abilities with their unlock levels */
+  function pathRow(m) {
+    const row = el('div', { class: 'path-row' });
+    const P = SBR.pathOf(m);
+    const opts = SBR.pathsFor(m.id);
+    if (!opts.length) return row;
+    if (!P) {
+      row.appendChild(el('div', { class: 'cs-sub' }, 'PATH — not chosen'));
+      row.appendChild(el('p', { class: 'muted path-hint' }));
+      row.lastChild.innerHTML = `Meet a trainer on the road to walk one: ${opts.map(id => `<b style="color:${SBR.PATHS[id].color}">${SBR.PATHS[id].name}</b>`).join(' · ')}`;
+      return row;
+    }
+    row.appendChild(el('div', { class: 'cs-sub' }, 'PATH'));
+    const head = el('div', { class: 'path-head', style: { '--pc': P.color } }, el('div', { class: 'path-emb', html: SBR.PATH_EMBLEM[m.path]() }), el('div', { html: `<b>${P.name}</b><small>${P.passive}</small>` }));
+    row.appendChild(head);
+    const abs = el('div', { class: 'path-abs' });
+    P.abilities.forEach(a => {
+      const on = m.level >= a.level;
+      const c = el('div', { class: 'path-ab' + (on ? '' : ' locked'), html: `${SBR.icons.ability(a.id)}<span>Lv${a.level}</span>` });
+      SBR.tip.bind(c, () => abilityTip(a.id, (m.upgrades || {})[a.id] || 1) + (on ? '' : `<br><i>Unlocks at level ${a.level}</i>`));
+      abs.appendChild(c);
+    });
+    row.appendChild(abs);
+    return row;
+  }
+  /** celebration when a rider takes a Path */
+  function pathUnlock(m, pathId) {
+    const P = SBR.PATHS[pathId], C = SBR.CHARS[m.id];
+    return new Promise(resolve => {
+      const box = el('div', { class: 'path-unlock', style: { '--pc': P.color } });
+      box.appendChild(el('div', { class: 'pu-rays' }));
+      box.appendChild(el('div', { class: 'pu-emb', html: SBR.PATH_EMBLEM[pathId]() }));
+      box.appendChild(el('div', { class: 'pu-kicker' }, `${C.short.toUpperCase()} WALKS A NEW PATH`));
+      box.appendChild(el('h2', { class: 'pu-name' }, P.name));
+      box.appendChild(el('p', { class: 'pu-desc' }, P.desc));
+      box.appendChild(el('p', { class: 'pu-passive' }, P.passive));
+      const abs = el('div', { class: 'path-abs big' });
+      P.abilities.forEach((a, i) => {
+        const on = m.level >= a.level;
+        const c = el('div', { class: 'path-ab' + (on ? '' : ' locked'), style: { animationDelay: (0.35 + i * 0.12) + 's' }, html: `${SBR.icons.ability(a.id)}<span>${SBR.ABILITIES[a.id].name}</span><small>${on ? 'Learned' : 'Lv ' + a.level}</small>` });
+        SBR.tip.bind(c, () => abilityTip(a.id));
+        abs.appendChild(c);
+      });
+      box.appendChild(abs);
+      const w = modal(box, { small: false });
+      box.appendChild(btn('Ride on', () => { closeModal(w); resolve(); }, 'btn-primary'));
+      SBR.audio.play('level');
+      if (SBR.fx && SBR.fx.burst) try { SBR.fx.burst(innerWidth / 2, innerHeight / 2, P.color); } catch (e) {}
+    });
+  }
   function equipPicker(m, slot) {
     return new Promise(resolve => {
       const r = SBR.run;
@@ -798,5 +851,5 @@ SBR.ui = (() => {
 
   return { btn, artFor, portraitOf, transition, modal, closeModal, closeAllModals, sfxText, menacing, shake, statusTip, abilityTip, relicTip, itemTip, relicChip, itemChip,
     matChip, equipChip, equipTip, dialogue, diceCheck, eventPanel, resultPanel, hud, partyStrip, stageScreen, partyScreen, bagScreen, mapScreen, standingsTable, shopScreen,
-    chooseMember, chooseAbility, craftScreen, equipPicker, rewardsScreen, settingsScreen, refreshStage };
+    chooseMember, chooseAbility, craftScreen, equipPicker, pathUnlock, pathRow, rewardsScreen, settingsScreen, refreshStage };
 })();

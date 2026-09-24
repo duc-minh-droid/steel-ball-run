@@ -73,7 +73,26 @@ SBR.STORY = {
     { who: 'johnny', text: 'You don\'t have to teach me. I\'ll watch.' },
     { who: 'gyro', text: 'Heh. Rule one: what matters isn\'t the ball. It\'s the rotation. Remember that.' },
     { narr: 'GYRO ZEPPELI rides with you. Each stage, choose an encounter. The desert is deliberately unkind.' },
-  ], fx: g => g.recruit('gyro', true) },
+  ], leadLines: {
+    gyro: [
+      { narr: 'Gyro took the 1st Stage... and was immediately penalised for endangering Sandman. The 2nd Stage stretches 1,200 kilometres across the Arizona Desert.' },
+      { who: 'johnny', text: 'Wait! That spin... the way my legs moved when your ball hit me. Teach me.' },
+      { who: 'gyro', text: 'Teach? Nyo-ho-ho. You can ride behind me and watch, Joestar. If you fall off, I\'m not stopping.' },
+      { narr: 'JOHNNY JOESTAR rides with you. Each stage, choose an encounter. The desert is deliberately unkind.' },
+    ],
+    mountaintim: [
+      { narr: 'Mountain Tim, favourite of the Steel Ball Run, sets out across the Arizona desert. Two strange riders keep pace with him.' },
+      { who: 'gyro', text: 'The famous cowboy. Mind if we ride your trail? The sand has already eaten three racers.' },
+      { who: 'mountaintim', text: 'Ride where you like, boys. But racers have been turning up dead out here, and I aim to find out why.' },
+      { narr: 'JOHNNY and GYRO ride with you. Each stage, choose an encounter.' },
+    ],
+    hotpants: [
+      { narr: 'Hot Pants rides alone, speaking to no one. Two racers fall in beside the mysterious rider on the 2nd Stage.' },
+      { who: 'gyro', text: 'Oi, you don\'t talk much. Good. Neither does the desert.' },
+      { who: 'hotpants', text: '...Stay out of my way, and I\'ll stay out of yours. For now.' },
+      { narr: 'JOHNNY and GYRO ride with you. Each stage, choose an encounter.' },
+    ],
+  }, fx: g => g.recruit('gyro', true) },
   st_robinson: { card: { title: 'Cacti That Twitch', blurb: 'The cacti along the trail are moving.', icon: 'skull' }, bg: 1, lines: [
     { narr: 'Something buzzes in the cactus flowers. Thousands of insects rise at once.' },
     { who: 'robinson', text: 'Leaving the favourites alive is bad business. Let\'s thin the herd, amigos.' },
@@ -84,7 +103,14 @@ SBR.STORY = {
     { who: 'mountaintim', text: 'Mountain Tim. You boys have been riding the same trail as a murderer. These prints... they don\'t match Mrs. Robinson\'s horse.' },
     { who: 'johnny', text: 'Then the killer is still out here.' },
     { who: 'mountaintim', text: 'And you two are next on the list, I\'d wager. I\'ve got a... talent. From a place the natives call the Devil\'s Palm. Mind if I ride along?' },
-  ], fx: g => { g.recruit('mountaintim'); g.achieve('tim'); } },
+  ], leadLines: {
+    mountaintim: [
+      { narr: 'Racers have been turning up dead along the trail. Tim crouches over the prints.' },
+      { who: 'mountaintim', text: 'These hoofprints don\'t match Mrs. Robinson\'s horse. Whoever killed those boys is still out here.' },
+      { who: 'johnny', text: 'Then we find him first.' },
+      { who: 'mountaintim', text: 'The natives call this place the Devil\'s Palm. I found something here once. Something that let me do... this.' },
+    ],
+  }, fx: g => { g.recruit('mountaintim'); g.achieve('tim'); } },
   boom_pre: { bg: 1, lines: [
     { narr: 'Night falls. A sandstorm. Three shadows approach — and every scrap of iron in the desert begins to rise.', mood: 'menace' },
     { who: 'benjamin', text: 'The Boomboom family was paid well to bury the Zeppeli boy. Nothing personal.' },
@@ -149,7 +175,7 @@ SBR.STORY = {
     { who: 'gyro', text: 'The racer who won the last stage — Hot Pants. My Scan saw something in their spine. A map. A Corpse Part.' },
     { who: 'johnny', text: 'Then we\'re not the only ones hunting it.' },
   ] },
-  st_hotpants: { card: { title: 'A Stolen Cow', blurb: 'A racer stands over a slaughtered cow.', icon: 'recruit' }, bg: 3, lines: [
+  st_hotpants: { leadSkip: ['hotpants'], card: { title: 'A Stolen Cow', blurb: 'A racer stands over a slaughtered cow.', icon: 'recruit' }, bg: 3, lines: [
     { who: 'hotpants', text: 'You. You killed my cow. That was my dinner for three days.' },
     { who: 'johnny', text: 'We didn\'t touch your cow!' },
     { who: 'hotpants', text: 'Then prove it. Or I spray the flesh off your bones.' },

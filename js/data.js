@@ -248,11 +248,11 @@ SBR.CHARS = {
 /* ---------------- Horses (your "race") ---------------- */
 SBR.HORSES = {
   slowdancer: { name: 'Slow Dancer', breed: 'Appaloosa-cross Mare', coat: '#7a4a2a', mane: '#e8e0d0', wrap: '#8a5ad0', res: { bleed: -0.2 }, speed: 6, stamina: 7,
-    desc: 'Johnny\'s steady partner. Calm under fire.', bonus: { dodge: 0.05, ride: 2 }, perk: 'Steady Gait: +5% dodge for Johnny, +2 RIDING.' },
+    desc: 'Johnny\'s steady partner. Calm under fire.', bonus: { dodge: 0.05, ride: 2 }, perk: 'Steady Gait: +5% dodge and +2 RIDING for your lead rider.' },
   mustang: { name: 'Dust Devil', breed: 'Wild Mustang', coat: '#b8703a', mane: '#3a1a10', wrap: '#c8323c', res: { phys: 0.1, bullet: -0.15 }, speed: 8, stamina: 4,
     desc: 'Caught in the badlands. Fast and headstrong.', bonus: { init: 3, sprint: 0.1 }, perk: 'Wild Start: +3 initiative for the party. Faster sprints.' },
   ironhoof: { name: 'Iron Hoof', breed: 'Percheron Draft', coat: '#4a4a52', mane: '#1a1020', wrap: '#f2c14e', res: { phys: -0.15, spin: 0.1 }, speed: 4, stamina: 10,
-    desc: 'A plough horse who refused to quit.', bonus: { maxHp: 12, block: 0.05 }, perk: 'Plough Strength: Johnny +12 max HP, +5% block for the party.', unlock: 'Clear Act I.' },
+    desc: 'A plough horse who refused to quit.', bonus: { maxHp: 12, block: 0.05 }, perk: 'Plough Strength: lead rider +12 max HP, +5% block for the party.', unlock: 'Clear Act I.' },
   desertrose: { name: 'Desert Rose', breed: 'Arabian Mare', coat: '#e8d8c0', mane: '#b8a080', wrap: '#3fb8a9', res: { cold: 0.2, holy: -0.15, sound: -0.1 }, speed: 7, stamina: 6,
     desc: 'Graceful and tireless in heat.', bonus: { energyChance: 0.12 }, perk: 'Tireless: +12% chance for bonus Energy each turn, for everyone.', unlock: 'Reach Act III.' },
   silverbullet: { name: 'Silver Bullet', breed: 'Thoroughbred Stallion', coat: '#c8c8d0', mane: '#f6ecd8', wrap: '#1f2a6a', res: { bullet: -0.2, stand: 0.1 }, speed: 9, stamina: 5,
@@ -338,8 +338,8 @@ SBR.TECHNIQUES = {
 SBR.ACHIEVEMENTS = {
   first_blood: { name: 'The First 15,000 Meters', desc: 'Win your first battle.', rp: 5 },
   act1:        { name: 'Devil\'s Palm', desc: 'Clear Act I: The West.', rp: 20, unlockHorse: 'ironhoof' },
-  act2:        { name: 'Scary Monsters', desc: 'Clear Act II: The Rockies.', rp: 25, unlockItem: 'spareballs' },
-  act3:        { name: 'Silent Way', desc: 'Clear Act III: The Midwest.', rp: 30, unlockHorse: 'desertrose' },
+  act2:        { name: 'Scary Monsters', desc: 'Clear Act II: The Rockies.', rp: 25, unlockItem: 'spareballs', unlockLead: 'mountaintim' },
+  act3:        { name: 'Silent Way', desc: 'Clear Act III: The Midwest.', rp: 30, unlockHorse: 'desertrose', unlockLead: 'hotpants' },
   act4:        { name: 'Civil War', desc: 'Clear Act IV: The North.', rp: 35 },
   act5:        { name: 'Love Train', desc: 'Clear Act V: The East Coast.', rp: 45 },
   win:         { name: 'The World of Stars and Stripes', desc: 'Finish the Steel Ball Run.', rp: 80, unlockHorse: 'steppe' },

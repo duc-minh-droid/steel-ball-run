@@ -10,7 +10,8 @@ SBR.game = (() => {
     const m = { id, equip: SBR.emptyEquip(), level: 1, xp: 0, stats: Object.assign({}, c.stats), maxHp: c.hp + c.stats.grit * 2, hp: 0, points: 0, exhaustion: 0, upgrades: {} };
     const b = SBR.bonus();
     m.maxHp += b.maxHp || 0;
-    if (id === 'johnny') { m.maxHp += SBR.HORSES[SBR.run.horse].bonus.maxHp || 0; if (b.johnnyAll) m.maxHp += 20; }
+    if (id === (SBR.run.lead || 'johnny')) m.maxHp += SBR.HORSES[SBR.run.horse].bonus.maxHp || 0;
+    if (id === 'johnny' && b.johnnyAll) m.maxHp += 20;
     // catch up to party level
     while (m.level < level) { levelUp(m); autoAssign(m); }
     m.hp = m.maxHp;
@@ -20,6 +21,9 @@ SBR.game = (() => {
     const c = SBR.CHARS[m.id];
     const f = SBR.run ? SBR.run.flags : {};
     const base = c.abilities.filter(a => (!a.flag || f[a.flag]) && (!a.notFlag || !f[a.notFlag]) && (!a.level || m.level >= a.level)).map(a => a.id);
+    const P = SBR.pathOf(m);
+    SBR.pathAbilities(m).forEach(id => { if (!base.includes(id)) base.push(id); });
+    if (P && P.drop) P.drop.forEach(id => { const i = base.indexOf(id); if (i >= 0) base.splice(i, 1); });
     SBR.equipBonus(m).abilities.forEach(id => { if (!base.includes(id)) base.push(id); });
     return base;
   }
@@ -47,6 +51,8 @@ SBR.game = (() => {
     SBR.meta.rp += a.rp; SBR.meta.totalRp += a.rp;
     let extra = '';
     if (a.unlockHorse && !SBR.meta.unlockedHorses.includes(a.unlockHorse)) { SBR.meta.unlockedHorses.push(a.unlockHorse); extra = `<br>Horse unlocked: <b>${SBR.HORSES[a.unlockHorse].name}</b>`; }
+    SBR.meta.unlockedLeads = SBR.meta.unlockedLeads || ['johnny', 'gyro'];
+    if (a.unlockLead && !SBR.meta.unlockedLeads.includes(a.unlockLead)) { SBR.meta.unlockedLeads.push(a.unlockLead); extra += `<br>Lead rider unlocked: <b>${SBR.CHARS[a.unlockLead].name}</b>`; }
     if (a.unlockItem && !SBR.meta.unlockedItems.includes(a.unlockItem)) { SBR.meta.unlockedItems.push(a.unlockItem); extra = `<br>Starting item unlocked: <b>${SBR.EQUIPMENT[a.unlockItem].name}</b>`; }
     Object.entries(SBR.TECHNIQUES).forEach(([k, t]) => { if (t.unlock === id && !SBR.meta.unlockedTech.includes(k)) { SBR.meta.unlockedTech.push(k); extra += `<br>Technique available: <b>${t.name}</b>`; } });
     SBR.saveMeta();
@@ -58,7 +64,8 @@ SBR.game = (() => {
   /* ---------- standings ---------- */
   function standings() {
     const r = SBR.run;
-    const list = [{ key: 'player', name: 'Johnny Joestar', portrait: 'johnny', points: r.points.player || 0, player: true }];
+    const lead = SBR.CHARS[r.lead || 'johnny'];
+    const list = [{ key: 'player', name: lead.name, portrait: lead.portrait, points: r.points.player || 0, player: true }];
     Object.entries(SBR.RIVALS).forEach(([k, rv]) => list.push({ key: k, name: rv.name, portrait: rv.portrait, points: r.points[k] || 0 }));
     return list.sort((a, b) => b.points - a.points || (a.player ? -1 : 1));
   }
@@ -68,6 +75,19 @@ SBR.game = (() => {
   let pending = [];
   const later = fn => pending.push(fn);
   async function flushPending() { while (pending.length) { const f = pending.shift(); await f(); } }
+  /** the lead rider never leaves: story departures become a wound or a changed heart */
+  const LEAD_SPARED = {
+    mountaintim: 'Mountain Tim took three bullets getting Lucy out of Kansas City. He ties the wounds shut with his own rope and rides on. (Tim gains 1 Exhaustion.)',
+    hotpants: 'The Vatican agents wait for the Corpse Parts. Hot Pants hands them over... then turns her horse around. "I made a promise to ride with you."',
+    gyro: 'The Love Train should have taken Gyro. It didn\'t. Barely breathing, he grins with golden teeth. "Nyo-ho... not yet." (Gyro gains 2 Exhaustion.)',
+    johnny: 'Johnny grits his teeth and keeps riding.',
+  };
+  function leadSpared(m) {
+    const n = m.id === 'gyro' ? 2 : m.id === 'mountaintim' ? 1 : 0;
+    m.exhaustion = Math.min(3, (m.exhaustion || 0) + n);
+    m.hp = Math.max(1, Math.round(m.hp * 0.6));
+    SBR.toast(`<div class="toast-port">${art.portrait(SBR.CHARS[m.id].portrait)}</div><div><b>${SBR.CHARS[m.id].short} is your lead.</b><br><small>${LEAD_SPARED[m.id] || ''}</small></div>`, 'ally');
+  }
   function findMember(id) { const r = SBR.run; return r.party.find(m => m.id === id) || r.reserve.find(m => m.id === id); }
   const G = {
     recruit(id, silent) {
@@ -83,6 +103,7 @@ SBR.game = (() => {
       const r = SBR.run;
       const m = findMember(id);
       if (!m) return;
+      if (id === r.lead) return leadSpared(m);
       r.party = r.party.filter(x => x !== m); r.reserve = r.reserve.filter(x => x !== m);
       r.gone = (r.gone || []).concat(id);
       Object.values(m.equip || {}).forEach(e => { if (e) r.gear.push(e); });
@@ -91,6 +112,16 @@ SBR.game = (() => {
     },
     achieve,
     flag(k) { SBR.run.flags[k] = true; },
+    /** Paths (subclasses) */
+    canTakePath(charId) { const m = SBR.run.party.find(x => x.id === charId); return !!m && !m.path; },
+    takePath(pathId) {
+      const P = SBR.PATHS[pathId], m = findMember(P.char);
+      if (!m || m.path) return;
+      m.path = pathId;
+      if (P.bonus && P.bonus.maxHp) { m.maxHp += P.bonus.maxHp; m.hp += P.bonus.maxHp; }
+      later(() => ui.pathUnlock(m, pathId));
+      SBR.saveRun();
+    },
     inParty: id => SBR.run.party.some(m => m.id === id),
     hasAlly: id => !!findMember(id) || (SBR.run.gone || []).includes(id),
     money(n) {
@@ -186,13 +217,14 @@ SBR.game = (() => {
   }
 
   /* ---------- run lifecycle ---------- */
-  function newRun(horse, starter) {
+  function newRun(horse, starter, lead = 'johnny') {
     SBR.run = {
-      version: 1, act: 0, stage: 0, horse, starter, tech: SBR.meta.equippedTech.slice(),
+      version: 1, act: 0, stage: 0, horse, starter, lead, tech: SBR.meta.equippedTech.slice(),
       party: [], reserve: [], money: 30, items: ['canteen'], flags: {}, pace: 50,
       points: {}, usedEvents: [], mats: {}, gear: [], stageCards: null, rp: 0, battles: 0, started: Date.now(),
     };
-    SBR.run.party.push(makeMember('johnny'));
+    SBR.run.party.push(makeMember(lead));
+    if (lead !== 'johnny') SBR.run.party.push(makeMember('johnny'));
     G.relic(starter);
     const si = SBR.run.gear.indexOf(starter);
     if (si >= 0) equip(SBR.run.party[0], freeSlot(SBR.run.party[0], SBR.EQUIPMENT[starter].slot), si);
@@ -254,7 +286,7 @@ SBR.game = (() => {
     const act = SBR.ACTS[r.act];
     if (r.stage === act.stages) return [{ id: 'boss', type: 'boss', title: act.boss.name, blurb: 'The stage\'s final obstacle. There is no way around.', icon: 'crown', forced: true, art: SBR.ENEMIES[act.boss.enemies[0]].art.key }];
     const storyId = act.story[r.stage];
-    if (storyId) { const s = SBR.STORY[storyId]; return [Object.assign({ id: storyId, type: 'story', forced: true, story: true }, s.card)]; }
+    if (storyId && !(SBR.STORY[storyId].leadSkip || []).includes(r.lead)) { const s = SBR.STORY[storyId]; return [Object.assign({ id: storyId, type: 'story', forced: true, story: true }, s.card)]; }
     const pool = SBR.EVENTS.filter(e => e.acts.includes(r.act) && !(e.once && r.usedEvents.includes(e.id)) && (!e.cond || e.cond(G)));
     const n = 3 + (SBR.bonus().cards || 0);
     const out = [];
@@ -340,7 +372,7 @@ SBR.game = (() => {
     if (ch.cost && ch.cost.money) SBR.run.money -= ch.cost.money;
     let outcome = ch.ok;
     if (ch.check) {
-      const who = bestFor(ch.check.stat);
+      const who = (ch.check.who && SBR.run.party.find(m => m.id === ch.check.who && m.hp > 0)) || bestFor(ch.check.stat);
       const ok = await ui.diceCheck({ stat: ch.check.stat, dc: ch.check.dc, who, mod: checkMod(who, ch.check.stat) });
       outcome = ok ? ch.ok : ch.fail;
     }
@@ -721,7 +753,7 @@ SBR.game = (() => {
     c.innerHTML = `<div class="hc-art">${art.horse({ coat: un ? h.coat : '#3a3040', mane: un ? h.mane : '#1a1020', wrap: un ? h.wrap : '#3a3040', spots: un ? h.spots : null })}</div>
       <div class="hc-name">${un ? h.name : '???'}</div><div class="hc-breed">${un ? h.breed : 'Locked'}</div>
       <div class="hc-bars"><span>SPEED</span><div class="bar"><div style="width:${h.speed * 10}%"></div></div><span>STAMINA</span><div class="bar"><div style="width:${h.stamina * 10}%"></div></div></div>
-      <div class="hc-perk">${un ? h.perk : art.icon('lock', 14) + ' ' + (h.unlock || (ach && ach.desc) || '')}</div>`;
+      <div class="hc-perk">${un ? h.perk : art.icon('lock', 14) + ' ' + (h.unlock || (ach && ach.desc) || '')}</div>${un && h.res ? `<div class="hc-res">${SBR.resChips(h.res)}</div>` : ''}`;
     if (un && onPick) c.addEventListener('click', () => { SBR.audio.play('select'); onPick(k); });
     return c;
   }
@@ -763,6 +795,8 @@ SBR.game = (() => {
 
   /* ---------- Setup (horse + item) ---------- */
   function setupScreen() {
+    SBR.meta.unlockedLeads = SBR.meta.unlockedLeads || ['johnny', 'gyro'];
+    let lead = SBR.meta.lastLead && SBR.meta.unlockedLeads.includes(SBR.meta.lastLead) ? SBR.meta.lastLead : 'johnny';
     let horse = SBR.meta.lastHorse && SBR.meta.unlockedHorses.includes(SBR.meta.lastHorse) ? SBR.meta.lastHorse : 'slowdancer';
     let item = SBR.meta.lastItem && SBR.meta.unlockedItems.includes(SBR.meta.lastItem) ? SBR.meta.lastItem : 'colt';
     ui.transition(scr => {
@@ -771,7 +805,19 @@ SBR.game = (() => {
       const box = el('div', { class: 'setup' });
       const render = () => {
         box.innerHTML = '';
-        box.appendChild(el('div', { class: 'setup-head', html: `<div class="setup-port">${art.portrait('johnny')}</div><div><div class="lh-title">Registration</div><p>Rider: <b>Johnny Joestar</b> — former genius jockey. Choose your horse and one item to bring.</p></div>` }));
+        const L = SBR.CHARS[lead];
+        box.appendChild(el('div', { class: 'setup-head', html: `<div class="setup-port">${art.portrait(L.portrait)}</div><div><div class="lh-title">Registration</div><p>Lead rider: <b>${L.name}</b> — ${L.title}. ${lead === 'johnny' ? '' : 'Johnny rides with you from the start. '}Choose your horse and one item to bring.</p></div>` }));
+        box.appendChild(el('div', { class: 'cs-sub' }, 'CHOOSE YOUR LEAD RIDER'));
+        const lg = el('div', { class: 'lead-grid' });
+        SBR.LEADS.forEach(k => {
+          const C = SBR.CHARS[k], un = SBR.meta.unlockedLeads.includes(k);
+          const ach = Object.values(SBR.ACHIEVEMENTS).find(a => a.unlockLead === k);
+          const paths = SBR.pathsFor(k).map(pid => `<span class="lead-path" style="--pc:${SBR.PATHS[pid].color}">${SBR.PATHS[pid].name}</span>`).join('');
+          const c = el('div', { class: 'lead-card' + (un ? '' : ' locked') + (k === lead ? ' selected' : '') }, el('div', { class: 'lead-port', html: art.portrait(C.portrait) }), el('div', { class: 'lead-info', html: `<b>${un ? C.name : '???'}</b><small>${un ? C.stand : art.icon('lock', 12) + ' ' + (ach ? ach.desc : '')}</small>${un ? `<div class="lead-paths">${paths}</div>` : ''}` }));
+          if (un) { c.onclick = () => { SBR.audio.play('select'); lead = k; render(); }; SBR.tip.bind(c, () => `<b>${C.name}</b><br>${C.passive.name}: ${C.passive.desc}<br><i>Paths: ${SBR.pathsFor(k).map(pid => SBR.PATHS[pid].name).join(' · ')}</i>`); }
+          lg.appendChild(c);
+        });
+        box.appendChild(lg);
         box.appendChild(el('div', { class: 'cs-sub' }, 'CHOOSE YOUR HORSE'));
         const hg = el('div', { class: 'horse-grid' });
         Object.entries(SBR.HORSES).forEach(([k, h]) => hg.appendChild(horseCard(k, h, SBR.meta.unlockedHorses.includes(k), kk => { horse = kk; render(); }, k === horse)));
@@ -790,16 +836,16 @@ SBR.game = (() => {
         box.appendChild(el('p', { class: 'muted' }, `Techniques equipped: ${eq}`));
         const foot = el('div', { class: 'lobby-foot' });
         foot.appendChild(ui.btn('◂ Saloon', () => lobbyScreen(), 'btn-ghost'));
-        foot.appendChild(ui.btn('RIDE! ▸', () => beginRace(horse, item), 'btn-primary big'));
+        foot.appendChild(ui.btn('RIDE! ▸', () => beginRace(horse, item, lead), 'btn-primary big'));
         box.appendChild(foot);
       };
       render();
       scr.appendChild(box);
     });
   }
-  async function beginRace(horse, item) {
-    SBR.meta.lastHorse = horse; SBR.meta.lastItem = item; SBR.saveMeta();
-    newRun(horse, item);
+  async function beginRace(horse, item, lead = 'johnny') {
+    SBR.meta.lastHorse = horse; SBR.meta.lastItem = item; SBR.meta.lastLead = lead; SBR.saveMeta();
+    newRun(horse, item, lead);
     await ui.dialogue('prologue');
     // 1st Stage sprint (tutorial)
     const res = await SBR.sprint.run({ name: '1st Stage — San Diego Beach, 15,000 m', act: 1, favourite: 'gyro', tutorial: true });

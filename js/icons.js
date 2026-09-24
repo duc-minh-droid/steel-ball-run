@@ -316,6 +316,8 @@ SBR.icons = (() => {
     dmg: id => get(DT, id),
     slot: type => get(SLOTG, type),
     has: (kind, id) => !!({ item: ITEM, mat: MAT, equip: EQ, relic: RELIC, ability: AB, status: STATUS }[kind] || {})[id],
-    P, wrap,
+    P, wrap, K, st, shine, BOOT,
+    /** register a drawing from another file (paths.js etc.) */
+    define: (kind, id, fn) => { ({ item: ITEM, mat: MAT, equip: EQ, relic: RELIC, ability: AB, status: STATUS, dmg: DT })[kind][id] = fn; },
   };
 })();

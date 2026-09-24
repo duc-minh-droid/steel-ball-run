@@ -50,6 +50,19 @@ SBR.art = (() => {
     tattoo:    { skin: '#e0c0a0', hair: '#2a2a2a', hairStyle: 'bald', hat: null, outfit: '#1a1a1a', outfit2: '#c8323c', eye: '#c8323c', lip: '#5a3a3a', bg: ['#1a1a1a', '#c8323c'], extra: 'tattoo' },
     parallel:  { skin: '#c8c0e8', hair: '#f8e8a0', hairStyle: 'curls', hat: null, outfit: '#3a3a8a', outfit2: '#c8c8f0', eye: '#e8e8ff', lip: '#6a5a9a', bg: ['#3a3a8a', '#c8c8f0'], extra: 'flag' },
     ghost:     { skin: '#c8d8e0', hair: '#6a7a8a', hairStyle: 'shaggy', hat: 'kepi', hatColor: '#4a5a7a', hat2: '#aab', outfit: '#4a5a7a', outfit2: '#aab', eye: '#ffffff', lip: '#6a7a8a', bg: ['#2a2a3a', '#6a7a8a'] },
+    // Path trainers
+    coach:     { skin: '#e8c0a0', hair: '#c8c8c8', hairStyle: 'short', hat: 'jockey', hatColor: '#c8323c', hat2: '#f6ecd8', outfit: '#c8323c', outfit2: '#f6ecd8', eye: '#3a3a3a', lip: '#9a5a5a', bg: ['#c8323c', '#f2c14e'], extra: 'mustache' },
+    bounty:    { skin: '#c89870', hair: '#2a1a10', hairStyle: 'long', hat: 'cowboy', hatColor: '#4a3a2a', hat2: '#8a6a4a', outfit: '#5a4a3a', outfit2: '#c8a070', eye: '#1a1020', lip: '#7a4a3a', bg: ['#4a3a2a', '#e8742a'], extra: 'scarf' },
+    mason:     { skin: '#e0b898', hair: '#8a7a6a', hairStyle: 'swept', hat: 'cap', hatColor: '#8a8a7a', hat2: '#f2c14e', outfit: '#8a7a6a', outfit2: '#f2c14e', eye: '#3a3a3a', lip: '#8a5a5a', bg: ['#f2c14e', '#8a7a6a'], extra: 'beard' },
+    gregorio:  { skin: '#e8c8a8', hair: '#e8e0c8', hairStyle: 'long', hat: null, outfit: '#1a1a2a', outfit2: '#c8a040', eye: '#3a8a6a', lip: '#9a5a6a', bg: ['#1a1a2a', '#3fb8a9'], extra: 'beard' },
+    doctor:    { skin: '#f0d0b8', hair: '#5a4a3a', hairStyle: 'swept', hat: 'tophat', hatColor: '#2a2a2a', hat2: '#8a8a8a', outfit: '#2a2a3a', outfit2: '#f6ecd8', eye: '#3a5a8a', lip: '#9a6a6a', bg: ['#6ad08a', '#f6ecd8'], extra: 'monocle' },
+    whisperer: { skin: '#b88058', hair: '#1a1010', hairStyle: 'verylong', hat: 'headband', hatColor: '#3fb8a9', hat2: '#f2c14e', outfit: '#8a5a3a', outfit2: '#3fb8a9', eye: '#2a1a10', lip: '#7a4a3a', bg: ['#3fb8a9', '#f2c14e'], extra: 'feather' },
+    marshal:   { skin: '#e0b088', hair: '#6a4a2a', hairStyle: 'short', hat: 'cowboy', hatColor: '#e8d8b0', hat2: '#3a2a1a', outfit: '#3a3a4a', outfit2: '#f2c14e', eye: '#2a2a2a', lip: '#8a5a4a', bg: ['#f2c14e', '#3a3a4a'], extra: 'sideburns' },
+    rodeo:     { skin: '#f0c8a0', hair: '#c86a2a', hairStyle: 'curls', hat: 'cowboy', hatColor: '#e8508a', hat2: '#f2c14e', outfit: '#e8742a', outfit2: '#f2c14e', eye: '#3a6a3a', lip: '#c8506a', bg: ['#e8742a', '#6b5bd6'], extra: 'grin' },
+    baron:     { skin: '#e8b890', hair: '#9a9a9a', hairStyle: 'short', hat: 'cowboy', hatColor: '#f6ecd8', hat2: '#8a5a30', outfit: '#6a3a1a', outfit2: '#e8d8b0', eye: '#3a3a3a', lip: '#9a5a4a', bg: ['#8a5a30', '#e8d8b0'], extra: 'mustache' },
+    abbess:    { skin: '#f2dcc8', hair: '#1a1a2a', hairStyle: 'bob', hat: 'veil', hatColor: '#1a1a2a', hat2: '#f6ecd8', outfit: '#1a1a2a', outfit2: '#f6ecd8', eye: '#4a5a7a', lip: '#b07080', bg: ['#f6ecd8', '#8a8aa0'], extra: 'cross' },
+    inquisitor:{ skin: '#e8c8b8', hair: '#3a1a2a', hairStyle: 'swept', hat: 'dome', hatColor: '#c8323c', hat2: '#f6ecd8', outfit: '#8a1a2a', outfit2: '#f6ecd8', eye: '#6a2a4a', lip: '#a04060', bg: ['#8a1a2a', '#e8508a'], extra: 'cross' },
+    cardinal:  { skin: '#f0d0c0', hair: '#d8d8d8', hairStyle: 'short', hat: 'dome', hatColor: '#c8323c', hat2: '#f2c14e', outfit: '#c8323c', outfit2: '#f2c14e', eye: '#4a4a6a', lip: '#a06070', bg: ['#f2c14e', '#c8323c'], extra: 'cross' },
     nicholas:  { skin: '#e8d0c0', hair: '#c8a060', hairStyle: 'swept', hat: 'jockey', hatColor: '#6a7a9a', hat2: '#fff', outfit: '#6a7a9a', outfit2: '#fff', eye: '#8a9ab0', lip: '#8a7a8a', bg: ['#2a2a3a', '#8a9ab0'] },
   };
 

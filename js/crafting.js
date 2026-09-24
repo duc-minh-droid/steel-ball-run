@@ -263,6 +263,11 @@ SBR.equipBonus = m => {
     }
     if (e.ability) out.abilities.push(e.ability);
   });
+  const P = SBR.pathOf && SBR.pathOf(m);
+  if (P) {
+    for (const [k, v] of Object.entries(P.stats || {})) out.stats[k] = (out.stats[k] || 0) + v;
+    for (const [k, v] of Object.entries(P.bonus || {})) if (k !== 'maxHp') out.bonus[k] = (out.bonus[k] || 0) + v;
+  }
   return out;
 };
 SBR.equipDesc = id => {

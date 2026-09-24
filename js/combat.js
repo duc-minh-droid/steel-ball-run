@@ -65,7 +65,7 @@ SBR.Combat = class Combat {
     const eb = SBR.equipBonus(m);
     for (const k in eb.stats) stats[k] = (stats[k] || 0) + eb.stats[k];
     if (m.id === 'johnny' && b.johnnyAll) for (const k in stats) stats[k] += b.johnnyAll;
-    if (m.id === 'johnny' && SBR.HORSES[SBR.run.horse].bonus.ride) stats.ride += SBR.HORSES[SBR.run.horse].bonus.ride;
+    if (m.id === (SBR.run.lead || 'johnny') && SBR.HORSES[SBR.run.horse].bonus.ride) stats.ride += SBR.HORSES[SBR.run.horse].bonus.ride;
     const exh = m.exhaustion || 0;
     const maxHp = Math.max(1, Math.round(m.maxHp * (1 - 0.15 * exh)));
     return {
@@ -159,7 +159,8 @@ SBR.Combat = class Combat {
     let d = 0.04 + u.stats.ride * 0.006 + this.statMod(u, 'dodge');
     if (u.side === 'party') {
       d += (this.bonus.dodge || 0) + this.eq(u, 'dodge');
-      if (u.id === 'johnny') d += 0.08 + (SBR.HORSES[SBR.run.horse].bonus.dodge || 0);
+      if (u.id === 'johnny') d += 0.08;
+      if (u.id === (SBR.run.lead || 'johnny')) d += SBR.HORSES[SBR.run.horse].bonus.dodge || 0;
       if (u.id === 'diego') d += 0.15;
     }
     return SBR.util.clamp(d, 0, 0.6);
@@ -239,6 +240,7 @@ SBR.Combat = class Combat {
       if (src.side === 'party') {
         const b = this.bonus;
         mult *= 1 + (b.dmg || 0) + this.eq(src, 'dmg');
+        if (this.eq(src, 'executeBonus') && tgt.hp / tgt.maxHp < 0.35) mult *= 1 + this.eq(src, 'executeBonus');
         mult *= 1 - 0.15 * (src.exhaustion || 0);
       }
       // miss from blindness

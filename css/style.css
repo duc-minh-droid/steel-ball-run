@@ -890,3 +890,49 @@ svg.gi { width: 100%; height: 100%; display: block; overflow: visible; }
 .eq-name { font-size: 11px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .eq-slot.suppressed { opacity: .55; filter: grayscale(.7); }
 .eq-off { position: absolute; top: 3px; right: 3px; font-size: 8px; font-weight: 700; letter-spacing: .08em; background: var(--red, #c8323c); color: #fff; padding: 1px 3px; }
+
+/* ---------- lead riders ---------- */
+.lead-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
+.lead-card { display: flex; gap: 8px; align-items: center; padding: 6px; background: rgba(255, 255, 255, .75); border: 3px solid var(--ink); cursor: pointer; transition: transform .12s, box-shadow .12s; min-width: 0; }
+.lead-card:hover { transform: translateY(-3px); }
+.lead-card.selected { background: #fff3c0; box-shadow: 0 0 0 3px var(--gold), var(--shadow-s); }
+.lead-card.locked { opacity: .5; filter: grayscale(1); cursor: default; }
+.lead-port { width: 54px; height: 64px; flex: none; border: 2px solid var(--ink); overflow: hidden; }
+.lead-port svg { width: 100%; height: 100%; display: block; }
+.lead-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-family: var(--f-ui); }
+.lead-info b { font-size: 13px; line-height: 1.05; }
+.lead-info small { font-size: 10px; opacity: .75; }
+.lead-paths { display: flex; flex-wrap: wrap; gap: 2px; }
+.lead-path { font-size: 9px; padding: 0 4px; border-left: 3px solid var(--pc); background: rgba(26, 16, 32, .07); white-space: nowrap; }
+@media (max-width: 760px) { .lead-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* ---------- paths ---------- */
+.path-row { margin-top: 8px; }
+.path-hint { font-size: 12px; margin: 2px 0 0; }
+.path-head { display: flex; align-items: center; gap: 8px; padding: 4px 8px 4px 4px; border-left: 5px solid var(--pc); background: color-mix(in srgb, var(--pc) 16%, #fff); }
+.path-head b { display: block; font-family: var(--f-display, serif); font-size: 16px; }
+.path-head small { font-size: 11px; opacity: .8; }
+.path-emb svg { width: 40px; height: 40px; display: block; }
+.path-abs { display: flex; gap: 6px; margin-top: 6px; }
+.path-ab { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 4px; border: 2px solid var(--ink); background: #fff; font-family: var(--f-ui); font-size: 10px; font-weight: 700; }
+.path-ab svg { width: 32px; height: 32px; }
+.path-ab.locked { opacity: .45; filter: grayscale(.8); }
+.path-abs.big { justify-content: center; gap: 10px; margin: 12px 0; }
+.path-abs.big .path-ab { width: 118px; animation: puIn .45s cubic-bezier(.2, 1.4, .4, 1) both; }
+.path-abs.big .path-ab svg { width: 46px; height: 46px; }
+.path-abs.big .path-ab span { font-size: 12px; text-align: center; line-height: 1.1; }
+.path-abs.big .path-ab small { font-size: 10px; opacity: .7; }
+.path-unlock { position: relative; text-align: center; overflow: hidden; padding: 8px 4px; }
+.pu-rays { position: absolute; inset: -40%; background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--pc) 35%, transparent) 0 8deg, transparent 8deg 20deg); animation: spin 18s linear infinite; z-index: 0; opacity: .6; }
+.path-unlock > * { position: relative; z-index: 1; }
+.pu-emb { width: 96px; height: 96px; margin: 0 auto; animation: puPop .6s cubic-bezier(.2, 1.6, .4, 1) both; }
+.pu-emb svg { width: 100%; height: 100%; filter: drop-shadow(4px 4px 0 var(--ink)); }
+.pu-kicker { font-family: var(--f-sfx); letter-spacing: .15em; font-size: 14px; margin-top: 6px; color: var(--ink); }
+.pu-name { font-family: var(--f-display, serif); font-size: 34px; margin: 2px 0; color: var(--pc); -webkit-text-stroke: 1.5px var(--ink); text-shadow: 3px 3px 0 var(--ink); animation: puIn .5s .15s both; }
+.pu-desc { font-style: italic; margin: 4px 0; }
+.pu-passive { font-size: 13px; font-weight: 700; }
+@keyframes puPop { from { transform: scale(0) rotate(-180deg); } to { transform: none; } }
+@keyframes puIn { from { transform: translateY(18px) scale(.8); opacity: 0; } to { transform: none; opacity: 1; } }
+.ev-path { display: block; margin-top: 8px; padding: 4px 8px; border-left: 4px solid var(--pc); background: color-mix(in srgb, var(--pc) 14%, transparent); font-size: 13px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.hc-res { display: flex; flex-wrap: wrap; margin-top: 4px; }
