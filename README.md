@@ -1,8 +1,8 @@
 # Steel Ball Run: The Corpse Road
 
-A fan-made browser roguelite based on *JoJo's Bizarre Adventure Part 7: Steel Ball Run*. You ride as Johnny Joestar from San Diego to New York, recruit Gyro and the others, and fight the President's Stand users with turn-based energy combat. The run structure is modelled on the Roblox game *An Average Campaign*.
+A fan-made browser roguelite based on *JoJo's Bizarre Adventure Part 7: Steel Ball Run*. Ride from San Diego to New York as Johnny, Gyro, Mountain Tim or Hot Pants. Recruit the others, walk a Path, detour through the Devil's Palm, and fight the President's Stand users in turn-based energy combat. The run structure is modelled on the Roblox game *An Average Campaign*.
 
-Everything is drawn in code as SVG and canvas, and every sound is synthesized. There are no image or audio assets and no build step.
+All the art is drawn in code as SVG and canvas. All the music and sound effects are synthesized in WebAudio. There are no image or audio assets and no build step.
 
 ![Title screen](docs/media/title.jpg)
 
@@ -10,7 +10,7 @@ Everything is drawn in code as SVG and canvas, and every sound is synthesized. T
 
 ## Play
 
-Open `index.html` in any modern browser. You can also serve the folder:
+Open `index.html` in any modern browser, or serve the folder:
 
 ```bash
 python -m http.server 5178
@@ -22,26 +22,61 @@ Then open <http://localhost:5178>. Progress saves in your browser's local storag
 
 | | |
 |---|---|
-| ![Encounter cards](docs/media/cards.jpg) **Encounter cards.** An "ENCOUNTER!" banner slashes in, then three cards fly onto the table. | ![Battle](docs/media/battle.jpg) **Stand battles.** Stands appear when their abilities fire, and some of them hover beside their user all fight. |
-| ![Boss intro](docs/media/bossintro.jpg) **Boss intros.** Each Stand user explains their mechanic before the fight. | ![Crafting](docs/media/craft.jpg) **Crafting.** Enemy drops and Stand Remnants become weapons, gear and charms. |
-| ![Sprint](docs/media/sprint.jpg) **Stage sprints.** Time your presses to the golden zone while rivals use their Stands against you. | ![Setup](docs/media/setup.jpg) **Horses instead of classes.** Six horses and seven starting items to unlock. |
+| ![Encounter cards](docs/media/cards.jpg) **Encounter cards.** Every card type has its own drawn illustration, and each deal is announced by a slashing "ENCOUNTER!" banner. | ![Battle](docs/media/battle.jpg) **Stand battles.** Stands appear when their abilities fire, and some hover beside their user for the whole fight. |
+| ![Cut-in](docs/media/cutin.jpg) **Manga cut-ins.** Big moves slam a diagonal panel across the screen with the attacker and the move's name. | ![Boss intro](docs/media/bossintro.jpg) **Boss intros.** Each Stand user explains their mechanic before the fight. |
+| ![Lead riders](docs/media/setup.jpg) **Lead riders and horses.** Pick your lead, a horse and a starting item. The horse gives resistances the way a race does in AAC. | ![Paths](docs/media/paths.jpg) **Paths.** Each lead has three subclasses, learned from trainers on the road. |
+| ![Detours](docs/media/detours.jpg) **Detour areas.** Four optional regions, each with its own hazard, enemies, materials and boss. | ![Resistances](docs/media/resist.jpg) **Damage types.** Every hit has a type, and every enemy has its own resistances and weaknesses. |
+| ![Gear](docs/media/gear.jpg) **Six gear slots.** Weapon, hat, coat, boots and two charms. Charms of the same family don't stack. | ![Sprint](docs/media/sprint.jpg) **Stage sprints.** Time your presses to the golden zone while rivals use their Stands against you. |
 
 ## How a run plays
 
-1. **Pick a horse and a starting item.** Horses play the role of AAC's races and classes. Each has speed, stamina and a perk.
+1. **Choose a lead rider, a horse and a starting item.**
+   - Johnny and Gyro are available from the start. Mountain Tim unlocks when you clear Act II, and Hot Pants when you clear Act III.
+   - Johnny and Gyro always join the story, whoever you pick.
+   - Your lead never leaves the party. Story departures become wounds or changes of heart instead.
 2. **Ride through six acts.** They follow the real race legs: the Arizona desert, the Rockies, the Midwest, the frozen north, Philadelphia and New York.
-3. **Choose an encounter each stage.** You get three cards: a fight, a shop, a story event with a d20 skill check, a trainer or an ally. Or you can Scavenge or take a Short Rest instead. Every event choice changes something: an ally joins, you gain gear, a fight breaks out, a stat changes, or a flag is set that comes back later. Rob the boy in the ditch and his brother hunts you down two acts later. Help the scout at the hot spring and his warning prepares you for Sandman.
-4. **Fight.** Every unit, ally or enemy, starts a battle with 1 Energy and gains 1 per turn. Abilities spend Energy, and effects like Second Wind, Golden Heart, Rider's Calm, Fear and Hooked change how much you gain.
-5. **Beat the act boss, then race to the finish.** Each boss's mechanic comes from their Stand:
+3. **Choose an encounter each stage.** You get three cards: a fight, a shop, a story event with a d20 skill check, a trainer, an ally or a detour. You can also Scavenge or take a Short Rest instead.
+   - Every event choice changes something: an ally joins, you gain gear, a fight breaks out, a stat changes, or a flag is set that comes back later.
+   - Rob the boy in the ditch and his brother hunts you down two acts later.
+4. **Walk a Path.** Each lead has three Paths, which play the role of AAC's subclasses. Trainers on the road teach them: pass their check or beat them in a duel.
+   - A Path gives a passive bonus, resistances, and three abilities that unlock at levels 1, 3 and 5. Taking one closes off the other two.
+   - Johnny: Jockey, Nail Gunner, Heir to the Golden Spin.
+   - Gyro: Royal Executioner, Zeppeli Physician, Golden Rider.
+   - Mountain Tim: Sheriff, Lonesome Rope, Rancher.
+   - Hot Pants: Sister of the Vatican, Flesh Sprayer, Corpse Hunter.
+5. **Take a detour.** Detours are optional side areas, like AAC's Mines and Sewer. Each has a hazard that affects every battle inside it, its own enemies and materials, story events and a boss. You then rejoin the race a little behind the pack.
+
+   | Detour | Hazard | Boss |
+   |---|---|---|
+   | The Devil's Palm | Scorching heat | A boss whose immunity shifts to a new damage type every round |
+   | The Silver Mine | Cave-ins | A dinosaurified fossil colossus |
+   | Frozen Lake Michigan | Blizzard | The White Alpha and its pack |
+   | Philadelphia Rail Yard | Crowded train cars | Tattoo You!'s eleven men acting as one |
+
+6. **Fight.** Every unit, ally or enemy, starts a battle with 1 Energy and gains 1 per turn.
+   - Hits have one of nine damage types: Physical, Gunshot, Spin, Stand, Bleed, Cold, Sound, Holy and True.
+   - Resistances add together and come from enemies, horses, gear, Paths and statuses. True damage ignores them. For example, Blackmore is immune to Cold, ghosts shrug off bullets, and Valentine is weak to Spin.
+7. **Gear up.** Enemies drop materials and Stand Remnants for the crafting bench.
+   - Each rider wears a weapon, a hat, a coat, boots and two charms.
+   - Charms belong to families, and two charms from the same family don't stack.
+8. **Beat the act boss, then race to the finish.** Each boss's mechanic comes from their Stand:
    - Ringo's Mandom rewinds six seconds, and he shoots first afterwards.
    - Blackmore hides in frozen rain that only Spin attacks can pierce.
-   - Sandman plants sound stamps and speaking stones.
-   - Valentine's copies take his hits (DOJYAAAN~).
-   - Love Train redirects all misfortune onto you.
+   - Valentine's copies take his hits.
    - Diego's THE WORLD stops time more often as he gets desperate.
-6. **Build up across runs.** Race Points buy permanent Techniques, and achievements unlock horses, starting items and Techniques.
+9. **Build up across runs.** Race Points buy permanent Techniques. Achievements unlock lead riders, horses, starting items and Techniques.
 
-Johnny's Tusk evolves from ACT1 to ACT4 as the story advances. Allies join and leave with the plot: Mountain Tim dies, Hot Pants steals the Corpse Parts, and Gyro falls against Love Train.
+## Music
+
+Every act, every detour, normal, elite and boss battles, the sprint and the saloon each have their own synthesized theme. Diego and Valentine get their own boss themes. Music volume is in Settings.
+
+The game can't ship music from other games or anime. To use your own tracks locally:
+
+1. Create a `music/` folder next to `index.html`. It is gitignored.
+2. Put your audio files in it.
+3. Add a `manifest.json` that maps theme keys to files, for example `{"act1": "desert.mp3", "boss": "boss.ogg"}`.
+
+The theme keys are `title`, `act1` to `act6`, `devilspalm`, `silvermine`, `lakeice`, `railyard`, `battle`, `elite`, `boss`, `boss_diego`, `boss_valentine`, `sprint` and `shop`. Your own tracks only load when the game is served from localhost.
 
 ## Controls
 
@@ -51,21 +86,25 @@ Johnny's Tusk evolves from ACT1 to ACT4 as the story advances. Allies join and l
 | `Q` / `E` | Brace / use an item |
 | `P` `B` `C` `M` | Party, Bag, Crafting, Map (also the tabs on the left of the screen) |
 | `Space` | Advance dialogue / surge in the sprint |
-| `Esc` | Settings (speed, volume, screen shake, reduced motion) |
+| `Esc` | Settings (speed, sound and music volume, screen shake, reduced motion) |
 
 ## Code layout
 
 | File | Contents |
 |---|---|
-| `js/core.js` | Namespace, utilities, save data, synthesized audio, tooltips |
+| `js/core.js` | Namespace, utilities, save data, sound-effect synth, tooltips |
+| `js/audio.js` | Music sequencer and themes, ambience, extra sound effects, your-own-tracks loader |
 | `js/art.js` | Portraits, horses, parallax scenes, the US map |
-| `js/icons.js` | Drawn icons for items, materials, gear, abilities and status effects |
+| `js/icons.js` | Drawn icons for items, materials, gear, abilities, statuses and damage types |
 | `js/stands.js` | Drawn Stand figures, their flashes and the Stands that hover beside their users |
-| `js/data.js` | Stats, status effects, party abilities, characters, horses, items, techniques, achievements |
-| `js/enemies.js` | Enemies and bosses with their Stand mechanics |
-| `js/story.js` | Acts, rivals and dialogue scenes |
+| `js/jojo.js` | Encounter card illustrations, manga cut-ins, To Be Continued, the title logo |
+| `js/data.js` | Stats, damage types, statuses, party abilities, characters, horses, items, techniques, achievements |
+| `js/enemies.js` | Enemies, bosses, their Stand mechanics and resistances |
+| `js/story.js` | Acts, rivals and dialogue scenes, including lines that change with your lead |
 | `js/events.js` | Side encounters, their choices, and the follow-up events those choices trigger |
-| `js/crafting.js` | Materials, Stand Remnants, equipment, recipes, drop tables |
+| `js/paths.js` | Paths (subclasses), their abilities, trainers and emblems |
+| `js/crafting.js` | Materials, Stand Remnants, equipment and slots, recipes, drop tables |
+| `js/areas.js` | Detour areas, hazards, their enemies, bosses, events and gear |
 | `js/combat.js` | Combat engine: pure state plus an event log |
 | `js/fx.js` | Canvas VFX: projectiles, slashes, spirals, damage-over-time effects |
 | `js/battle-ui.js` | Replays combat events as animations and handles input |
@@ -74,4 +113,4 @@ Johnny's Tusk evolves from ACT1 to ACT4 as the story advances. Allies join and l
 
 ## Credits
 
-This is a non-commercial fan project. Characters, Stands and story beats belong to Hirohiko Araki's *Steel Ball Run*. The structure is inspired by *An Average Campaign*. The dialogue, art, code and game design are original.
+This is a non-commercial fan project. Characters, Stands and story beats belong to Hirohiko Araki's *Steel Ball Run*. The structure is inspired by *An Average Campaign*. The dialogue, art, music, code and game design are original.
