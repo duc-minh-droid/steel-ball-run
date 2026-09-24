@@ -66,6 +66,26 @@ Then open <http://localhost:5178>. Progress saves in your browser's local storag
    - Diego's THE WORLD stops time more often as he gets desperate.
 9. **Build up across runs.** Race Points buy permanent Techniques. Achievements unlock lead riders, horses, starting items and Techniques.
 
+## Your choices matter
+
+Every choice feeds a hidden world state, like a tabletop campaign. Nothing tells you what a choice will do.
+
+- **Six factions remember you.** The President, the Vatican, the racers, Sandman's people, the House of Naples and the law.
+- **Recurring people remember you too.** The scout, the Blackwood brothers, the farrier, Mrs. Robinson, Oyecomova, Dot Han and others.
+- **Consequences come back later as their own encounters.** Spare Mrs. Robinson and he returns with a warning about Blackmore's rain. Burn an agents' camp and you meet the farmer whose harvest burned.
+- **Story beats branch.**
+  - Warn Mountain Tim and he survives Kansas City.
+  - Earn Hot Pants' trust and she refuses to steal the Corpse.
+  - Befriend the scout and you can talk Sandman out of the fight.
+  - Take Valentine's napkin and become the President's Knight.
+  - Keep Naples on your side and Gyro can survive the Love Train.
+- **Six endings.** They are chosen by what you did, not only by where you finish.
+- **The Chronicle** (`J`, or the tab on the left) records your deeds. When a consequence finally happens, it writes what the deed caused in red ink. The ending shows the full list.
+
+## Debugging
+
+Press the backtick key (`` ` ``) or open `index.html?debug` for the debug panel. It jumps to any act, stage, side event, story scene, fight, boss lineup, detour, sprint or ending, with the lead, level, threat and faction standing you choose. The same jumps are scriptable from the console as `SBR.debug.*`.
+
 ## Music
 
 Every act, every detour, normal, elite and boss battles, the sprint and the saloon each have their own synthesized theme. Diego and Valentine get their own boss themes. Music volume is in Settings.
@@ -84,7 +104,8 @@ The theme keys are `title`, `act1` to `act6`, `devilspalm`, `silvermine`, `lakei
 |---|---|
 | `1`–`7` | Use an ability, or pick an encounter card |
 | `Q` / `E` | Brace / use an item |
-| `P` `B` `C` `M` | Party, Bag, Crafting, Map (also the tabs on the left of the screen) |
+| `P` `B` `C` `M` `J` | Party, Bag, Crafting, Map, Chronicle (also the tabs on the left of the screen) |
+| `` ` `` | Debug panel |
 | `Space` | Advance dialogue / surge in the sprint |
 | `Esc` | Settings (speed, sound and music volume, screen shake, reduced motion) |
 
@@ -104,6 +125,9 @@ The theme keys are `title`, `act1` to `act6`, `devilspalm`, `silvermine`, `lakei
 | `js/events.js` | Side encounters, their choices, and the follow-up events those choices trigger |
 | `js/paths.js` | Paths (subclasses), their abilities, trainers and emblems |
 | `js/crafting.js` | Materials, Stand Remnants, equipment and slots, recipes, drop tables |
+| `js/variety.js` | Threat, generated fights, enemy traits, race conditions, act lineups |
+| `js/campaign.js` | World state, factions, consequences, follow-up encounters, story branches, endings, the Chronicle |
+| `js/debug.js` | Debug panel and `SBR.debug` jump API |
 | `js/areas.js` | Detour areas, hazards, their enemies, bosses, events and gear |
 | `js/combat.js` | Combat engine: pure state plus an event log |
 | `js/fx.js` | Canvas VFX: projectiles, slashes, spirals, damage-over-time effects |

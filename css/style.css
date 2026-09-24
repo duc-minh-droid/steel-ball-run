@@ -1086,3 +1086,23 @@ body.reduced .sun-rays, body.reduced .windmill, body.reduced .bird, body.reduced
 .debug-panel input[type=number] { width: 52px; }
 .debug-panel button { background: #f2c14e; color: #1a1020; border: 1px solid #000; font: inherit; font-weight: 700; padding: 2px 8px; cursor: pointer; }
 .debug-panel button:hover { background: #fff3a0; }
+
+/* ---------- Chronicle ---------- */
+.chronicle { font-family: var(--f-ui); }
+.chr-sub { font-size: 11px; letter-spacing: .18em; color: var(--purple); font-weight: 700; margin: 8px 0 4px; border-bottom: 2px solid var(--ink); }
+.chr-rel { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.chr-face { position: relative; text-align: center; }
+.chr-port { width: 100%; aspect-ratio: 5 / 6; border: 3px solid var(--ink); overflow: hidden; background: var(--ink); }
+.chr-port svg { width: 100%; height: 100%; display: block; }
+.chr-face.cold .chr-port { filter: grayscale(.85) brightness(.7); }
+.chr-face.warm .chr-port { box-shadow: 0 0 0 3px var(--gold); }
+.chr-face span { position: absolute; right: -4px; bottom: -6px; width: 22px; height: 22px; border-radius: 50%; background: var(--paper); border: 2px solid var(--ink); font-size: 14px; line-height: 18px; }
+.chr-list { background: #f3e2bd; border: 3px solid #6a4a2a; box-shadow: inset 0 0 30px rgba(106, 74, 42, .35); padding: 8px 12px; font-family: 'Rye', Georgia, serif; color: #3a2210; max-height: 52vh; overflow-y: auto; }
+.chr-act { font-family: var(--f-sfx); letter-spacing: .1em; color: #8a1a10; margin-top: 6px; }
+.chr-entry { font-size: 13px; line-height: 1.35; padding: 3px 0; border-bottom: 1px dashed rgba(106, 74, 42, .35); }
+.chr-reveal { display: block; font-family: var(--f-ui); font-style: italic; color: #b01a1a; font-size: 12px; margin-left: 10px; animation: puIn .4s both; }
+.chr-recap .chr-ending { text-align: center; }
+.chr-recap .chr-ending small { letter-spacing: .3em; font-weight: 700; color: var(--purple); }
+.chr-recap .chr-ending h2 { font-size: 30px; margin: 0 0 6px; }
+.whisper { font-family: 'Rye', Georgia, serif; color: #3a2210; }
+.toast.whisper { background: #f3e2bd; border-color: #6a4a2a; }

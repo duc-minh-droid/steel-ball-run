@@ -59,6 +59,7 @@ SBR.Combat = class Combat {
     const boss = this.enemies().find(e => e.tier === 'boss');
     if (boss && tier >= 2) { boss.energy += 1; this.addStatus(boss, 'guard', 0, 2, true); note(`You are ${SBR.THREAT_TIERS[tier].name}. ${boss.name} was expecting you.`); }
     if (boss && tier >= 3 && this.opts.boss) { this.addStatus(boss, 'empower', 0, 2, true); this.enemies().filter(e => e !== boss).forEach(e => this.addStatus(e, 'shield', 8, 0, true)); }
+    if (SBR.campaignFightFlags) SBR.campaignFightFlags(this, note, any, P);
     if (f.scoutEnemy && any(['sandman'])) { this.enemies().forEach(e => this.addStatus(e, 'empower', 0, 3, true)); note('Sandman heard what you did to his people.'); }
   }
 

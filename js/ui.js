@@ -119,7 +119,9 @@ SBR.ui = (() => {
   function dialogue(sceneId) {
     const scene0 = SBR.STORY[sceneId];
     const lead = SBR.run && SBR.run.lead;
-    const scene = scene0 && scene0.leadLines && scene0.leadLines[lead] ? Object.assign({}, scene0, { lines: scene0.leadLines[lead] }) : scene0;
+    let scene = scene0 && scene0.leadLines && scene0.leadLines[lead] ? Object.assign({}, scene0, { lines: scene0.leadLines[lead] }) : scene0;
+    const alt = scene && scene.variants && SBR.run ? scene.variants() : null;
+    if (alt) scene = Object.assign({}, scene, { lines: alt });
     if (!scene || !scene.lines || !scene.lines.length) return Promise.resolve();
     return new Promise(resolve => {
       const wrap = el('div', { class: 'dlg-wrap' });
@@ -301,7 +303,7 @@ SBR.ui = (() => {
   }
   function sideRail() {
     const rail = el('nav', { class: 'side-rail', 'aria-label': 'Saddlebags' });
-    [['party', 'Party', 'P', () => partyScreen()], ['bag', 'Bag', 'B', () => bagScreen()], ['anvil', 'Craft', 'C', () => craftScreen()], ['map', 'Map', 'M', () => mapScreen()]].forEach(([ico, label, key, fn]) => {
+    [['party', 'Party', 'P', () => partyScreen()], ['bag', 'Bag', 'B', () => bagScreen()], ['anvil', 'Craft', 'C', () => craftScreen()], ['map', 'Map', 'M', () => mapScreen()], ['book', 'Chronicle', 'J', () => SBR.chronicleUI.open()]].forEach(([ico, label, key, fn]) => {
       const b = el('button', { class: 'rail-tab', html: `${art.icon(ico, 26)}<span>${label}</span><kbd>${key}</kbd>` });
       b.onclick = () => { SBR.audio.play('click'); fn(); };
       rail.appendChild(b);

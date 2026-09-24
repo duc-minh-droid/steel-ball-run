@@ -111,6 +111,10 @@ SBR.game = (() => {
       SBR.toast(`<div class="toast-port grey">${art.portrait(SBR.CHARS[id].portrait)}</div><div>${msg || SBR.CHARS[id].name + ' left the party.'}</div>`, 'loss');
     },
     achieve,
+    rep(f, n) { SBR.campaign.rep(f, n); },
+    npc(id, state) { SBR.campaign.npc(id, state); },
+    deed(id, text) { SBR.campaign.deed(id, text); },
+    later(e, a, b) { SBR.campaign.later(e, a, b); },
     flag(k) { const r = SBR.run; if (!r.flags[k] && SBR.FLAG_THREAT && SBR.FLAG_THREAT[k]) G.threat(SBR.FLAG_THREAT[k]); r.flags[k] = true; },
     /** the Hunt: raise or lower threat; announces tier changes */
     threat(n) {
@@ -252,7 +256,7 @@ SBR.game = (() => {
       const last = s.lines[s.lines.length - 1];
       const speaker = [...s.lines].reverse().find(l => l.who);
       const ch = await ui.eventPanel({ title: s.card ? s.card.title : 'Your Choice', text: last.who ? `"${last.text}"` : last.narr, choices: s.choices, art: speaker ? speaker.who : null, icon: 'question' });
-      await resolveChoice(ch);
+      await resolveChoice(ch, 'scene:' + id + ':' + s.choices.indexOf(ch));
     }
     if (s.fight) {
       const win = await fight(s.fight.enemies, { elite: s.fight.elite, boss: s.fight.boss, midRound: s.fight.midRound, bossName: s.fight.boss && s.card ? s.card.title : undefined });
@@ -329,6 +333,8 @@ SBR.game = (() => {
     if (r.stage === act.stages) return [{ id: 'boss', type: 'boss', title: plan.boss.name, blurb: 'The stage\'s final obstacle. There is no way around.', icon: 'crown', forced: true, art: SBR.ENEMIES[act.boss.enemies[0]].art.key }];
     const storyId = plan.story[r.stage];
     if (storyId && !(SBR.STORY[storyId].leadSkip || []).includes(r.lead)) { const s = SBR.STORY[storyId]; return [Object.assign({ id: storyId, type: 'story', forced: true, story: true }, s.card)]; }
+    const due = SBR.campaign.dueCard();
+    if (due) return [due];
     const pool = SBR.EVENTS.filter(e => e.acts.includes(r.act) && !(e.once && r.usedEvents.includes(e.id)) && (!e.cond || e.cond(G)));
     const n = 3 + (SBR.bonus().cards || 0);
     const out = [];
@@ -356,6 +362,7 @@ SBR.game = (() => {
   async function advanceStage() {
     const r = SBR.run;
     const act = SBR.ACTS[r.act];
+    SBR.campaign.tick();
     if (r.area) { r.area.stage++; r.stageCards = null; addRp(1); SBR.saveRun(); return showStage(); }
     r.stage++;
     r.stageCards = null;
@@ -407,7 +414,7 @@ SBR.game = (() => {
       r.area.used.push(card.areaEvent);
       const ev = SBR.AREA_EVENTS[card.areaEvent];
       const ch = await ui.eventPanel(ev);
-      const cont = await resolveChoice(ch);
+      const cont = await resolveChoice(ch, 'areaev_' + card.areaEvent + ':' + ev.choices.indexOf(ch));
       if (cont === false) return;
       return advanceStage();
     }
@@ -417,7 +424,8 @@ SBR.game = (() => {
       if (ok === false) return;
       return advanceStage();
     }
-    const ev = SBR.EVENTS.find(e => e.id === card.id);
+    const ev = SBR.EVENTS.find(e => e.id === card.id) || SBR.CAMPAIGN_EVENTS.find(e => e.id === card.id);
+    if (card.consequence || SBR.CAMPAIGN_EVENTS.includes(ev)) SBR.campaign.fired(ev.id);
     if (ev.once) r.usedEvents.push(ev.id);
     if (ev.pace) G.pace(ev.pace);
     if (ev.fight) {
@@ -427,20 +435,21 @@ SBR.game = (() => {
     }
     if (ev.shop) { await openShop(ev.shop, ev.art); return advanceStage(); }
     const ch = await ui.eventPanel(ev);
-    const cont = await resolveChoice(ch);
+    const cont = await resolveChoice(ch, ev.id + ':' + (ev.choices || []).indexOf(ch));
     if (cont === false) return;
     advanceStage();
   }
 
-  async function resolveChoice(ch) {
+  async function resolveChoice(ch, key) {
     if (!ch) return true;
     if (ch.cost && ch.cost.money) SBR.run.money -= ch.cost.money;
-    let outcome = ch.ok;
+    let outcome = ch.ok, failed = false;
     if (ch.check) {
       const who = (ch.check.who && SBR.run.party.find(m => m.id === ch.check.who && m.hp > 0)) || bestFor(ch.check.stat);
       const ok = await ui.diceCheck({ stat: ch.check.stat, dc: ch.check.dc, who, mod: checkMod(who, ch.check.stat) });
-      outcome = ok ? ch.ok : ch.fail;
+      outcome = ok ? ch.ok : ch.fail; failed = !ok;
     }
+    if (key && SBR.campaign) SBR.campaign.onChoice(key + (failed ? ':fail' : ''), G);
     if (!outcome) return true;
     if (outcome.fx) outcome.fx(G);
     if (outcome.text) await ui.resultPanel(ch.label, outcome.text, ch.check ? 'dice' : 'star');
@@ -638,9 +647,11 @@ SBR.game = (() => {
     await ui.dialogue(B.pre);
     const pre = SBR.STORY[B.pre];
     if (pre && pre.fx) { pre.fx(G); await flushPending(); }
-    const win = await fight(B.enemies, { boss: true, bossName: B.name, midRound: B.midRound });
+    const alt = SBR.campaign.preBoss ? await SBR.campaign.preBoss(B, ui, G) : null;
+    await flushPending();
+    const win = alt ? await fight(alt.enemies, { boss: !!alt.boss, elite: !!alt.elite, bossName: alt.name }) : await fight(B.enemies, { boss: true, bossName: B.name, midRound: B.midRound });
     if (!win) return;
-    await playScene(B.post);
+    await playScene(alt ? alt.post : B.post);
     r.stage = act.stages + 1;
     SBR.saveRun();
     actFinish();
@@ -712,11 +723,15 @@ SBR.game = (() => {
     SBR.audio.play('victory'); SBR.music.play('title');
     if (champ) achieve('champion');
     SBR.meta.stats.wins++; SBR.saveMeta();
-    await ui.dialogue(champ ? 'epilogue_champion' : 'epilogue_canon');
+    const endKey = SBR.campaign.pickEnding();
+    const END = SBR.ENDINGS[endKey];
+    SBR.meta.endings = Object.assign({}, SBR.meta.endings, { [endKey]: Date.now() }); SBR.saveMeta();
+    await ui.dialogue(END.scene);
+    await SBR.chronicleUI.recap(END);
     ui.transition(scr => {
       scr.className = 'screen-end win';
       scr.innerHTML = `<div class="end-scene">${art.scene(5, { still: true })}</div><div class="end-box">
-        <div class="end-kicker">THE END</div><h1>${champ ? 'Johnny Joestar — Champion' : 'The Race Is Over'}</h1>
+        <div class="end-kicker">THE END</div><h1>${END.name}</h1>
         <p>Final standing: <b>${SBR.util.ordinal(rank)}</b> with ${r.points.player || 0} points.</p>
         <p class="end-rp">${art.icon('trophy', 26)} ${r.rp || 0} Race Points earned</p>
         <p class="muted">Thank you for riding. New horses and Techniques may be waiting at the Saloon.</p></div>`;
@@ -941,6 +956,7 @@ SBR.game = (() => {
     if (k === 'p') ui.partyScreen();
     if (k === 'b') ui.bagScreen();
     if (k === 'm') ui.mapScreen();
+    if (k === 'j') SBR.chronicleUI.open();
     if (k === 'c') ui.craftScreen();
     if (k === 'escape') ui.settingsScreen(true);
     const n = parseInt(e.key, 10);
