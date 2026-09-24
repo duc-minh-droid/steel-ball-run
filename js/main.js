@@ -112,6 +112,7 @@ SBR.game = (() => {
     },
     achieve,
     flag(k) { SBR.run.flags[k] = true; },
+    enterArea(id) { const r = SBR.run; r.area = { id, stage: 0, used: [] }; r.stageCards = null; r.areasSeen = (r.areasSeen || []).concat(id); SBR.audio.play('success'); },
     /** Paths (subclasses) */
     canTakePath(charId) { const m = SBR.run.party.find(x => x.id === charId); return !!m && !m.path; },
     takePath(pathId) {
@@ -281,8 +282,32 @@ SBR.game = (() => {
     });
   }
 
+  function drawAreaCards() {
+    const r = SBR.run, A = SBR.AREAS[r.area.id];
+    if (r.area.stage >= A.stages) return [{ id: 'areaboss', type: 'boss', title: A.boss.name, blurb: `The heart of ${A.name}. There is no way around.`, icon: 'crown', forced: true, areaBoss: true, art: (SBR.ENEMIES[A.boss.enemies[0]].art || {}).key }];
+    const out = [];
+    const fights = shuffle(A.fights.slice());
+    out.push({ id: 'af0', type: 'fight', title: 'Something Moves', blurb: `The ${A.name} does not want you here.`, icon: 'sword', pace: -2, areaFight: fights[0] });
+    const evs = Object.entries(SBR.AREA_EVENTS).filter(([k, e]) => e.area === r.area.id && !r.area.used.includes(k));
+    if (evs.length) { const [k, e] = pick(evs); out.push({ id: k, type: 'event', title: e.title, blurb: e.blurb, icon: e.icon, pace: -2, areaEvent: k, art: e.art }); }
+    out.push({ id: 'af1', type: 'elite', title: 'Deeper In', blurb: 'Tougher, and better loot.', icon: 'skull', pace: -2, areaFight: fights[1].concat(fights[2] ? [fights[2][0]] : []), elite: true });
+    const trainers = SBR.EVENTS.filter(e => e.pathOffer && !r.usedEvents.includes(e.id) && e.cond(G));
+    if (trainers.length && Math.random() < 0.6) { const t = pick(trainers); out.push({ id: t.id, type: t.type, title: t.title, blurb: t.blurb, icon: t.icon, pace: t.pace, art: t.art }); }
+    return out.slice(0, 3 + (SBR.bonus().cards || 0));
+  }
+  async function exitArea() {
+    const r = SBR.run, A = SBR.AREAS[r.area.id];
+    A.reward(G);
+    await ui.resultPanel(A.name, A.rewardText + ' You ride back to the race route, behind the pack. (−10 pace)', 'star');
+    await flushPending();
+    r.area = null; r.stageCards = null;
+    G.pace(-10);
+    SBR.saveRun();
+    showStage();
+  }
   function drawCards() {
     const r = SBR.run;
+    if (r.area) return drawAreaCards();
     const act = SBR.ACTS[r.act];
     if (r.stage === act.stages) return [{ id: 'boss', type: 'boss', title: act.boss.name, blurb: 'The stage\'s final obstacle. There is no way around.', icon: 'crown', forced: true, art: SBR.ENEMIES[act.boss.enemies[0]].art.key }];
     const storyId = act.story[r.stage];
@@ -313,6 +338,7 @@ SBR.game = (() => {
   async function advanceStage() {
     const r = SBR.run;
     const act = SBR.ACTS[r.act];
+    if (r.area) { r.area.stage++; r.stageCards = null; addRp(1); SBR.saveRun(); return showStage(); }
     r.stage++;
     r.stageCards = null;
     addRp(1);
@@ -346,6 +372,27 @@ SBR.game = (() => {
   /* ---------- card resolution ---------- */
   async function resolveCard(card) {
     const r = SBR.run;
+    if (card.areaBoss) {
+      const A = SBR.AREAS[r.area.id];
+      const win = await fight(A.boss.enemies, { boss: true, bossName: A.boss.name });
+      if (!win) return;
+      return exitArea();
+    }
+    if (card.areaFight) {
+      if (card.pace) G.pace(card.pace);
+      const win = await fight(card.areaFight, { elite: !!card.elite });
+      if (!win) return;
+      return advanceStage();
+    }
+    if (card.areaEvent) {
+      if (card.pace) G.pace(card.pace);
+      r.area.used.push(card.areaEvent);
+      const ev = SBR.AREA_EVENTS[card.areaEvent];
+      const ch = await ui.eventPanel(ev);
+      const cont = await resolveChoice(ch);
+      if (cont === false) return;
+      return advanceStage();
+    }
     if (card.type === 'boss') return bossStage();
     if (card.story) {
       const ok = await playScene(card.id);
@@ -400,12 +447,12 @@ SBR.game = (() => {
     const roll = Math.random() - (b.scavenge ? 0.1 : 0);
     if (roll < 0.22) {
       await ui.resultPanel('Scavenge', 'You weren\'t the only ones looking. Ambush!', 'skull');
-      const win = await fight(pick(SBR.FIGHTS[r.act]), {});
+      const win = await fight(r.area ? pick(SBR.AREAS[r.area.id].fights) : pick(SBR.FIGHTS[r.act]), {});
       if (!win) return;
     } else {
       const got = [];
       const cash = randInt(8, 22) + r.act * 4; G.money(cash); got.push(fmtMoney(cash));
-      const pool = SBR.SCAVENGE_MATS[r.act] || SBR.SCAVENGE_MATS[1];
+      const pool = (r.area && SBR.SCAVENGE_MATS['area_' + r.area.id]) || SBR.SCAVENGE_MATS[r.act] || SBR.SCAVENGE_MATS[1];
       for (let i = 0; i < 2 + (b.scavenge ? 1 : 0); i++) { const mt = pick(pool); const n = randInt(1, 2); G.mat(mt, n, true); got.push(`${n}× ${SBR.MATERIALS[mt].name}`); }
       if (Math.random() < 0.55) { const it = pick(Object.keys(SBR.ITEMS)); G.item(it); got.push(SBR.ITEMS[it].name); }
       if (Math.random() < 0.08 + (b.scavenge ? 0.08 : 0)) { const id = randomRelic(['common']); if (id) { G.relic(id); got.push(SBR.EQUIPMENT[id].name); } }
@@ -479,7 +526,7 @@ SBR.game = (() => {
   async function fight(enemies, opts = {}) {
     const r = SBR.run;
     const act = SBR.ACTS[r.act];
-    const { result, combat } = await SBR.battle.run(enemies, Object.assign({ title: opts.boss ? act.boss && opts.bossName : null }, opts));
+    const { result, combat } = await SBR.battle.run(enemies, Object.assign({ title: opts.boss ? act.boss && opts.bossName : null, hazard: SBR.curHazard() }, opts));
     // persist hp
     combat.party().forEach(u => {
       const m = u.ref;

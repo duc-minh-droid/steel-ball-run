@@ -349,16 +349,18 @@ SBR.ui = (() => {
       const act = SBR.ACTS[r.act];
       const h = SBR.HORSES[r.horse];
       root.className = 'screen-stage';
-      const sc = el('div', { class: 'stage-scene', html: art.scene(act.scene) });
+      const A = SBR.curArea();
+      const sc = el('div', { class: 'stage-scene', html: art.scene(SBR.sceneId()) });
       const rider = el('div', { class: 'stage-horse', html: art.horse({ coat: h.coat, mane: h.mane, wrap: h.wrap, spots: h.spots, rider: { cape: '#5b3a8c', body: '#3b5bb5', hat: '#5b3a8c' } }) });
       sc.appendChild(rider);
       if (r.party.some(m => m.id === 'gyro')) sc.appendChild(el('div', { class: 'stage-horse second', html: art.horse({ coat: '#5a3a2a', mane: '#1a1020', wrap: '#f2c14e', rider: { cape: '#3a8c4a', body: '#4f8a3a', hat: '#3a8c4a', skin: '#f0c8a0' } }) }));
       root.appendChild(sc);
       root.appendChild(hud());
       const title = el('div', { class: 'stage-title' },
-        el('div', { class: 'stage-kicker' }, `STAGE ${r.stage} / ${act.stages}`),
-        el('h1', {}, r.stage === act.stages ? act.boss.name : act.story[r.stage] ? 'A Fateful Encounter' : SBR.art.SCENES[act.scene].name),
-        el('div', { class: 'stage-sub' }, act.sub.split('—')[0].trim() + ' · ' + (act.sub.split('—')[1] || '').trim()));
+        el('div', { class: 'stage-kicker' + (A ? ' detour' : '') }, A ? `DETOUR ${r.area.stage} / ${A.stages}` : `STAGE ${r.stage} / ${act.stages}`),
+        el('h1', {}, A ? (r.area.stage >= A.stages ? A.boss.name : A.name) : r.stage === act.stages ? act.boss.name : act.story[r.stage] ? 'A Fateful Encounter' : SBR.art.SCENES[act.scene].name),
+        el('div', { class: 'stage-sub' }, A ? `${A.sub} · Hazard: ${SBR.HAZARDS[A.hazard].name}` : act.sub.split('—')[0].trim() + ' · ' + (act.sub.split('—')[1] || '').trim()));
+      if (A) SBR.tip.bind(title.querySelector('.stage-sub'), `<b>${SBR.HAZARDS[A.hazard].name}</b><br>${SBR.HAZARDS[A.hazard].desc}`);
       root.appendChild(title);
       const deck = el('div', { class: 'card-deck' });
       cards.forEach((card, i) => deck.appendChild(encounterCard(card, i, () => handlers.pick(card))));
@@ -420,7 +422,7 @@ SBR.ui = (() => {
     });
   }
   function encounterCard(card, i, onPick) {
-    const typeLabel = { fight: 'Battle', elite: 'Elite', shop: 'Shop', event: 'Event', rest: 'Rest', trainer: 'Trainer', recruit: 'Ally', story: 'Story', boss: 'Boss' }[card.type] || 'Event';
+    const typeLabel = { fight: 'Battle', elite: 'Elite', shop: 'Shop', event: 'Event', rest: 'Rest', trainer: 'Trainer', recruit: 'Ally', story: 'Story', boss: 'Boss', detour: 'Detour' }[card.type] || 'Event';
     const c = el('div', { class: `enc-card type-${card.type}`, tabindex: 0, role: 'button' });
     const artHtml = card.art ? portraitOf(card.art) : `<div class="enc-icon">${art.icon(card.icon || 'question', 72)}</div>`;
     c.innerHTML = `
@@ -577,6 +579,9 @@ SBR.ui = (() => {
     const r = SBR.run;
     const box = el('div', { class: 'map-screen' });
     box.appendChild(el('div', { class: 'map-wrap', html: art.usMap(SBR.ACTS[r.act].route) }));
+    const A = SBR.curArea();
+    if (A) box.appendChild(el('div', { class: 'map-detour', style: { '--pc': A.color }, html: `<b>Detour: ${A.name}</b> — stage ${r.area.stage} of ${A.stages}. ${A.sub}.<br><small>Hazard: ${SBR.HAZARDS[A.hazard].name}. ${SBR.HAZARDS[A.hazard].desc}</small>` }));
+    else if ((r.areasSeen || []).length) box.appendChild(el('div', { class: 'map-detour done', html: `Detours taken: ${r.areasSeen.map(id => SBR.AREAS[id].name).join(', ')}` }));
     box.appendChild(standingsTable());
     modal(box, { title: 'The Route — 6,000 km', drawer: true });
   }

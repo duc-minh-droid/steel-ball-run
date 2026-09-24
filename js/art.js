@@ -63,6 +63,11 @@ SBR.art = (() => {
     abbess:    { skin: '#f2dcc8', hair: '#1a1a2a', hairStyle: 'bob', hat: 'veil', hatColor: '#1a1a2a', hat2: '#f6ecd8', outfit: '#1a1a2a', outfit2: '#f6ecd8', eye: '#4a5a7a', lip: '#b07080', bg: ['#f6ecd8', '#8a8aa0'], extra: 'cross' },
     inquisitor:{ skin: '#e8c8b8', hair: '#3a1a2a', hairStyle: 'swept', hat: 'dome', hatColor: '#c8323c', hat2: '#f6ecd8', outfit: '#8a1a2a', outfit2: '#f6ecd8', eye: '#6a2a4a', lip: '#a04060', bg: ['#8a1a2a', '#e8508a'], extra: 'cross' },
     cardinal:  { skin: '#f0d0c0', hair: '#d8d8d8', hairStyle: 'short', hat: 'dome', hatColor: '#c8323c', hat2: '#f2c14e', outfit: '#c8323c', outfit2: '#f2c14e', eye: '#4a4a6a', lip: '#a06070', bg: ['#f2c14e', '#c8323c'], extra: 'cross' },
+    // Detour areas
+    palmghost: { skin: '#e0c090', hair: '#b8905a', hairStyle: 'verylong', hat: null, outfit: '#c8a070', outfit2: '#8a6a40', eye: '#ffe08a', lip: '#a08060', bg: ['#e8742a', '#8a1a10'], extra: 'scarf' },
+    palmecho:  { skin: '#c8603a', hair: '#8a1a10', hairStyle: 'spiky', hat: null, outfit: '#5a1a1a', outfit2: '#ffd08a', eye: '#fff0a0', lip: '#5a1a1a', bg: ['#ffd08a', '#8a1a10'], extra: 'dmark' },
+    miner:     { skin: '#d8a880', hair: '#4a3a2a', hairStyle: 'short', hat: 'helm', hatColor: '#8a8a7a', hat2: '#f2c14e', outfit: '#5a4a3a', outfit2: '#c8a070', eye: '#2a2a2a', lip: '#8a5a4a', bg: ['#3a3040', '#f2c14e'], extra: 'beard' },
+    trapper:   { skin: '#e0b898', hair: '#6a4a2a', hairStyle: 'shaggy', hat: 'pickel', hatColor: '#8a6a4a', hat2: '#d8c8a8', outfit: '#6a4a2a', outfit2: '#d8c8a8', eye: '#3a5a7a', lip: '#9a5a5a', bg: ['#9fd0f0', '#1a2a4a'], extra: 'beard' },
     nicholas:  { skin: '#e8d0c0', hair: '#c8a060', hairStyle: 'swept', hat: 'jockey', hatColor: '#6a7a9a', hat2: '#fff', outfit: '#6a7a9a', outfit2: '#fff', eye: '#8a9ab0', lip: '#8a7a8a', bg: ['#2a2a3a', '#8a9ab0'] },
   };
 
@@ -260,6 +265,10 @@ SBR.art = (() => {
     3: { name: 'The Great Plains', sky: ['#1f3440', '#4a6a6a', '#9fbf9a'], far: '#4a6a5a', mid: '#5a7a3a', midShade: '#2a4a2a', ground: '#8aaa4a', groundShade: '#5a7a2a', cloud: '#c8d8d0', cloudShade: '#6a7a80', sun: '#e8f0d0', deco: 'grass', rain: true },
     4: { name: 'The Frozen North', sky: ['#6a9ac8', '#b8d8f0', '#f0f6ff'], far: '#a8c0d8', mid: '#2a5a5a', midShade: '#1a3a3a', ground: '#e8f0f8', groundShade: '#b0c8e0', cloud: '#ffffff', cloudShade: '#b8c8e8', sun: '#ffffff', deco: 'pine', snow: true },
     5: { name: 'The East Coast', sky: ['#2a0c0c', '#8a2a14', '#f0822a'], far: '#6a3a2a', mid: '#4a2a2a', midShade: '#2a1010', ground: '#b8e0f0', groundShade: '#6aa0c8', cloud: '#e8b870', cloudShade: '#7a3a20', sun: '#ffe080', deco: 'waves' },
+    7: { name: 'The Devil\'s Palm', sky: ['#8a1a10', '#e8742a', '#ffd08a'], far: '#c8603a', mid: '#a8402a', midShade: '#5a1a1a', ground: '#f0c070', groundShade: '#c88a4a', cloud: '#ffe0b0', cloudShade: '#c86a4a', sun: '#fff0a0', deco: 'palm' },
+    8: { name: 'The Silver Mine', sky: ['#0a0810', '#241a28', '#4a3a3a'], far: '#2a2230', mid: '#3a3040', midShade: '#1a1420', ground: '#5a4a40', groundShade: '#3a2e28', cloud: '#3a3040', cloudShade: '#1a1420', sun: '#f2c14e', deco: 'mine' },
+    9: { name: 'Frozen Lake Michigan', sky: ['#1a2a4a', '#6a8ab0', '#d8e8f8'], far: '#8aa0c0', mid: '#c8d8ec', midShade: '#8aa8c8', ground: '#e8f4ff', groundShade: '#9fc0e0', cloud: '#e8f0ff', cloudShade: '#8a9ac0', sun: '#ffffff', deco: 'ice', snow: true },
+    10: { name: 'Philadelphia Rail Yard', sky: ['#1a1018', '#5a2a2a', '#c86a3a'], far: '#4a2a2a', mid: '#2a1a1a', midShade: '#140a0a', ground: '#6a5a50', groundShade: '#3a3028', cloud: '#8a6a6a', cloudShade: '#3a2a2a', sun: '#ffb070', deco: 'rail', rain: true },
     6: { name: 'New York City', sky: ['#0a0c28', '#3a1a5a', '#8a2a6a'], far: '#2a2050', mid: '#1a1438', midShade: '#0a0820', ground: '#3a3050', groundShade: '#1a1430', cloud: '#6a4a9a', cloudShade: '#2a1a4a', sun: '#ffe8a0', deco: 'city' },
   };
 
@@ -323,6 +332,48 @@ SBR.art = (() => {
         const x = (i / 9) * w + rng() * 40, y = base + 30 + rng() * 50, r = 20 + rng() * 26;
         s += `<g stroke="${INK}" stroke-width="2.4"><path d="M${x - r * 2} ${y + r} Q${x - r} ${y - r * 1.4} ${x + r * 0.4} ${y - r * 0.2} Q${x + r} ${y + r * 0.6} ${x + r * 0.2} ${y + r * 0.4} Q${x - r * 0.2} ${y + r * 0.2} ${x - r * 0.1} ${y - r * 0.2}" fill="#e8f6ff"/><path d="M${x - r * 1.6} ${y + r} L${x + r * 1.4} ${y + r}" fill="none"/></g>`;
       }
+    } else if (kind === 'palm') {
+      // giant stone fingers rising from the sand, bones, heat spirals
+      for (let i = 0; i < 5; i++) {
+        const x = 100 + i * 330 + rng() * 60, h = 90 + rng() * 90, lean = (rng() - 0.5) * 30;
+        s += `<path d="M${x - 16} ${base} Q${x - 18 + lean * 0.3} ${base - h * 0.6} ${x - 8 + lean} ${base - h} Q${x + lean} ${base - h - 14} ${x + 8 + lean} ${base - h} Q${x + 18 + lean * 0.3} ${base - h * 0.6} ${x + 16} ${base}Z" fill="${cfg.midShade}" stroke="${INK}" stroke-width="2.4"/><path d="M${x - 4 + lean * 0.5} ${base - h * 0.55} q6 -4 12 0" stroke="${INK}" stroke-width="1.6" fill="none" opacity=".6"/>`;
+      }
+      for (let i = 0; i < 10; i++) {
+        const x = rng() * w, y = base + 20 + rng() * 60;
+        s += `<path d="M${x} ${y} l14 -4 M${x + 4} ${y - 5} l3 6 M${x + 10} ${y - 7} l3 6" stroke="#f6ecd8" stroke-width="3" stroke-linecap="round"/>`;
+      }
+      for (let i = 0; i < 4; i++) {
+        const x = 200 + rng() * (w - 400), y = base - 40 - rng() * 60;
+        s += `<path d="M${x} ${y}a4 4 0 0 1 8 0 8 8 0 0 1 -16 0 12 12 0 0 1 24 0" stroke="#ffd08a" stroke-width="2" fill="none" opacity=".6"/>`;
+      }
+    } else if (kind === 'mine') {
+      // timber supports, rails and lanterns
+      for (let x = 60; x < w; x += 260 + rng() * 60) {
+        s += `<g stroke="${INK}" stroke-width="2.4"><rect x="${x}" y="${base - 170}" width="16" height="170" fill="#6a4a2a"/><rect x="${x + 150}" y="${base - 170}" width="16" height="170" fill="#6a4a2a"/><rect x="${x - 10}" y="${base - 184}" width="186" height="18" fill="#7a5a34"/></g>`;
+        s += `<g transform="translate(${x + 83} ${base - 150})"><path d="M0 -16v10" stroke="${INK}" stroke-width="2"/><rect x="-7" y="-6" width="14" height="18" fill="#f2c14e" stroke="${INK}" stroke-width="2"/><circle cx="0" cy="3" r="22" fill="#f2c14e" opacity=".18"/></g>`;
+      }
+      s += `<path d="M0 ${base + 40} H${w} M0 ${base + 58} H${w}" stroke="#9a9aaa" stroke-width="4"/>`;
+      for (let x = 0; x < w; x += 36) s += `<rect x="${x}" y="${base + 36}" width="22" height="26" fill="#4a3424" stroke="${INK}" stroke-width="1.4"/>`;
+      for (let i = 0; i < 12; i++) { const x = rng() * w, y = base + 70 + rng() * 30; s += `<path d="M${x} ${y}l6-10 8 2 4 8z" fill="#c8d0e0" stroke="${INK}" stroke-width="1.4"/>`; }
+    } else if (kind === 'ice') {
+      // cracks in the lake, snow drifts, a distant pine line
+      for (let i = 0; i < 9; i++) {
+        const x = rng() * w, y = base + 20 + rng() * 70;
+        s += `<path d="M${x} ${y} l${30 + rng() * 40} ${-6 + rng() * 12} l${20 + rng() * 30} ${10 + rng() * 10} m-20 -8 l10 -16" stroke="#6a8ab0" stroke-width="2" fill="none"/>`;
+      }
+      for (let i = 0; i < 6; i++) { const x = rng() * w; s += `<ellipse cx="${x}" cy="${base + 6}" rx="${50 + rng() * 60}" ry="10" fill="#ffffff" stroke="${INK}" stroke-width="1.6"/>`; }
+      for (let i = 0; i < 16; i++) { const x = rng() * w, h = 24 + rng() * 26; s += `<path d="M${x} ${base - h} L${x + h * 0.3} ${base - 4} L${x - h * 0.3} ${base - 4}Z" fill="#2a4a5a" stroke="${INK}" stroke-width="1.6"/>`; }
+    } else if (kind === 'rail') {
+      // freight cars on the line, telegraph poles
+      let x = 20;
+      while (x < w) {
+        const cw = 170 + rng() * 60, col = ['#6a2a1a', '#3a3a4a', '#5a4a2a'][Math.floor(rng() * 3)];
+        s += `<g stroke="${INK}" stroke-width="2.4"><rect x="${x}" y="${base - 96}" width="${cw}" height="78" fill="${col}"/><rect x="${x + cw * 0.38}" y="${base - 84}" width="${cw * 0.24}" height="60" fill="${cfg.midShade}"/><circle cx="${x + 26}" cy="${base - 12}" r="12" fill="#2a2a2a"/><circle cx="${x + cw - 26}" cy="${base - 12}" r="12" fill="#2a2a2a"/></g>`;
+        x += cw + 26;
+      }
+      s += `<path d="M0 ${base + 2} H${w}" stroke="#8a8a9a" stroke-width="4"/>`;
+      for (let px = 80; px < w; px += 380) s += `<path d="M${px} ${base - 200} V${base} M${px - 24} ${base - 186} H${px + 24} M${px - 18} ${base - 170} H${px + 18}" stroke="${INK}" stroke-width="3.2"/>`;
+      s += `<path d="M0 ${base - 186} ${Array.from({ length: 6 }, (_, i) => `Q${80 + i * 380 + 190} ${base - 160} ${80 + (i + 1) * 380} ${base - 186}`).join(' ')}" stroke="${INK}" stroke-width="1.2" fill="none"/>`;
     } else if (kind === 'city') {
       let x = 0;
       while (x < w) {
@@ -357,7 +408,8 @@ SBR.art = (() => {
     const farPts = ridge(rng, W, H, 400, 130, 14, true);
     const far = `<path d="M0 ${H} L${farPts.join(' L')} L${W} ${H}Z" fill="${c.far}" stroke="${INK}" stroke-width="2.4" opacity=".85"/>`;
     let mid;
-    if (act === 1 || act === 2) mid = mesas(rng, W, 470, c.mid, c.midShade);
+    if (act === 1 || act === 2 || act === 7) mid = mesas(rng, W, 470, c.mid, c.midShade);
+    else if (act === 10) mid = decoLayer('city', rng, W, 470, c);
     else if (act === 5) mid = `<path d="M0 470 ${ridge(rng, W, H, 470, 60, 10).map(p => 'L' + p).join(' ')} L${W} ${H} L0 ${H}Z" fill="${c.mid}" stroke="${INK}" stroke-width="2.4"/>` + decoLayer('city', seeded(99), W, 440, c).replace(/opacity=".85"/g, 'opacity=".4"');
     else if (act === 6) mid = decoLayer('city', rng, W, 500, c);
     else { const mp = ridge(rng, W, H, 470, 80, 10); mid = `<path d="M0 ${H} L${mp.join(' L')} L${W} ${H}Z" fill="${c.mid}" stroke="${INK}" stroke-width="2.4"/>`; }

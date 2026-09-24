@@ -11,7 +11,7 @@ SBR.battle = (() => {
   /* ---------- render ---------- */
   function render(container, opts) {
     root = el('div', { class: 'battle' + (opts.boss ? ' boss-battle' : '') });
-    root.appendChild(el('div', { class: 'battle-bg', html: art.scene(SBR.ACTS[SBR.run.act].scene, { still: true }) }));
+    root.appendChild(el('div', { class: 'battle-bg', html: art.scene(SBR.sceneId(), { still: true }) }));
     root.appendChild(el('div', { class: 'battle-vignette' }));
     const top = el('div', { class: 'battle-top' });
     roundBox = el('div', { class: 'round-box' }, 'ROUND 1');

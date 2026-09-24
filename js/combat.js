@@ -421,6 +421,8 @@ SBR.Combat = class Combat {
       if (flag) this.unlockFlag(flag);
     }
     this.enemies().forEach(u => { const h = u.def.hooks; if (h && h.roundStart) h.roundStart(this.ctx(u, null)); });
+    const hz = this.opts.hazard && SBR.HAZARDS && SBR.HAZARDS[this.opts.hazard];
+    if (hz) { if (this.round === 1) this.log(`Hazard — ${hz.name}: ${hz.desc}`); hz.round(this); this.checkEnd(); }
   }
 
   /** Begin a unit's turn. Returns {skip} */

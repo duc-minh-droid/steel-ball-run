@@ -936,3 +936,11 @@ svg.gi { width: 100%; height: 100%; display: block; overflow: visible; }
 .ev-path { display: block; margin-top: 8px; padding: 4px 8px; border-left: 4px solid var(--pc); background: color-mix(in srgb, var(--pc) 14%, transparent); font-size: 13px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .hc-res { display: flex; flex-wrap: wrap; margin-top: 4px; }
+
+/* ---------- detours ---------- */
+.enc-card.type-detour .enc-type, .enc-card.type-detour .enc-label { background: #e8742a; }
+.stage-kicker.detour { background: #e8742a; color: #1a1020; }
+.map-detour { margin: 8px 0; padding: 6px 10px; border-left: 5px solid var(--pc, #8a7a6a); background: color-mix(in srgb, var(--pc, #8a7a6a) 16%, #fff); font-size: 13px; }
+.map-detour.done { opacity: .8; }
+.scene.act8 .weather { display: none; }
+.scene.act7 .weather.dust { opacity: .8; }
