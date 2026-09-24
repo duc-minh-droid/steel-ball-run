@@ -6,7 +6,7 @@ Everything is drawn in code as SVG and canvas, and every sound is synthesized. T
 
 ![Title screen](docs/media/title.jpg)
 
-**[▶ Watch the demo video](docs/media/demo.webm)** · **[Showcase page](docs/index.html)**
+**[🎮 Play now](https://steel-ball-run-kohl.vercel.app)** · **[▶ Watch the demo video](docs/media/demo.webm)** · **[Showcase page](docs/index.html)**
 
 ## Play
 
