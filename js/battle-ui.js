@@ -106,7 +106,7 @@ SBR.battle = (() => {
     const pt = center(uid);
     const f = el('div', { class: 'stand-flash ' + (c.unit(uid).side), style: { left: pt.x + 'px', top: pt.y + 'px' }, html: SBR.stands.svg(key) + `<div class="sf-name">「${SBR.stands.name(key)}」</div>` });
     document.getElementById('fx-layer').appendChild(f);
-    SBR.audio.play('menace');
+    SBR.audio.play(key === 'd4c' || key === 'lovetrain' ? 'd4c' : key === 'mandom' ? 'rewind' : key === 'theworld' ? 'timestop' : 'stand');
     setTimeout(() => f.remove(), 1300 / SBR.settings.speed);
     await sleep(420);
   }
@@ -255,7 +255,7 @@ SBR.battle = (() => {
           if (e.label) SBR.fx.dot(e.label, center(e.uid)); else SBR.fx.impact(center(e.uid), e.crit, e.blocked);
           if (e.crit) { floatText(e.uid, e.amount, 'dmg crit' + (e.dtype ? ' dt' : '')); floatText(e.uid, 'CRITICAL!', 'critword'); SBR.audio.play('crit'); ui.shake(undefined, true); }
           else if (e.blocked) { floatText(e.uid, e.amount, 'dmg blocked'); floatText(e.uid, 'BLOCK', 'block'); SBR.audio.play('block'); }
-          else { floatText(e.uid, e.amount, 'dmg' + (e.label ? ' dot' : '') + (e.dtype ? ' dt' : '')); SBR.audio.play('hit'); if (u && u.side === 'party') ui.shake(); }
+          else { floatText(e.uid, e.amount, 'dmg' + (e.label ? ' dot' : '') + (e.dtype ? ' dt' : '')); SBR.audio.play(e.dtype ? 'hit_' + e.dtype : 'hit'); if (u && u.side === 'party') ui.shake(); }
           if (e.absorbed) floatText(e.uid, `(${e.absorbed} shielded)`, 'block');
           if (e.label && !['BLEED', 'HOLE', 'GUILT', '∞'].includes(e.label)) floatText(e.uid, e.label, 'label');
           else if (e.label) floatText(e.uid, e.label, 'label small');
@@ -271,11 +271,11 @@ SBR.battle = (() => {
       case 'setHp': setHp(u, e.hp); await sleep(60); break;
       case 'status':
         renderStatus(u);
-        if (cards[e.uid]) { const d = SBR.STATUS[e.id]; floatText(e.uid, d.name, 'st ' + e.kind); }
+        if (cards[e.uid]) { const d = SBR.STATUS[e.id]; floatText(e.uid, d.name, 'st ' + e.kind); SBR.audio.play(e.kind === 'buff' ? 'st_buff' : 'st_debuff'); }
         await sleep(90);
         break;
       case 'statusGone': renderStatus(u); break;
-      case 'float': floatText(e.uid, e.text, e.cls); if (e.cls && e.cls.includes('miss')) SBR.audio.play('miss'); await sleep(140); break;
+      case 'float': floatText(e.uid, e.text, e.cls); if (e.text === 'DODGE') SBR.audio.play('dodge'); else if (e.text === 'IMMUNE') SBR.audio.play('immune'); else if (e.cls && e.cls.includes('miss')) SBR.audio.play('miss'); await sleep(140); break;
       case 'death': {
         const card = cards[e.uid];
         if (card) { card.classList.add('dying'); setTimeout(() => { card.classList.remove('dying'); card.classList.add(e.permanent ? 'gone' : 'dead'); if (u.side === 'enemy') card.classList.add('gone'); }, 700); }
@@ -481,6 +481,7 @@ SBR.battle = (() => {
 
   /* ---------- main loop ---------- */
   async function run(enemies, opts = {}) {
+    SBR.music.play(SBR.music.themeForBattle(enemies, opts));
     c = new SBR.Combat(enemies, opts);
     SBR.inBattle = true;
     await new Promise(res => ui.transition(scr => { scr.className = 'screen-battle'; render(scr, opts); res(); }, 'burst'));
@@ -509,8 +510,8 @@ SBR.battle = (() => {
     }
     document.removeEventListener('keydown', keyHandler);
     SBR.inBattle = false;
-    if (c.result === 'win') { SBR.audio.play('success'); await banner(opts.boss ? 'BOSS DEFEATED!' : 'VICTORY!'); }
-    else { root.classList.add('defeat'); SBR.audio.play('fail'); await banner('RETIRED', 'Your party has fallen.'); }
+    if (c.result === 'win') { SBR.audio.play('victory'); await banner(opts.boss ? 'BOSS DEFEATED!' : 'VICTORY!'); }
+    else { root.classList.add('defeat'); SBR.audio.play('defeat'); await banner('RETIRED', 'Your party has fallen.'); }
     const combat = c;
     return { result: c.result, combat };
   }

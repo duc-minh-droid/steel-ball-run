@@ -112,7 +112,7 @@ SBR.game = (() => {
     },
     achieve,
     flag(k) { SBR.run.flags[k] = true; },
-    enterArea(id) { const r = SBR.run; r.area = { id, stage: 0, used: [] }; r.stageCards = null; r.areasSeen = (r.areasSeen || []).concat(id); SBR.audio.play('success'); },
+    enterArea(id) { const r = SBR.run; r.area = { id, stage: 0, used: [] }; r.stageCards = null; r.areasSeen = (r.areasSeen || []).concat(id); SBR.audio.play('detour'); },
     /** Paths (subclasses) */
     canTakePath(charId) { const m = SBR.run.party.find(x => x.id === charId); return !!m && !m.path; },
     takePath(pathId) {
@@ -327,6 +327,7 @@ SBR.game = (() => {
 
   function showStage() {
     const r = SBR.run;
+    SBR.music.play(SBR.music.themeForStage());
     if (!r.stageCards) { r.stageCards = drawCards(); SBR.saveRun(); }
     ui.stageScreen(r.stageCards, {
       pick: card => resolveCard(card),
@@ -496,6 +497,7 @@ SBR.game = (() => {
   }
   async function openShop(kind, keeper) {
     const r = SBR.run;
+    SBR.music.play('shop');
     const stock = r.shop && r.shop.stage === `${r.act}-${r.stage}-${kind}` ? r.shop.stock : buildStock(kind);
     r.shop = { stage: `${r.act}-${r.stage}-${kind}`, stock };
     SBR.saveRun();
@@ -594,6 +596,7 @@ SBR.game = (() => {
     unequip(m, slot, true);
     r.gear.splice(gearIdx, 1);
     m.equip[slot] = id;
+    SBR.audio.play('equip');
     const hp = (SBR.EQUIPMENT[id].bonus || {}).maxHp || 0;
     if (hp) { m.maxHp += hp; m.hp += hp; }
     SBR.saveRun();
@@ -662,6 +665,7 @@ SBR.game = (() => {
   async function gameOver() {
     const r = SBR.run;
     if (!r) return;
+    SBR.music.stop(); SBR.audio.play('defeat');
     achieve('wipe');
     const act = SBR.ACTS[r.act];
     ui.transition(scr => {
@@ -682,6 +686,7 @@ SBR.game = (() => {
     const rank = playerRank();
     const champ = rank === 1;
     achieve('win');
+    SBR.audio.play('victory'); SBR.music.play('title');
     if (champ) achieve('champion');
     SBR.meta.stats.wins++; SBR.saveMeta();
     await ui.dialogue(champ ? 'epilogue_champion' : 'epilogue_canon');
@@ -699,6 +704,7 @@ SBR.game = (() => {
 
   /* ---------- Title ---------- */
   function titleScreen() {
+    SBR.music.play('title');
     ui.transition(scr => {
       scr.className = 'screen-title';
       const has = !!SBR.loadRun();
@@ -728,6 +734,7 @@ SBR.game = (() => {
 
   /* ---------- Lobby (Saloon/Stable/Achievements/Compendium) ---------- */
   function lobbyScreen(tab = 'saloon') {
+    SBR.music.play('shop');
     ui.transition(scr => {
       scr.className = 'screen-lobby';
       scr.innerHTML = `<div class="lobby-scene">${art.scene(1, { still: true })}</div>`;

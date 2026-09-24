@@ -5,6 +5,7 @@ SBR.sprint = (() => {
   const art = SBR.art;
 
   function run({ name, act, favourite, tutorial }) {
+    SBR.music.play('sprint');
     return new Promise(resolve => {
       const r = SBR.run;
       const horse = SBR.HORSES[r.horse];

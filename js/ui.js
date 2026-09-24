@@ -402,6 +402,7 @@ SBR.ui = (() => {
       c.classList.add(kind === 'boss' ? 'from-top' : (i % 2 ? 'from-right' : 'from-left'));
       void c.offsetWidth;
       c.classList.add('flying');
+      SBR.audio.play('deal');
       await sleep(kind === 'boss' ? 420 : 300);
       c.classList.add('dealt', 'landed');
       SBR.audio.play(kind === 'boss' ? 'boom' : 'block');
@@ -749,9 +750,9 @@ SBR.ui = (() => {
         abs.appendChild(c);
       });
       box.appendChild(abs);
-      const w = modal(box, { small: false });
+      const w = modal(box, { onClose: resolve });
       box.appendChild(btn('Ride on', () => { closeModal(w); resolve(); }, 'btn-primary'));
-      SBR.audio.play('level');
+      SBR.audio.play('fanfare');
       if (SBR.fx && SBR.fx.burst) try { SBR.fx.burst(innerWidth / 2, innerHeight / 2, P.color); } catch (e) {}
     });
   }
@@ -830,8 +831,8 @@ SBR.ui = (() => {
     return new Promise(res => {
       const o = el('div', { class: 'craft-fx', html: `<div class="cf-rays"></div><div class="cf-item">${icon}</div><div class="cf-name">${name}</div><div class="cf-hammer">🔨</div>` });
       document.getElementById('overlay').appendChild(o);
-      SBR.audio.play('block'); setTimeout(() => SBR.audio.play('block'), 220);
-      setTimeout(() => { SBR.audio.play('level'); if (SBR.fx) SBR.fx.sparks(innerWidth / 2, innerHeight / 2, '#f2c14e', 50, 9); }, 480);
+      SBR.audio.play('anvil'); setTimeout(() => SBR.audio.play('anvil'), 220);
+      setTimeout(() => { SBR.audio.play('fanfare'); if (SBR.fx) SBR.fx.sparks(innerWidth / 2, innerHeight / 2, '#f2c14e', 50, 9); }, 480);
       setTimeout(() => { o.classList.add('out'); }, 1300);
       setTimeout(() => { o.remove(); res(); }, 1650);
     });
@@ -847,7 +848,9 @@ SBR.ui = (() => {
     const vol = el('input', { type: 'range', min: 0, max: 1, step: 0.05, value: s.sfx });
     vol.oninput = () => { s.sfx = +vol.value; SBR.saveSettings(); SBR.audio.play('click'); };
     const chk = key => { const c = el('input', { type: 'checkbox' }); c.checked = !!s[key]; c.onchange = () => { s[key] = c.checked; SBR.saveSettings(); document.body.classList.toggle('reduced', !!s.reducedMotion); }; return c; };
-    box.append(row('Game speed', speed), row('Sound volume', vol), row('Screen shake', chk('shake')), row('Typewriter text', chk('typewriter')), row('Reduced motion', chk('reducedMotion')));
+    const mus = el('input', { type: 'range', min: 0, max: 1, step: 0.05, value: s.music });
+    mus.oninput = () => SBR.music.setVolume(+mus.value);
+    box.append(row('Game speed', speed), row('Sound volume', vol), row('Music volume', mus), row('Screen shake', chk('shake')), row('Typewriter text', chk('typewriter')), row('Reduced motion', chk('reducedMotion')));
     box.appendChild(el('div', { class: 'keys', html: '<b>Keys</b> — 1–7 abilities/cards · Q Brace · E End/Items · Tab cycle target · P Party · B Bag · M Map · Space advance dialogue' }));
     let w;
     if (inRun) box.appendChild(btn('Save & quit to title', () => { SBR.saveRun(); closeModal(w); SBR.game.toTitle(); }, 'btn-danger'));

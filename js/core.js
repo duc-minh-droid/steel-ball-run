@@ -65,7 +65,7 @@ SBR.util = {
 
 /* ---------- Settings ---------- */
 SBR.settings = Object.assign({
-  speed: 1, sfx: 0.6, shake: true, reducedMotion: false, typewriter: true,
+  speed: 1, sfx: 0.6, music: 0.35, shake: true, reducedMotion: false, typewriter: true,
 }, (() => { try { return JSON.parse(localStorage.getItem('sbr_settings')) || {}; } catch (e) { return {}; } })());
 SBR.saveSettings = () => { try { localStorage.setItem('sbr_settings', JSON.stringify(SBR.settings)); } catch (e) {} };
 
@@ -163,6 +163,9 @@ SBR.audio = (() => {
       try { sounds[name] && sounds[name](); } catch (e) {}
     },
     unlock: ensure,
+    define(name, fn) { sounds[name] = fn; },
+    get ctx() { return ctx; },
+    get master() { return master; },
   };
 })();
 
