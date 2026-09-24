@@ -524,7 +524,7 @@ SBR.Combat = class Combat {
     if (ab.cd) u.cds[abId] = ab.cd + 1;
     let target = targetUid ? this.unit(targetUid) : null;
     const tgtList = ab.target === 'allEnemies' ? this.foes(u).map(t => t.uid) : ab.target === 'allAllies' ? this.friends(u).map(t => t.uid) : target ? [target.uid] : [];
-    this.push({ t: 'act', uid: u.uid, name: ab.name, fx: ab.fx, targets: tgtList, cost: ab.cost, abId, special: (ab.tags || []).includes('stand') || abId === 'ball_breaker' });
+    this.push({ t: 'act', uid: u.uid, name: ab.name, fx: ab.fx, targets: tgtList, cost: ab.cost, abId, pierce: !!ab.pierce, special: (ab.tags || []).includes('stand') || abId === 'ball_breaker' });
     if (!this.preAction(u)) { this.endTurn(u); return true; }
     const lvl = (u.upgrades && u.upgrades[abId]) || 1;
     const x = this.ctx(u, target, ab, lvl);
@@ -597,7 +597,7 @@ SBR.Combat = class Combat {
     else if (ab.target === 'self') target = u;
     else if (ab.target === 'ally') target = this.friends(u).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
     const tl = ab.target === 'allEnemies' ? this.alive('party').map(t => t.uid) : ab.target === 'allAllies' ? this.friends(u).map(t => t.uid) : target ? [target.uid] : [];
-    this.push({ t: 'act', uid: u.uid, name: ab.name, fx: ab.fx, targets: tl, enemy: true, special: cost(ab) > 0 });
+    this.push({ t: 'act', uid: u.uid, name: ab.name, fx: ab.fx, targets: tl, enemy: true, special: cost(ab) > 0, cost: cost(ab) });
     if (!this.preAction(u)) { if (!free) this.endTurn(u); return; }
     if (this.has(u, 'raptor')) target = this.pickPartyTarget();
     ab.run(this.ctx(u, target, ab, 1));

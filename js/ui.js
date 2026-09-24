@@ -425,7 +425,7 @@ SBR.ui = (() => {
   function encounterCard(card, i, onPick) {
     const typeLabel = { fight: 'Battle', elite: 'Elite', shop: 'Shop', event: 'Event', rest: 'Rest', trainer: 'Trainer', recruit: 'Ally', story: 'Story', boss: 'Boss', detour: 'Detour' }[card.type] || 'Event';
     const c = el('div', { class: `enc-card type-${card.type}`, tabindex: 0, role: 'button' });
-    const artHtml = card.art ? portraitOf(card.art) : `<div class="enc-icon">${art.icon(card.icon || 'question', 72)}</div>`;
+    const artHtml = card.art ? portraitOf(card.art) : SBR.art.cardArt(card.type);
     c.innerHTML = `
       <div class="enc-type">${typeLabel}</div>
       <div class="enc-art">${artHtml}</div>

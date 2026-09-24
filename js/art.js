@@ -156,15 +156,25 @@ SBR.art = (() => {
     const eyes = p.extra === 'shades' ? '' : `
       <path d="M35 55 Q41 50 47 55 Q41 58 35 55Z" fill="#fff" stroke="${INK}" stroke-width="1.2"/>
       <path d="M53 55 Q59 50 65 55 Q59 58 53 55Z" fill="#fff" stroke="${INK}" stroke-width="1.2"/>
-      <circle cx="41.5" cy="54.6" r="2.2" fill="${p.eye}"/><circle cx="58.5" cy="54.6" r="2.2" fill="${p.eye}"/>
-      <circle cx="41.5" cy="54.6" r=".9" fill="${INK}"/><circle cx="58.5" cy="54.6" r=".9" fill="${INK}"/>
+      <circle cx="41.5" cy="54.6" r="2.4" fill="${p.eye}" stroke="${INK}" stroke-width=".6"/><circle cx="58.5" cy="54.6" r="2.4" fill="${p.eye}" stroke="${INK}" stroke-width=".6"/>
+      <circle cx="41.5" cy="54.6" r="1" fill="${INK}"/><circle cx="58.5" cy="54.6" r="1" fill="${INK}"/>
+      <circle cx="40.6" cy="53.7" r=".7" fill="#fff"/><circle cx="57.6" cy="53.7" r=".7" fill="#fff"/>
       ${eyeStroke}
-      <path d="M33 53 Q41 47 48 53" fill="none" stroke="${INK}" stroke-width="2.4" stroke-linecap="round"/>
-      <path d="M52 53 Q59 47 67 53" fill="none" stroke="${INK}" stroke-width="2.4" stroke-linecap="round"/>`;
-    const brows = `<path d="M34 47 L46 49" stroke="${INK}" stroke-width="2" stroke-linecap="round"/><path d="M66 47 L54 49" stroke="${INK}" stroke-width="2" stroke-linecap="round"/>`;
-    const nose = `<path d="M50 57 L47.5 65 L51.5 66" fill="none" stroke="${INK}" stroke-width="1.3" stroke-linecap="round"/>`;
-    const lips = (p.extra === 'mask') ? '' : `<path d="M43.5 72 Q47 70 50 71 Q53 70 56.5 72 Q50 75.5 43.5 72Z" fill="${p.lip}" stroke="${INK}" stroke-width="1.1"/><path d="M45 73.6 Q50 75 55 73.6" stroke="${INK}" stroke-width=".7" fill="none"/>`;
-    const hatch = `<g stroke="${INK}" stroke-width=".7" opacity=".45">${[0,1,2,3,4].map(i=>`<path d="M${62-i} ${60+i*3} l4 -2"/>`).join('')}</g>`;
+      <path d="M32.5 53.5 Q41 46.5 48.5 53 L47 53.6 Q41 49.5 34 54.6Z" fill="${INK}"/>
+      <path d="M51.5 53 Q59 46.5 67.5 53.5 L66 54.6 Q59 49.5 53 53.6Z" fill="${INK}"/>
+      <path d="M32.6 53.4 l-2.2 -1.6 M67.4 53.4 l2.2 -1.6" stroke="${INK}" stroke-width="1.2" stroke-linecap="round"/>
+      <path d="M37 57.6 l-.6 1.2 M40 58.1 l-.3 1.2 M60 58.1 l.3 1.2 M63 57.6 l.6 1.2" stroke="${INK}" stroke-width=".7"/>`;
+    const brows = `<path d="M33 47.5 Q39 44.5 47 48.6 L46.4 49.8 Q39 47 33.6 48.8Z" fill="${INK}"/><path d="M67 47.5 Q61 44.5 53 48.6 L53.6 49.8 Q61 47 66.4 48.8Z" fill="${INK}"/>`;
+    const nose = `<path d="M51 52 Q52.5 58 51.5 63" fill="none" stroke="${INK}" stroke-width=".7" opacity=".55"/><path d="M50 57 L47.5 65 L51.5 66" fill="none" stroke="${INK}" stroke-width="1.3" stroke-linecap="round"/><path d="M52.5 64.5 l1.6 .6" stroke="${INK}" stroke-width=".9" stroke-linecap="round"/>`;
+    const lips = (p.extra === 'mask') ? '' : `<path d="M43.5 72 Q47 70 50 71 Q53 70 56.5 72 Q50 75.5 43.5 72Z" fill="${p.lip}" stroke="${INK}" stroke-width="1.1"/><path d="M45 73.6 Q50 75 55 73.6" stroke="${INK}" stroke-width=".7" fill="none"/><ellipse cx="51.5" cy="73.6" rx="2" ry=".7" fill="#fff" opacity=".7"/>`;
+    const dark = shade(p.skin);
+    const hatch = `<path d="M58 29.5 Q68 32 68 48 L67 62 Q64 76 50 82 Q59 71 61 57 Q63 42 58 29.5Z" fill="${dark}" opacity=".45"/>
+      <path d="M33.5 62 Q36 72 44 78 Q38 70 37 62Z" fill="${dark}" opacity=".35"/>
+      <g stroke="${INK}" stroke-width=".7" opacity=".5">${[0,1,2,3].map(i=>`<path d="M${62-i*.6} ${61+i*2.6} l4 -2.2"/>`).join('')}${[0,1,2].map(i=>`<path d="M${36+i*.6} ${62+i*2.6} l-3 -1.8"/>`).join('')}<path d="M44 42 l3 -1 M53 41 l3 1" opacity=".6"/></g>`;
+    const neckShade = `<path d="M42 78 L58 78 L58 86 Q50 84 42 81Z" fill="${dark}" opacity=".7"/>`;
+    const hairShine = hs === 'bald' ? `<path d="M40 34 Q48 30 56 32" stroke="#fff" stroke-width="1.6" opacity=".45" fill="none"/>` : `<g fill="none" stroke-linecap="round"><path d="M38 33 Q46 28 56 30" stroke="#fff" stroke-width="2" opacity=".4"/><path d="M42 36 Q48 33 54 34" stroke="#fff" stroke-width="1.2" opacity=".3"/></g>`;
+    const hairStrands = ['long', 'verylong', 'shaggy', 'bob', 'bobbang'].includes(hs) ? `<g stroke="${INK}" stroke-width=".8" opacity=".45" fill="none">${hs === 'verylong' || hs === 'long' ? '<path d="M24 60 Q22 80 24 96"/><path d="M76 60 Q78 80 76 96"/><path d="M28 70 Q27 84 29 94"/><path d="M72 70 Q73 84 71 94"/>' : '<path d="M27 52 Q25 62 27 70"/><path d="M73 52 Q75 62 73 70"/>'}</g>` : '';
+    const folds = `<g stroke="${INK}" stroke-width="1" opacity=".5" fill="none"><path d="M24 108 Q30 100 34 96"/><path d="M76 108 Q70 100 66 96"/><path d="M30 118 Q34 110 40 106"/><path d="M70 118 Q66 110 60 106"/></g><path d="M8 120 Q12 94 50 88 Q30 98 26 120Z" fill="#000" opacity=".12"/>`;
     const hatSvg = p.hat && hats[p.hat] ? hats[p.hat](p.hatColor, p.hat2) : '';
     const ex = p.extra && extras[p.extra] ? extras[p.extra](p) : '';
     const exBehind = ['feather', 'rain', 'bugs', 'balloon', 'hook'].includes(p.extra);
@@ -176,7 +186,9 @@ SBR.art = (() => {
         <pattern id="${id}d" width="5" height="5" patternUnits="userSpaceOnUse"><circle cx="2.5" cy="2.5" r="1" fill="${INK}" opacity=".18"/></pattern>
       </defs>
       <rect width="100" height="120" fill="url(#${id}g)"/>
+      <path d="M62 0 L100 0 L100 120 L28 120Z" fill="${bg[1]}" opacity=".5"/>
       <rect width="100" height="120" fill="url(#${id}d)"/>
+      <g fill="#fff" opacity=".35">${[[10,14,3],[88,22,2.4],[14,96,2],[90,90,3],[80,8,1.6]].map(([x,y,r])=>`<path d="M${x} ${y-r} l${r*.3} ${r*.7} ${r*.75} .1 -${r*.6} ${r*.5} .25 ${r*.75} -${r*.7} -${r*.42} -${r*.7} ${r*.42} .25 -${r*.75} -${r*.6} -${r*.5} ${r*.75} -.1z"/>`).join('')}</g>
       <g stroke="#fff" stroke-width="1" opacity=".25">${[0,1,2,3,4,5,6,7].map(i=>`<path d="M50 60 L${50+Math.cos(i*0.785)*90} ${60+Math.sin(i*0.785)*90}"/>`).join('')}</g>
       ${exBehind ? ex : ''}
       <g stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round">
@@ -184,15 +196,22 @@ SBR.art = (() => {
         <path d="M8 120 Q12 94 50 88 Q88 94 92 120 Z" fill="${p.outfit}"/>
         <path d="M38 88 L50 104 L62 88" fill="${p.outfit2}"/>
         <path d="M42 76 L42 90 L58 90 L58 76 Z" fill="${p.skin}"/>
+      </g>
+      ${folds}${neckShade}
+      <g stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round">
         <path d="${face}" fill="${p.skin}"/>
         <path d="M33 52 Q28 56 32 62" fill="${p.skin}"/><path d="M67 52 Q72 56 68 62" fill="${p.skin}"/>
       </g>
-      ${hatch}${eyes}${brows}${nose}${lips}
+      ${hairStrands}${hatch}${eyes}${brows}${nose}${lips}
       ${exFace ? ex : ''}
       <g stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round">
         ${hairFront[hs] ? hairFront[hs](p.hair) : ''}
+      </g>
+      ${p.hat && p.hat !== 'ribbon' && p.hat !== 'headband' && p.hat !== 'bandana' ? '' : hairShine}
+      <g stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round">
         ${hatSvg}
       </g>
+      ${hatSvg ? `<g fill="none" stroke="#fff" stroke-linecap="round" opacity=".35"><path d="M36 22 Q44 16 54 16" stroke-width="2"/></g>` : ''}
       ${exOnTop ? ex : ''}
     </svg>`;
   }
@@ -295,6 +314,11 @@ SBR.art = (() => {
       const top = base - mh;
       s += `<path d="M${x} ${base} L${x + 14} ${top + 12} L${x + 20} ${top} L${x + mw - 20} ${top} L${x + mw - 12} ${top + 14} L${x + mw} ${base}Z" fill="${color}" stroke="${INK}" stroke-width="3"/>`;
       s += `<path d="M${x + mw * 0.62} ${top} L${x + mw - 20} ${top} L${x + mw - 12} ${top + 14} L${x + mw} ${base} L${x + mw * 0.55} ${base}Z" fill="${shadeC}" opacity=".55"/>`;
+      let hl = '';
+      for (let hy = top + 16; hy < base - 6; hy += 11) hl += `M${x + mw * 0.66} ${hy} l${mw * 0.22} -8 `;
+      s += `<path d="${hl}" stroke="${INK}" stroke-width="1.3" opacity=".35"/>`;
+      s += `<path d="M${x + 18} ${top + mh * 0.3} H${x + mw * 0.6} M${x + 22} ${top + mh * 0.55} H${x + mw * 0.58} M${x + 26} ${top + mh * 0.78} H${x + mw * 0.56}" stroke="${INK}" stroke-width="1.2" opacity=".25"/>`;
+      s += `<path d="M${x + 20} ${top} L${x + mw * 0.6} ${top}" stroke="#fff" stroke-width="2.4" opacity=".45"/>`;
       for (let k = 0; k < 3; k++) s += `<path d="M${x + 18} ${top + 20 + k * 22} L${x + mw * 0.55} ${top + 24 + k * 22}" stroke="${INK}" stroke-width="1.2" opacity=".35"/>`;
       x += mw + 40 + rng() * 160;
     }
@@ -305,6 +329,57 @@ SBR.art = (() => {
     const shadow = blobs.map(([bx, by, r]) => `<circle cx="${x + bx * s}" cy="${y + by * s + 10 * s}" r="${r * s}" fill="${sh}"/>`).join('');
     const main = blobs.map(([bx, by, r]) => `<circle cx="${x + bx * s}" cy="${y + by * s}" r="${r * s}" fill="${c}"/>`).join('');
     return `<g class="cloud-g"><g stroke="${INK}" stroke-width="${5 / s > 6 ? 6 : 5}">${blobs.map(([bx, by, r]) => `<circle cx="${x + bx * s}" cy="${y + by * s + 4 * s}" r="${r * s + 1}" fill="${INK}"/>`).join('')}</g>${shadow}${main}<rect x="${x - 70 * s}" y="${y + 26 * s}" width="${220 * s}" height="${40 * s}" fill="transparent"/></g>`;
+  }
+  /** distant landmarks drawn on the far layer, one set per region */
+  function farDeco(act, rng, w, base, c) {
+    let s = '';
+    const sil = c.far;
+    if (act === 1 || act === 7) {
+      // rock arch and saguaro silhouettes
+      const ax = 300 + rng() * 300;
+      s += `<path d="M${ax} ${base} L${ax + 10} ${base - 120} Q${ax + 90} ${base - 190} ${ax + 170} ${base - 120} L${ax + 180} ${base} L${ax + 150} ${base} L${ax + 146} ${base - 96} Q${ax + 90} ${base - 146} ${ax + 36} ${base - 96} L${ax + 30} ${base}Z" fill="${sil}" stroke="${INK}" stroke-width="2.4" opacity=".9"/>`;
+      for (let i = 0; i < 6; i++) { const x = rng() * w, h = 40 + rng() * 40; s += `<path d="M${x - 4} ${base} V${base - h} q4 -6 8 0 V${base} M${x - 4} ${base - h * 0.5} h-10 v-${h * 0.3} q3 -4 6 0 v${h * 0.16} h4 M${x + 4} ${base - h * 0.6} h9 v-${h * 0.25} q-3 -4 -5 0 v${h * 0.12} h-4" fill="${shade(sil)}" stroke="${INK}" stroke-width="1.6" opacity=".7"/>`; }
+    } else if (act === 2) {
+      for (let i = 0; i < 3; i++) { const x = 150 + i * 520 + rng() * 120, h = 180 + rng() * 60, bw = 40 + rng() * 30; s += `<path d="M${x} ${base} L${x + 8} ${base - h} L${x + bw - 8} ${base - h} L${x + bw} ${base}Z" fill="${sil}" stroke="${INK}" stroke-width="2.4"/><path d="M${x + 6} ${base - h * 0.6} H${x + bw - 6} M${x + 4} ${base - h * 0.3} H${x + bw - 4}" stroke="${INK}" stroke-width="1.2" opacity=".35"/>`; }
+    } else if (act === 3) {
+      // windmill, farmhouse, grain silo
+      const x = 260 + rng() * 200;
+      s += `<g stroke="${INK}" stroke-width="2.2" fill="${shade(sil)}"><path d="M${x} ${base} L${x + 8} ${base - 110} L${x + 16} ${base}Z"/><g class="windmill" style="transform-origin:${x + 8}px ${base - 110}px">${[0, 1, 2, 3, 4, 5].map(k => `<path d="M${x + 8} ${base - 110} L${x + 8 + Math.cos(k * 1.047) * 34} ${base - 110 + Math.sin(k * 1.047) * 34} L${x + 8 + Math.cos(k * 1.047 + .25) * 30} ${base - 110 + Math.sin(k * 1.047 + .25) * 30}Z"/>`).join('')}</g></g>`;
+      const fx = 900 + rng() * 300;
+      s += `<g stroke="${INK}" stroke-width="2.2"><path d="M${fx} ${base} V${base - 44} L${fx + 34} ${base - 70} L${fx + 68} ${base - 44} V${base}Z" fill="#8a3a2a"/><rect x="${fx + 26}" y="${base - 30}" width="14" height="30" fill="#3a1a1a"/><rect x="${fx + 80}" y="${base - 96}" width="30" height="96" fill="#a8a8b0"/><path d="M${fx + 80} ${base - 96} Q${fx + 95} ${base - 114} ${fx + 110} ${base - 96}" fill="#8a8a98"/></g>`;
+    } else if (act === 4 || act === 9) {
+      // snow-capped peaks
+      for (let i = 0; i < 4; i++) { const x = i * 440 + rng() * 120, h = 150 + rng() * 90, bw = 260 + rng() * 80; s += `<path d="M${x} ${base} L${x + bw / 2} ${base - h} L${x + bw} ${base}Z" fill="${sil}" stroke="${INK}" stroke-width="2.4"/><path d="M${x + bw / 2} ${base - h} L${x + bw / 2 - 34} ${base - h + 50} L${x + bw / 2 - 12} ${base - h + 40} L${x + bw / 2} ${base - h + 56} L${x + bw / 2 + 14} ${base - h + 40} L${x + bw / 2 + 36} ${base - h + 52}Z" fill="#fff" stroke="${INK}" stroke-width="1.6"/>`; }
+    } else if (act === 5 || act === 10) {
+      // church spires and a harbour mast line
+      for (let i = 0; i < 4; i++) { const x = 120 + i * 400 + rng() * 80, h = 110 + rng() * 60; s += `<path d="M${x} ${base} V${base - h * 0.6} L${x + 18} ${base - h} L${x + 36} ${base - h * 0.6} V${base}Z" fill="${shade(sil)}" stroke="${INK}" stroke-width="2"/><path d="M${x + 18} ${base - h} V${base - h - 16} M${x + 12} ${base - h - 10} H${x + 24}" stroke="${INK}" stroke-width="2"/>`; }
+    } else if (act === 6) {
+      // the bridge and a spire
+      s += `<g stroke="${INK}" stroke-width="2.2" fill="${shade(sil)}"><rect x="200" y="${base - 170}" width="26" height="170"/><rect x="620" y="${base - 170}" width="26" height="170"/><path d="M0 ${base - 60} Q213 ${base - 190} 213 ${base - 170} Q420 ${base - 40} 633 ${base - 170} Q640 ${base - 190} 900 ${base - 70}" fill="none"/>${Array.from({ length: 14 }, (_, k) => `<path d="M${226 + k * 28} ${base - 150 + Math.sin(k / 13 * Math.PI) * 100} V${base - 40}" fill="none" stroke-width="1"/>`).join('')}<path d="M1200 ${base} V${base - 200} L1214 ${base - 260} L1228 ${base - 200} V${base}Z"/></g>`;
+    } else if (act === 8) {
+      for (let i = 0; i < 8; i++) { const x = rng() * w, h = 30 + rng() * 60; s += `<path d="M${x} 0 L${x + 10} ${h} L${x + 20} 0Z" fill="${shade(sil)}" stroke="${INK}" stroke-width="1.6"/>`; }
+    }
+    return s;
+  }
+  /** foreground props: fences, skulls, rocks, hoofprints */
+  function props(act, rng, w, base, c) {
+    let s = '';
+    if ([1, 2, 3, 7].includes(act)) {
+      // fence posts with wire
+      const fx0 = rng() * 400, n = 7;
+      for (let i = 0; i < n; i++) { const x = fx0 + i * 70, y = base + 34 + i * 1.5; s += `<path d="M${x} ${y} l2 -34 l6 0 l-2 34z" fill="#8a6a4a" stroke="${INK}" stroke-width="1.6"/>`; }
+      s += `<path d="M${fx0 + 4} ${base + 14} ${Array.from({ length: n - 1 }, (_, i) => `Q${fx0 + i * 70 + 39} ${base + 20 + i * 1.5} ${fx0 + (i + 1) * 70 + 4} ${base + 15 + (i + 1) * 1.5}`).join(' ')}" stroke="${INK}" stroke-width="1" fill="none"/>`;
+    }
+    if ([1, 2, 7].includes(act)) {
+      // cattle skull
+      const x = 900 + rng() * 400, y = base + 60;
+      s += `<g transform="translate(${x} ${y})" stroke="${INK}" stroke-width="1.8"><path d="M-30 -8 Q-40 -20 -46 -12 Q-36 -12 -24 -2 M30 -8 Q40 -20 46 -12 Q36 -12 24 -2" fill="#f6ecd8"/><path d="M-22 -10 Q0 -18 22 -10 L14 18 Q0 26 -14 18Z" fill="#f6ecd8"/><ellipse cx="-8" cy="0" rx="4" ry="5" fill="${INK}"/><ellipse cx="8" cy="0" rx="4" ry="5" fill="${INK}"/><path d="M-4 14 h8" /></g>`;
+    }
+    // hoofprint trail
+    for (let i = 0; i < 12; i++) { const x = i * 140 + rng() * 20, y = base + 80 + (i % 2) * 10; s += `<path d="M${x} ${y} a6 5 0 1 1 10 0 l-2 -1 a3 3 0 0 0 -6 0z" fill="${shade(c.ground)}" opacity=".6"/>`; }
+    // rocks with hatching
+    for (let i = 0; i < 6; i++) { const x = rng() * w, y = base + 40 + rng() * 60, r = 8 + rng() * 14; s += `<path d="M${x - r} ${y} Q${x - r * 0.8} ${y - r} ${x} ${y - r} Q${x + r} ${y - r * 0.8} ${x + r} ${y}Z" fill="${c.groundShade}" stroke="${INK}" stroke-width="1.8"/><path d="M${x + r * 0.2} ${y - r * 0.6} l${r * 0.5} ${r * 0.4} M${x + r * 0.4} ${y - r * 0.8} l${r * 0.4} ${r * 0.5}" stroke="${INK}" stroke-width="1" opacity=".5"/>`; }
+    return s;
   }
   function decoLayer(kind, rng, w, base, cfg) {
     let s = '';
@@ -400,13 +475,19 @@ SBR.art = (() => {
       <radialGradient id="${id}sun"><stop offset="0" stop-color="${c.sun}" stop-opacity=".95"/><stop offset="1" stop-color="${c.sun}" stop-opacity="0"/></radialGradient>
       <pattern id="${id}ht" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r="1.3" fill="#000" opacity=".08"/></pattern></defs>
       <rect width="${W}" height="${H}" fill="url(#${id}s)"/>
+      <g class="sun-rays" style="transform-origin:${W * 0.72}px ${H * 0.34}px;${act === 8 ? 'display:none' : ''}">${Array.from({ length: 16 }, (_, k) => { const a = k / 16 * Math.PI * 2, a2 = a + 0.09; return `<path d="M${W * 0.72} ${H * 0.34} L${W * 0.72 + Math.cos(a) * 1400} ${H * 0.34 + Math.sin(a) * 1400} L${W * 0.72 + Math.cos(a2) * 1400} ${H * 0.34 + Math.sin(a2) * 1400}Z" fill="${c.sun}" opacity=".13"/>`; }).join('')}</g>
       <circle cx="${W * 0.72}" cy="${H * 0.34}" r="260" fill="url(#${id}sun)"/>
-      <rect width="${W}" height="${H}" fill="url(#${id}ht)"/></svg>`;
+      ${act === 8 ? '' : `<circle cx="${W * 0.72}" cy="${H * 0.34}" r="46" fill="${c.sun}" opacity=".9" stroke="${INK}" stroke-width="3"/>`}
+      <circle cx="${W * 0.72}" cy="${H * 0.34}" r="58" fill="none" stroke="${c.sun}" stroke-width="3" opacity=".5" stroke-dasharray="6 10"/>
+      <rect y="${H * 0.62}" width="${W}" height="${H * 0.38}" fill="${c.sun}" opacity=".12"/>
+      <rect width="${W}" height="${H}" fill="url(#${id}ht)"/>
+      <pattern id="${id}ht2" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="7" cy="7" r="3" fill="#fff" opacity=".12"/></pattern>
+      <rect y="${H * 0.5}" width="${W}" height="${H * 0.2}" fill="url(#${id}ht2)"/></svg>`;
     let clouds = '';
     const cr = seeded(act * 31 + 7);
     for (let i = 0; i < 5; i++) clouds += cloud(120 + i * 320 + cr() * 80, 70 + cr() * 150, 0.6 + cr() * 0.7, c.cloud, c.cloudShade);
     const farPts = ridge(rng, W, H, 400, 130, 14, true);
-    const far = `<path d="M0 ${H} L${farPts.join(' L')} L${W} ${H}Z" fill="${c.far}" stroke="${INK}" stroke-width="2.4" opacity=".85"/>`;
+    const far = `<path d="M0 ${H} L${farPts.join(' L')} L${W} ${H}Z" fill="${c.far}" stroke="${INK}" stroke-width="2.4" opacity=".85"/>` + farDeco(act, seeded(act * 57 + 3), W, 470, c);
     let mid;
     if (act === 1 || act === 2 || act === 7) mid = mesas(rng, W, 470, c.mid, c.midShade);
     else if (act === 10) mid = decoLayer('city', rng, W, 470, c);
@@ -416,11 +497,13 @@ SBR.art = (() => {
     const groundPts = ridge(rng, W, H, 500, 16, 8);
     const ground = `<path d="M0 ${H} L${groundPts.join(' L')} L${W} ${H}Z" fill="${c.ground}" stroke="${INK}" stroke-width="2.4"/>` +
       `<g stroke="${c.groundShade}" stroke-width="3" opacity=".7">${[0, 1, 2, 3, 4, 5, 6, 7].map(i => `<path d="M${i * 210 + 40} ${540 + (i % 3) * 18} l120 0"/>`).join('')}</g>` +
-      decoLayer(act === 5 ? 'waves' : c.deco, rng, W, 505, c);
+      decoLayer(act === 5 ? 'waves' : c.deco, rng, W, 505, c) + props(act, seeded(act * 71 + 9), W, 505, c);
     const weather = c.rain ? '<div class="weather rain"></div>' : c.snow ? '<div class="weather snow"></div>' : '<div class="weather dust"></div>';
     const still = opts.still ? ' still' : '';
+    const birds = [1, 2, 3, 7].includes(act) ? `<div class="scene-birds">${[0, 1, 2].map(i => `<svg class="bird b${i}" viewBox="0 0 40 16"><path d="M2 12 Q10 0 20 10 Q30 0 38 12 Q30 6 20 14 Q10 6 2 12Z" fill="${INK}"/></svg>`).join('')}</div>` : '';
+    const tumble = [1, 2, 7].includes(act) ? `<div class="tumbleweed"><svg viewBox="0 0 60 60"><g fill="none" stroke="#8a6a3a" stroke-width="2.4"><circle cx="30" cy="30" r="24"/><path d="M8 24 Q30 40 52 22 M10 40 Q30 18 50 42 M22 8 Q34 30 20 52 M38 8 Q26 30 42 52"/></g><circle cx="30" cy="30" r="25" fill="none" stroke="${INK}" stroke-width="1.4"/></svg></div>` : '';
     return `<div class="scene act${act}${still}">${sky}
-      ${layer(clouds, 160, 'clouds')}${layer(far, 120)}${layer(mid, 60)}${layer(ground, 22, 'ground')}${weather}</div>`;
+      ${layer(clouds, 160, 'clouds')}${birds}${layer(far, 120)}${layer(mid, 60)}${layer(ground, 22, 'ground')}${tumble}${weather}<div class="scene-vignette"></div></div>`;
   }
 
   /* ---------------- Icons ---------------- */

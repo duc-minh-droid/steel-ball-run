@@ -666,6 +666,7 @@ SBR.game = (() => {
     const r = SBR.run;
     if (!r) return;
     SBR.music.stop(); SBR.audio.play('defeat');
+    await SBR.toBeContinued();
     achieve('wipe');
     const act = SBR.ACTS[r.act];
     ui.transition(scr => {
@@ -710,7 +711,7 @@ SBR.game = (() => {
       const has = !!SBR.loadRun();
       scr.innerHTML = `<div class="title-scene">${art.scene(2)}</div>
         <div class="title-horse">${art.horse({ coat: '#7a4a2a', mane: '#e8e0d0', wrap: '#8a5ad0', rider: { cape: '#3a8c4a', body: '#5b3a8c', hat: '#3a2a4a' } })}</div>
-        <div class="title-logo"><div class="tl-jojo">JoJo's Bizarre Campaign · Part 7</div><div class="tl-main">STEEL BALL RUN</div><div class="tl-sub">THE CORPSE ROAD</div></div>
+        <div class="title-logo"><div class="tl-jojo">JoJo's Bizarre Campaign · Part 7</div>${art.logo()}<div class="tl-sub">THE CORPSE ROAD</div></div>
         <div class="title-menu"></div>
         <div class="title-foot">A fan-made roguelite. Deliberately difficult. Click anywhere to enable sound.</div>`;
       const menu = scr.querySelector('.title-menu');

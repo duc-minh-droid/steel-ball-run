@@ -230,6 +230,10 @@ SBR.battle = (() => {
         actBanner(u, e.name, e.enemy);
         if (card) { card.classList.remove('lunge'); void card.offsetWidth; card.classList.add('lunge'); }
         if (u) renderEnergy(u);
+        if (u && ((!e.enemy && (e.cost >= 3 || e.pierce)) || (e.enemy && u.tier === 'boss' && e.cost >= 2))) {
+          const sk = SBR.stands.keyFor(u, e.abId);
+          await SBR.cutin({ portrait: ui.artFor(u.art), name: e.name, sub: sk ? `「${SBR.stands.name(sk)}」` : (u.fullName || u.name), color: e.enemy ? '#c8323c' : (u.def && u.def.color) || '#f2c14e', enemy: !!e.enemy, kanaText: e.enemy ? 'ゴゴゴゴ' : 'ドドドド' });
+        }
         if (e.special && u) { const sk = SBR.stands.keyFor(u, e.abId); if (sk) await standFlash(e.uid, sk); }
         const fx = e.fx;
         if (['act4', 'ballbreaker'].includes(fx)) { SBR.audio.play('spin'); await bigFx(fx); }
