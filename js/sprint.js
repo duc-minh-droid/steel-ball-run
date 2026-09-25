@@ -290,7 +290,7 @@ SBR.sprint = (() => {
       placeZone();
       const feedback = (t, cls) => { fb.textContent = t; fb.className = 'ring-feedback show ' + cls; clearTimeout(fb._t); fb._t = setTimeout(() => fb.classList.remove('show'), 500); };
 
-      let started = false, finished = false, finishOrder = [], last = 0, elapsed = 0, hazardT = 3;
+      let started = false, finished = false, finishOrder = [], last = 0, elapsed = 0, hazardT = 3, feudT = 2;
       const hazEl = wrap.querySelector('.sprint-hazard');
       const ringEl = wrap.querySelector('.sprint-ring');
       const warnEl = wrap.querySelector('.sprint-warn');
@@ -496,12 +496,46 @@ SBR.sprint = (() => {
         }
         rn.surge = 2; rn.bigSurge = 1.5; say(rn.name.toUpperCase() + ' makes a break for it!');
       }
+      /** rivals fight each other too: a shot, a rope or a Stand flies between two other riders */
+      let feudSaid = 0;
+      function feud(cands) {
+        const pairs = [];
+        cands.forEach(a => cands.forEach(b => { if (a !== b && PAIR[a.key] !== b.key && b.pos >= a.pos - 90 && b.pos - a.pos < 320) pairs.push([a, b]); }));
+        if (!pairs.length) return false;
+        const [a, b] = SBR.util.pick(pairs);
+        const sk = SKILL[a.key];
+        const useStand = sk && sk.atk && sk.atk.proj && Math.random() < standChance;
+        const kind = useStand ? sk.atk.kind : (sk && sk.plain) || SBR.util.pick(['shot', 'lasso', 'dust', 'shove']);
+        const proj = useStand ? sk.atk.proj : GENERIC[kind] || 'bullet';
+        const P = PROJ[proj] || PROJ.bullet;
+        const color = colorOf(a);
+        const wr = wrapBox(), A = at(a, wr), B = at(b, wr);
+        const q = el('div', { class: 'sk-proj sk-feud sk-p-' + proj + (P.spin ? ' sk-spinning' : ''), html: `<div class="sk-body">${P.html}</div>` });
+        q.style.setProperty('--skc', color);
+        const ang = P.noRot ? 0 : Math.atan2(B.y - A.y, B.x - A.x) * 180 / Math.PI;
+        place(q, A.x, A.y, ang, !!P.flip && B.x < A.x); fxL.appendChild(q);
+        a.node.classList.add('sk-glow'); a.node.style.setProperty('--skc', color);
+        if (useStand) kana(A, sk.kana || 'ゴゴゴ', color); else if (PLAIN_K[kind]) kana(A, PLAIN_K[kind], color);
+        requestAnimationFrame(() => requestAnimationFrame(() => { q.style.transition = 'transform .42s cubic-bezier(.3,.1,.6,1)'; const B2 = at(b); place(q, B2.x, B2.y, ang, !!P.flip && B.x < A.x); }));
+        later(0.45, () => {
+          q.remove(); a.node.classList.remove('sk-glow');
+          if (b.done || finished) return;
+          const P2 = at(b);
+          if (b.immune > 0 || Math.random() < 0.2) { spot('sk-kana', 'MISS', { x: P2.x, y: P2.y - 40 }, 0.7, '#f6ecd8'); return; }
+          b.stun = Math.max(b.stun || 0, useStand ? 1.6 : 1.1); b.pos -= useStand ? 12 : 6; b.surge = 0;
+          burst(P2, P.burst || 'hit', color); kana(P2, P.hitK || 'ドッ', color);
+          if (elapsed - feudSaid > 2.5) { feudSaid = elapsed; hazEl.innerHTML = `${a.name.toUpperCase()} ${useStand ? `「${sk.stand}」 ` : ''}hits ${b.name.toUpperCase()}!`; hazEl.classList.remove('show'); void hazEl.offsetWidth; hazEl.classList.add('show'); }
+        });
+        return true;
+      }
       function hazard() {
         const cands = runners.slice(1).filter(x => !x.done);
         if (!cands.length) return;
+        // rivals go after each other as often as after you, and that can happen while you are dodging
+        if (!tutorial && cands.length >= 2 && Math.random() < 0.45 && feud(cands) && (threat || Math.random() < 0.5)) return;
         // attackers are the ones close to you, ahead or behind
         const near = cands.filter(x => Math.abs(x.pos - runners[0].pos) < 120);
-        if (!threat && !pending && (near.length || Math.random() < 0.7) && Math.random() < (tutorial ? 0.35 : 0.7 + hard * 0.05)) attack(SBR.util.pick(near.length ? near : cands));
+        if (!threat && !pending && (near.length || Math.random() < 0.5) && Math.random() < (tutorial ? 0.35 : 0.5 + hard * 0.04)) attack(SBR.util.pick(near.length ? near : cands));
         else if (threat && hard >= 4) { const o = SBR.util.pick(cands); o.surge = 2.4; o.bigSurge = 2; say(`${o.name.toUpperCase()} uses the chaos to pull ahead!`); }
         else if (!pending) selfBoost(SBR.util.pick(cands));
       }
@@ -605,7 +639,9 @@ SBR.sprint = (() => {
           });
           if (threat && S.frozen <= 0) { threat.t -= dt; warnEl.querySelector('i').style.width = Math.max(0, threat.t / threat.dur * 100) + '%'; if (threat.t <= 0) landThreat(); }
           hazardT -= dt;
-          if (S.frozen <= 0 && hazardT <= 0 && me.pos < LEN - 60) { hazardT = threat || pending ? 0.8 : Math.max(1.8, 4.2 - hard * 0.35) + Math.random() * 1.6; if (!threat) hazard(); }
+          // riders fighting among themselves, on their own clock
+          if (!tutorial && S.frozen <= 0 && (feudT -= dt) <= 0) { feudT = Math.max(1.8, 3.6 - hard * 0.2) + Math.random() * 1.5; const fc = runners.slice(1).filter(x => !x.done); if (fc.length >= 2) feud(fc); }
+          if (S.frozen <= 0 && hazardT <= 0 && me.pos < LEN - 60) { hazardT = threat || pending ? 1.1 : Math.max(2.1, 4.4 - hard * 0.3) + Math.random() * 1.6; if (!threat) hazard(); }
           runners.forEach(rn => {
             if (rn.done) return;
             rn.pos += rn.speed * dt;

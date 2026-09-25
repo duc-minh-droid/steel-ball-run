@@ -26,13 +26,13 @@ Then open <http://localhost:5178>. Progress saves in your browser's local storag
 | ![Cut-in](docs/media/cutin.jpg) **Manga cut-ins.** Big moves slam a diagonal panel across the screen with the attacker and the move's name. | ![Boss intro](docs/media/bossintro.jpg) **Boss intros.** Each Stand user explains their mechanic before the fight. |
 | ![Lead riders](docs/media/setup.jpg) **Lead riders and horses.** Pick your lead, a horse and a starting item. The horse gives resistances the way a race does in AAC. | ![Paths](docs/media/paths.jpg) **Paths.** Each lead has three subclasses, learned from trainers on the road. |
 | ![Detours](docs/media/detours.jpg) **Detour areas.** Four optional regions, each with its own hazard, enemies, materials and boss. | ![Resistances](docs/media/resist.jpg) **Damage types.** Every hit has a type, and every enemy has its own resistances and weaknesses. |
-| ![Gear](docs/media/gear.jpg) **Six gear slots.** Weapon, hat, coat, boots and two charms. Charms of the same family don't stack. | ![Sprint](docs/media/sprint.jpg) **Stage sprints.** Time your presses to the golden zone while rivals use their Stands against you. |
+| ![Gear](docs/media/gear.jpg) **Six gear slots.** Weapon, hat, coat, boots and two charms. Charms of the same family don't stack. | ![Sprint](docs/media/sprint.jpg) **Stage sprints.** Time your presses to the golden zone while rivals use their Stands on you and on each other. |
 
 ## How a run plays
 
 1. **Choose a lead rider, a horse and a starting item.**
    - Johnny and Gyro are available from the start. Mountain Tim unlocks when you clear Act II, and Hot Pants when you clear Act III.
-   - Johnny and Gyro always join the story, whoever you pick.
+   - Johnny and Gyro join the story whoever you pick. The custom rider can turn them down at the well; after that their lines are left out, and story beats that only make sense with them are not offered.
    - Your lead never leaves the party. Story departures become wounds or changes of heart instead.
 2. **Ride through six acts.** They follow the real race legs: the Arizona desert, the Rockies, the Midwest, the frozen north, Philadelphia and New York.
 3. **Choose an encounter each stage.** You get three cards: a fight, a shop, a story event with a d20 skill check, a trainer, an ally or a detour. You can also Scavenge or take a Short Rest instead.
@@ -56,6 +56,9 @@ Then open <http://localhost:5178>. Progress saves in your browser's local storag
 6. **Fight.** Every unit, ally or enemy, starts a battle with 1 Energy and gains 1 per turn.
    - Hits have one of nine damage types: Physical, Gunshot, Spin, Stand, Bleed, Cold, Sound, Holy and True.
    - Resistances add together and come from enemies, horses, gear, Paths and statuses. True damage ignores them. For example, Blackmore is immune to Cold, ghosts shrug off bullets, and Valentine is weak to Spin.
+   - Some moves let you pick 1 to 4 targets. A badge on the button (×2, ×3, ×4) shows how many. Click the cards you want, then press Go or Enter, or press Max to take the most. Split moves share their damage: two targets take 62% each, three take 46%, four take 38%. Buffs, heals and debuffs with a badge give every pick the full effect.
+   - Area attacks hit every target at the same moment.
+   - Enemies use picks too. Gunmen and packs spread their fire, and elite healers cover two allies.
 7. **Gear up.** Enemies drop materials and Stand Remnants for the crafting bench.
    - Each rider wears a weapon, a hat, a coat, boots and two charms.
    - Charms belong to families, and two charms from the same family don't stack.
@@ -160,6 +163,7 @@ The theme keys are `title`, `act1` to `act6`, `devilspalm`, `silvermine`, `lakei
 |---|---|
 | `1`–`7` | Use an ability, or pick an encounter card |
 | `Q` / `E` | Brace / use an item |
+| Click, then `Enter` | Pick several targets for a ×2–×4 move, then confirm (`Space` toggles the target highlighted with `Tab`) |
 | `P` `B` `C` `M` `J` | Party, Bag, Crafting, Map, Chronicle (also the tabs on the left of the screen) |
 | `` ` `` | Debug panel |
 | `Space` | Advance dialogue / surge in the sprint |
@@ -185,6 +189,7 @@ The theme keys are `title`, `act1` to `act6`, `devilspalm`, `silvermine`, `lakei
 | `js/sbr.js` | Racers, canon side-story encounters, manga items, Act IV Tubular Bells |
 | `js/manga.js` | Story branches, skip consequences, act lineups, omens and endings |
 | `js/sides.js` / `js/corpse.js` | Side Stand users, vampires and Hamon; the Saint’s Corpse for every lead |
+| `js/multi.js` | Moves that hit or buff several picked targets, and how they split damage |
 | `js/panels.js` | Manga-panel dialogue pages and before/mid/after fight talk |
 | `js/custom.js` | The custom rider, the creator, and the Hamon, Vampire, Cyborg, Stand and Aja powers with their encounters |
 | `js/economy.js` | The 16 materials, Souls, upgrades, reinforce, salvage, selling, trinkets, services, fees |

@@ -547,17 +547,33 @@ SBR.Combat = class Combat {
     if (!this.canUse(u, abId)) return false;
     u.energy -= ab.cost;
     if (ab.cd) u.cds[abId] = ab.cd + 1;
-    let target = targetUid ? this.unit(targetUid) : null;
-    const tgtList = ab.target === 'allEnemies' ? this.foes(u).map(t => t.uid) : ab.target === 'allAllies' ? this.friends(u).map(t => t.uid) : target ? [target.uid] : [];
+    // multi-pick abilities get a list of uids
+    const picks = Array.isArray(targetUid) ? targetUid.map(id => this.unit(id)).filter(t => t && !t.removed).slice(0, ab.pick || 1) : null;
+    let target = picks ? picks[0] || null : targetUid ? this.unit(targetUid) : null;
+    const tgtList = ab.target === 'allEnemies' ? this.foes(u).map(t => t.uid) : ab.target === 'allAllies' ? this.friends(u).map(t => t.uid) : picks ? picks.map(t => t.uid) : target ? [target.uid] : [];
     this.push({ t: 'act', uid: u.uid, name: ab.name, fx: ab.fx, targets: tgtList, cost: ab.cost, abId, pierce: !!ab.pierce, special: (ab.tags || []).includes('stand') || abId === 'ball_breaker' });
     if (!this.preAction(u)) { this.endTurn(u); return true; }
     const lvl = (u.upgrades && u.upgrades[abId]) || 1;
-    const x = this.ctx(u, target, ab, lvl);
-    ab.run(x);
+    this.runPicked(u, ab, lvl, target, picks);
     const bob = (this.bonus.bleedOnBasic || 0) + this.eq(u, 'bleedOnBasic');
     if (ab.cost === 0 && u.side === 'party' && bob && target && !target.dead && Math.random() < bob) this.addStatus(target, 'bleed', 1);
     this.endTurn(u);
     return true;
+  }
+
+  /** run an ability on one target, or once per picked target (split damage when ab.spread) */
+  runPicked(u, ab, lvl, target, picks) {
+    if (!picks || picks.length <= 1 || ab.multi) {
+      const x = this.ctx(u, target, ab, lvl); x.targets = picks || (target ? [target] : []);
+      return ab.run(x);
+    }
+    const mul = ab.spread ? (SBR.SPREAD || [1, 1, 0.7, 0.55, 0.45, 0.4])[Math.min(5, picks.length)] : 1;
+    picks.forEach(t => {
+      if (t.dead && ab.target !== 'allyDead') return;
+      if (this.result || u.dead) return;
+      const x = this.ctx(u, t, ab, lvl); x.targets = picks; x.spread = mul;
+      ab.run(x);
+    });
   }
 
   brace(u) {
@@ -624,15 +640,22 @@ SBR.Combat = class Combat {
     const idx = abl.indexOf(ab);
     if (ab.cd) u.cds['a' + idx] = ab.cd + 1;
     if (!free) u.energy = Math.max(0, (u.energy || 0) - cost(ab));
-    let target = null;
+    let target = null, picks = null;
     if (ab.target === 'enemy') target = this.pickPartyTarget();
     else if (ab.target === 'self') target = u;
     else if (ab.target === 'ally') target = this.friends(u).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
-    const tl = ab.target === 'allEnemies' ? this.alive('party').map(t => t.uid) : ab.target === 'allAllies' ? this.friends(u).map(t => t.uid) : target ? [target.uid] : [];
+    if (ab.pick > 1 && target && (ab.target === 'enemy' || ab.target === 'ally')) {
+      // how many it spreads over: a coin flip between focusing and fanning out
+      const pool = ab.target === 'enemy' ? SBR.util.shuffle(this.alive('party').filter(t => t !== target)) : this.friends(u).filter(t => t !== target).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
+      const n = Math.random() < 0.5 ? 1 : SBR.util.randInt(2, ab.pick);
+      picks = [target].concat(pool.slice(0, n - 1));
+      if (picks.length < 2) picks = null;
+    }
+    const tl = ab.target === 'allEnemies' ? this.alive('party').map(t => t.uid) : ab.target === 'allAllies' ? this.friends(u).map(t => t.uid) : picks ? picks.map(t => t.uid) : target ? [target.uid] : [];
     this.push({ t: 'act', uid: u.uid, name: ab.name, fx: ab.fx, targets: tl, enemy: true, special: cost(ab) > 0, cost: cost(ab) });
     if (!this.preAction(u)) { if (!free) this.endTurn(u); return; }
-    if (this.has(u, 'raptor')) target = this.pickPartyTarget();
-    ab.run(this.ctx(u, target, ab, 1));
+    if (this.has(u, 'raptor')) { target = this.pickPartyTarget(); picks = null; }
+    this.runPicked(u, ab, 1, target, picks);
     if (!free) this.endTurn(u);
   }
 
@@ -679,12 +702,14 @@ SBR.Combat = class Combat {
   /* ---------- ability context ---------- */
   ctx(user, target, ability = null, lvl = 1) {
     const c = this;
-    return {
-      c, user, target, lvl, round: c.round,
+    // split-damage abilities scale every number by x.spread
+    const sm = (s, m) => { if (m === 1 || !s) return s; const o = {}; for (const k in s) o[k] = s[k] * m; return o; };
+    const x = {
+      c, user, target, lvl, round: c.round, spread: 1, targets: target ? [target] : [],
       get enemies() { return c.foes(user); },
       get allies() { return c.friends(user); },
-      dmg: (t, base, scale, o = {}) => c.damage(user, t, base, scale, o, ability),
-      heal: (t, base, scale) => c.heal(user, t, base, scale),
+      dmg: (t, base, scale, o = {}) => c.damage(user, t, base * x.spread, sm(scale, x.spread), o, ability),
+      heal: (t, base, scale) => c.heal(user, t, base * x.spread, sm(scale, x.spread)),
       status: (t, id, stacks = 0, turns = 0) => c.addStatus(t, id, stacks, turns),
       removeStatus: (t, id) => c.removeStatus(t, id),
       cleanse: (t, n) => c.cleanse(t, n),
@@ -712,5 +737,6 @@ SBR.Combat = class Combat {
       extraAction: () => { if (!c.result && !user.dead) { c.push({ t: 'float', uid: user.uid, text: 'EXTRA ACTION', cls: 'debuff big' }); c.enemyAct(user, true); } },
       count: id => c.alive(user.side === 'party' ? 'enemy' : 'party').filter(t => c.has(t, id)).length,
     };
+    return x;
   }
 };

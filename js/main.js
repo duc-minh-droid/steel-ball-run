@@ -263,9 +263,10 @@ SBR.game = (() => {
     await ui.dialogue(id);
     if (s.fx) { s.fx(G); await flushPending(); }
     if (s.choices) {
-      const last = s.lines[s.lines.length - 1];
-      const speaker = [...s.lines].reverse().find(l => l.who);
-      const ch = await ui.eventPanel({ title: s.card ? s.card.title : 'Your Choice', text: last.who ? `"${last.text}"` : last.narr, choices: s.choices, art: speaker ? speaker.who : null, icon: 'question' });
+      const here = s.lines.filter(l => !SBR.aboutAbsent(l));
+      const last = here[here.length - 1] || { narr: s.card && s.card.blurb ? s.card.blurb : 'What do you do?' };
+      const speaker = [...here].reverse().find(l => l.who);
+      const ch = await ui.eventPanel({ title: s.card ? s.card.title : 'Your Choice', text: last.who ? `"${last.text}"` : last.narr, choices: s.choices, art: speaker ? speaker.who : (SBR.isPU(SBR.run.lead) ? SBR.run.lead : null), icon: 'question' });
       await resolveChoice(ch, 'scene:' + id + ':' + s.choices.indexOf(ch));
     }
     if (s.fight) {
@@ -344,7 +345,7 @@ SBR.game = (() => {
     if (r.stage === act.stages) return [{ id: 'boss', type: 'boss', title: plan.boss.name, blurb: 'The stage\'s final obstacle. There is no way around.', icon: 'crown', forced: true, art: SBR.ENEMIES[act.boss.enemies[0]].art.key }];
     const storyId = plan.story[r.stage];
     let storyCard = null;
-    if (storyId && !(SBR.STORY[storyId].leadSkip || []).includes(r.lead) && !(r.flags['skipped_' + storyId])) {
+    if (storyId && !(SBR.STORY[storyId].leadSkip || []).includes(r.lead) && !(r.flags['skipped_' + storyId]) && !SBR.jgCentric(storyId)) {
       const s = SBR.STORY[storyId];
       storyCard = Object.assign({ id: storyId, type: 'story', story: true, stars: s.stars || 3 }, s.card);
       if (s.required) return [Object.assign(storyCard, { forced: true })];

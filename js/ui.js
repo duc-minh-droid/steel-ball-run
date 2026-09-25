@@ -82,7 +82,7 @@ SBR.ui = (() => {
     const a = SBR.ABILITIES[id];
     const dt = SBR.abilityDtype(a);
     const tags = (dt ? `<span class="tag dtag" style="--dc:${SBR.DMG[dt].color}">${SBR.icons.dmg(dt)}${SBR.DMG[dt].name}</span> ` : '') + (a.tags || []).filter(t => t !== 'gun' && t !== 'spin').map(t => `<span class="tag tag-${t}">${t}</span>`).join(' ');
-    return `<div class="tip-ab">${SBR.icons.ability(id)}<div><b>${a.name}</b>${lvl > 1 ? ' <span class="lv2">Lv.2</span>' : ''}<br><span class="tip-cost">${'◆'.repeat(a.cost) || 'Free'}</span>${a.cd ? ` · CD ${a.cd}` : ''}${a.pierce ? ' · <b class="pierce">PIERCING</b>' : ''}<br>${a.desc(lvl)}<br>${tags}</div></div>`;
+    return `<div class="tip-ab">${SBR.icons.ability(id)}<div><b>${a.name}</b>${lvl > 1 ? ' <span class="lv2">Lv.2</span>' : ''}<br><span class="tip-cost">${'◆'.repeat(a.cost) || 'Free'}</span>${a.cd ? ` · CD ${a.cd}` : ''}${a.pierce ? ' · <b class="pierce">PIERCING</b>' : ''}${a.pick > 1 ? ` · <b class="pick">UP TO ${a.pick} ${a.target === 'ally' ? 'ALLIES' : 'TARGETS'}</b>` : a.target === 'allEnemies' ? ' · <b class="pick">ALL ENEMIES</b>' : a.target === 'allAllies' ? ' · <b class="pick">WHOLE PARTY</b>' : ''}<br>${a.desc(lvl)}${a.pick > 1 && a.spread ? `<br><i class="tip-spread">Split between targets: ${[2, 3, 4].filter(n => n <= a.pick).map(n => `${n} at ${Math.round(SBR.SPREAD[n] * 100)}%`).join(', ')} each.</i>` : ''}<br>${tags}</div></div>`;
   }
   function relicTip(id) {
     const r = SBR.RELICS[id];
@@ -141,12 +141,36 @@ SBR.ui = (() => {
   }
 
   /* ---------- Dialogue ---------- */
+  /** Johnny or Gyro, when they are not riding with you (custom and dev leads can ride alone) */
+  const absentJG = w => (w === 'johnny' || w === 'gyro') && !!SBR.run && !(SBR.run.party || []).some(m => m.id === w);
+  const JG_RE = { johnny: /\bjohnny('s)?\b|\btusk\b|\bjoestar\b/i, gyro: /\bgyro('s)?\b|\bsteel balls?\b|\bzeppeli\b/i };
+  /** drop choices that need an absent Johnny or Gyro; keeps the list if nothing would be left */
+  const presentChoices = list => {
+    if (!list || !SBR.run) return list;
+    const f = list.filter(ch => !(ch.check && absentJG(ch.check.who)) && !['johnny', 'gyro'].some(w => absentJG(w) && JG_RE[w].test(ch.label || '')));
+    return f.length ? f : list;
+  };
+  /** a line spoken by, or about, a Johnny or Gyro who isn't here */
+  const aboutAbsent = L => !!L && ['johnny', 'gyro'].some(w => absentJG(w) && (L.who === w || JG_RE[w].test(L.text || L.narr || '')));
+  /** a story beat that is really about Johnny and Gyro; a lone rider isn't offered it */
+  SBR.jgCentric = id => {
+    const s = SBR.STORY[id];
+    if (!s || s.required || !SBR.run || !['johnny', 'gyro'].some(absentJG)) return false;
+    const mentions = ch => ['johnny', 'gyro'].some(w => absentJG(w) && ((ch.check && ch.check.who === w) || JG_RE[w].test(ch.label || '')));
+    // every choice needs them: the scene can't happen without them
+    if (s.choices && s.choices.length && s.choices.every(mentions)) return true;
+    if (s.fight || s.after) return false;
+    const ls = s.lines || [];
+    return ls.filter(aboutAbsent).length / Math.max(1, ls.length) >= 0.55 || (s.choices || []).filter(ch => ['johnny', 'gyro'].some(w => absentJG(w) && JG_RE[w].test(ch.label || ''))).length >= 2;
+  };
+  SBR.absentJG = absentJG; SBR.presentChoices = presentChoices; SBR.aboutAbsent = aboutAbsent;
   function dialogue(sceneId) {
     const scene0 = SBR.STORY[sceneId];
     const lead = SBR.run && SBR.run.lead;
     let scene = scene0 && scene0.leadLines && scene0.leadLines[lead] ? Object.assign({}, scene0, { lines: scene0.leadLines[lead] }) : scene0;
     const alt = scene && scene.variants && SBR.run ? scene.variants() : null;
     if (alt) scene = Object.assign({}, scene, { lines: alt });
+    if (scene && scene.lines && SBR.run) scene = Object.assign({}, scene, { lines: scene.lines.filter(L => !aboutAbsent(L)) });
     if (!scene || !scene.lines || !scene.lines.length) return Promise.resolve();
     // manga-panel pages for scenes that ask for them (see js/panels.js)
     if (SBR.panels && SBR.panels.wants(sceneId, scene)) return SBR.panels.play(sceneId, scene);
@@ -265,7 +289,7 @@ SBR.ui = (() => {
       const body = el('div', { class: 'event-body' });
       body.append(el('h2', {}, ev.title), ev.html ? el('p', { class: 'event-text', html: ev.html }) : el('p', { class: 'event-text' }, ev.text || ''));
       const list = el('div', { class: 'choices' });
-      (ev.choices || []).forEach((ch, i) => {
+      presentChoices(ev.choices || []).forEach((ch, i) => {
         const g = SBR.game;
         const cost = ch.cost && ch.cost.money ? Math.round(ch.cost.money) : 0;
         const afford = !cost || SBR.run.money >= cost;

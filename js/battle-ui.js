@@ -287,8 +287,29 @@ SBR.battle = (() => {
   }
 
   /* ---------- event playback ---------- */
+  // what lands on a target after a multi-target act; played on every target at once
+  const WAVE = new Set(['dmg', 'heal', 'status', 'statusGone', 'float', 'setHp', 'death']);
   async function play(events) {
-    for (const e of events) await playOne(e);
+    let multi = null;
+    for (let i = 0; i < events.length; i++) {
+      const e = events[i];
+      if (e.t === 'act') multi = e.targets && e.targets.length > 1 ? new Set(e.targets) : null;
+      else if (!WAVE.has(e.t)) multi = null;
+      if (multi && WAVE.has(e.t) && multi.has(e.uid)) {
+        const by = new Map();
+        while (i < events.length && WAVE.has(events[i].t) && multi.has(events[i].uid)) { const x = events[i++]; if (!by.has(x.uid)) by.set(x.uid, []); by.get(x.uid).push(x); }
+        i--;
+        if (by.size > 1) { flashWave([...by.keys()]); await Promise.all([...by.values()].map(async list => { for (const x of list) await playOne(x); })); }
+        else for (const x of [...by.values()][0]) await playOne(x);
+        continue;
+      }
+      await playOne(e);
+    }
+  }
+  /** one shared flash across every card an area attack hits */
+  function flashWave(uids) {
+    uids.forEach(uid => { const k = cards[uid]; if (!k) return; k.classList.remove('aoe-hit'); void k.offsetWidth; k.classList.add('aoe-hit'); setTimeout(() => k.classList.remove('aoe-hit'), 600); });
+    if (uids.length >= 3) ui.shake(undefined, uids.length >= 4);
   }
   async function playOne(e) {
     const u = e.uid ? c.unit(e.uid) : null;
@@ -445,7 +466,7 @@ SBR.battle = (() => {
       const cd = u.cds[id] || 0;
       const ok = c.canUse(u, id);
       const b = el('button', { class: 'ab-btn' + (ok ? '' : ' disabled') + (a.pierce ? ' pierce' : '') + (a.tags.includes('spin') ? ' spin' : ''), dataset: { id } });
-      b.innerHTML = `<span class="ab-key">${i + 1}</span><span class="ab-icon">${SBR.icons.ability(id)}</span><span class="ab-name">${a.name}</span><span class="ab-costs">${a.cost ? [...Array(a.cost)].map(() => '<i></i>').join('') : '<em>FREE</em>'}</span>${cd ? `<span class="ab-cd">${cd}</span>` : ''}`;
+      b.innerHTML = `<span class="ab-key">${i + 1}</span><span class="ab-icon">${SBR.icons.ability(id)}</span><span class="ab-name">${a.name}</span>${a.pick > 1 ? `<span class="ab-pick">×${a.pick}</span>` : a.target === 'allEnemies' || a.target === 'allAllies' ? '<span class="ab-pick all">ALL</span>' : ''}<span class="ab-costs">${a.cost ? [...Array(a.cost)].map(() => '<i></i>').join('') : '<em>FREE</em>'}</span>${cd ? `<span class="ab-cd">${cd}</span>` : ''}`;
       SBR.tip.bind(b, () => ui.abilityTip(id, lvl, u));
       b.addEventListener('click', () => { if (ok) chooseAbility(u, id); else SBR.audio.play('back'); });
       list.appendChild(b);
@@ -485,6 +506,7 @@ SBR.battle = (() => {
     if (t === 'self' || t === 'allEnemies' || t === 'allAllies' || t === 'none') return finishInput(() => c.useAbility(u, id, t === 'self' ? u.uid : null));
     const valid = targetsFor(u, t);
     if (valid.length === 1 && t === 'enemy') return finishInput(() => c.useAbility(u, id, valid[0].uid));
+    if (a.pick > 1 && valid.length > 1) return startTargeting(u, t, uids => finishInput(() => c.useAbility(u, id, uids)), Math.min(a.pick, valid.length), a);
     startTargeting(u, t, tuid => finishInput(() => c.useAbility(u, id, tuid)));
   }
   function targetsFor(u, t) {
@@ -493,26 +515,59 @@ SBR.battle = (() => {
     if (t === 'allyDead') return c.party().filter(p => p.dead && !p.removed);
     return [];
   }
-  function startTargeting(u, t, cb) {
+  function startTargeting(u, t, cb, pick = 0, ab = null) {
+    actionBox.querySelectorAll('.target-hint').forEach(h => h.remove());
     const valid = targetsFor(u, t);
-    targeting = { u, t, cb, valid };
+    targeting = { u, t, cb, valid, pick, picked: [], ab };
     root.classList.add('targeting');
-    Object.values(cards).forEach(k => k.classList.remove('targetable'));
+    Object.values(cards).forEach(k => k.classList.remove('targetable', 'target-picked'));
     valid.forEach(v => cards[v.uid] && cards[v.uid].classList.add('targetable'));
-    actionBox.appendChild(el('div', { class: 'target-hint' }, t === 'enemy' ? 'Choose a target · Esc to cancel' : 'Choose an ally · Esc to cancel'));
+    const hint = el('div', { class: 'target-hint' + (pick ? ' multi' : '') });
+    actionBox.appendChild(hint);
+    renderHint();
+  }
+  const SPLIT = n => Math.round(((SBR.SPREAD || [])[n] || 1) * 100);
+  function renderHint() {
+    const h = actionBox.querySelector('.target-hint'); if (!h || !targeting) return;
+    const T = targeting;
+    if (!T.pick) { h.textContent = T.t === 'enemy' ? 'Choose a target · Esc to cancel' : 'Choose an ally · Esc to cancel'; return; }
+    const k = T.picked.length, who = T.t === 'enemy' ? 'enemies' : 'allies';
+    h.innerHTML = `<span class="th-count">${[...Array(T.pick)].map((_, i) => `<i class="${i < k ? 'on' : ''}"></i>`).join('')}</span>
+      <span class="th-text">Pick up to <b>${T.pick}</b> ${who}${T.ab && T.ab.spread && k > 1 ? ` · <em>${SPLIT(k)}% each</em>` : T.ab && T.ab.spread ? ' · split damage' : ''}</span>`;
+    const go = el('button', { class: 'th-btn go' + (k ? '' : ' disabled') }, k ? `Go (${k}) ↵` : 'Go ↵');
+    go.onclick = ev => { ev.stopPropagation(); confirmPicks(); };
+    const all = el('button', { class: 'th-btn' }, `Max (${T.pick})`);
+    all.onclick = ev => { ev.stopPropagation(); T.picked = T.valid.slice().sort((a, b) => T.t === 'enemy' ? a.hp - b.hp : a.hp / a.maxHp - b.hp / b.maxHp).slice(0, T.pick); confirmPicks(); };
+    h.append(go, all, el('span', { class: 'th-esc' }, 'Esc'));
+  }
+  function confirmPicks() {
+    if (!targeting || !targeting.picked.length) return;
+    const { cb, picked } = targeting;
+    SBR.audio.play('select');
+    stopTargeting();
+    cb(picked.map(p => p.uid));
   }
   function stopTargeting() {
     targeting = null;
     if (!root) return;
     root.classList.remove('targeting');
-    Object.values(cards).forEach(k => k.classList.remove('targetable', 'target-hover'));
+    Object.values(cards).forEach(k => { k.classList.remove('targetable', 'target-hover', 'target-picked'); delete k.dataset.pickn; });
     const h = actionBox.querySelector('.target-hint'); if (h) h.remove();
     actionBox.querySelectorAll('.ab-btn').forEach(b => b.classList.remove('selected'));
   }
   function isValidTarget(u) { return targeting && targeting.valid.includes(u); }
   function onCardClick(u) {
     if (!targeting || !isValidTarget(u)) return;
-    const cb = targeting.cb;
+    const T = targeting;
+    if (T.pick) {
+      const i = T.picked.indexOf(u);
+      if (i >= 0) T.picked.splice(i, 1); else if (T.picked.length < T.pick) T.picked.push(u);
+      SBR.audio.play(i >= 0 ? 'back' : 'click');
+      T.valid.forEach(v => { const k = cards[v.uid]; if (!k) return; const n = T.picked.indexOf(v); k.classList.toggle('target-picked', n >= 0); if (n >= 0) k.dataset.pickn = n + 1; else delete k.dataset.pickn; });
+      if (T.picked.length >= T.pick) return confirmPicks();
+      return renderHint();
+    }
+    const cb = T.cb;
     SBR.audio.play('select');
     stopTargeting();
     cb(u.uid);
@@ -540,7 +595,8 @@ SBR.battle = (() => {
       i = (i + 1) % v.length; cards[v[i].uid].classList.add('target-hover');
       return;
     }
-    if (e.key === 'Enter' && targeting) { const cur = root.querySelector('.target-hover'); if (cur) onCardClick(c.unit(cur.dataset.uid)); return; }
+    if (e.key === 'Enter' && targeting) { const cur = root.querySelector('.target-hover'); if (targeting.pick) { if (targeting.picked.length) confirmPicks(); else if (cur) onCardClick(c.unit(cur.dataset.uid)); return; } if (cur) onCardClick(c.unit(cur.dataset.uid)); return; }
+    if (e.key === ' ' && targeting && targeting.pick) { e.preventDefault(); const cur = root.querySelector('.target-hover'); if (cur) onCardClick(c.unit(cur.dataset.uid)); return; }
     const n = parseInt(e.key, 10);
     if (n >= 1 && n <= u.abilities.length) { const id = u.abilities[n - 1]; if (c.canUse(u, id)) chooseAbility(u, id); return; }
     if (e.key === 'q' || e.key === 'Q') finishInput(() => c.brace(u));
