@@ -1188,3 +1188,37 @@ body.reduced .sun-rays, body.reduced .windmill, body.reduced .bird, body.reduced
 .sprint.roped .runner.me .horse-svg { filter: sepia(.6) hue-rotate(-20deg); }
 .sprint-results { z-index: 60; }
 .sprint-stamina { background: rgba(26, 16, 32, .75); padding: 6px 10px; border: 2px solid var(--ink); }
+
+/* ---------- Sprint weather and race powers ---------- */
+.sprint-weather { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.sprint.w-heat .sprint-weather { background: linear-gradient(0deg, rgba(255, 140, 40, .22), transparent 60%); animation: heatHaze 1.6s ease-in-out infinite alternate; }
+@keyframes heatHaze { from { filter: blur(0); } to { filter: blur(.6px); opacity: .7; } }
+.sprint.w-wind .sprint-weather { background: repeating-linear-gradient(170deg, transparent 0 40px, rgba(255, 255, 255, .25) 40px 42px); background-size: 300px 300px; animation: windStreak .5s linear infinite; }
+@keyframes windStreak { to { background-position: -300px 40px; } }
+.sprint.w-rain .sprint-weather { background: linear-gradient(rgba(30, 40, 70, .35), rgba(30, 40, 70, .35)), repeating-linear-gradient(105deg, transparent 0 14px, rgba(200, 220, 255, .55) 14px 15px); background-size: auto, 120px 120px; animation: rainFall .35s linear infinite; }
+@keyframes rainFall { to { background-position: 0 0, -30px 120px; } }
+.sprint.w-snow .sprint-weather { background: radial-gradient(circle, #fff 1.4px, transparent 2px) 0 0 / 40px 40px, radial-gradient(circle, #fff 2px, transparent 2.6px) 20px 10px / 70px 70px, linear-gradient(rgba(220, 235, 255, .35), rgba(220, 235, 255, .35)); animation: snowFall 1.4s linear infinite; }
+@keyframes snowFall { to { background-position: -40px 40px, -50px 80px, 0 0; } }
+.sprint.w-fog .sprint-weather { background: linear-gradient(90deg, rgba(235, 235, 240, .75), rgba(235, 235, 240, .35) 40%, rgba(235, 235, 240, .7)); animation: fogDrift 6s ease-in-out infinite alternate; }
+@keyframes fogDrift { to { opacity: .6; transform: translateX(-4%); } }
+.sprint.w-night .sprint-weather { background: radial-gradient(circle at 38% 62%, transparent 90px, rgba(8, 6, 24, .82) 320px); }
+.sprint.bolt .sprint-weather::after { content: ''; position: absolute; inset: 0; background: #fff; animation: bolt .5s ease-out forwards; }
+@keyframes bolt { 0% { opacity: .9; } 30% { opacity: .1; } 45% { opacity: .7; } 100% { opacity: 0; } }
+.sprint-wname { position: absolute; left: 3%; top: 150px; z-index: 6; background: rgba(26, 16, 32, .8); color: var(--paper); border: 2px solid var(--ink); padding: 4px 10px; max-width: 260px; }
+.sprint-wname:empty { display: none; }
+.sprint-wname b { display: block; font-family: var(--f-sfx); color: var(--gold); letter-spacing: .06em; }
+.sprint-wname span { font-size: 11px; }
+.sprint-powers { position: absolute; left: 3%; bottom: calc(5% + 50px); z-index: 31; display: flex; gap: 8px; flex-wrap: wrap; max-width: 60vw; }
+.sp-power { position: relative; display: flex; align-items: center; gap: 6px; background: var(--paper); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--pc); padding: 4px 10px 4px 6px; cursor: pointer; font: 700 12px var(--f-ui); }
+.sp-power b { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--pc); color: #fff; font-size: 16px; border: 2px solid var(--ink); -webkit-text-stroke: .6px var(--ink); }
+.sp-power kbd { position: absolute; top: -9px; left: -7px; background: var(--ink); color: var(--gold); font-size: 10px; padding: 0 4px; }
+.sp-power:hover { transform: translate(-1px, -1px); }
+.sp-power.used { opacity: .35; filter: grayscale(1); pointer-events: none; }
+.sprint.timestop .sprint-scene, .sprint.timestop .sprint-track .runner:not(.me) { filter: grayscale(1) invert(.08) hue-rotate(200deg) brightness(.85); }
+.sprint.timestop .sprint-weather { animation-play-state: paused; }
+.sprint.timestop::after { content: '止'; position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); font-size: 200px; color: rgba(122, 90, 208, .35); font-family: serif; pointer-events: none; z-index: 5; }
+.sprint.shielded .runner.me .horse-svg { filter: drop-shadow(0 0 10px #fff3a0) drop-shadow(0 0 4px #f09ac0); }
+.runner.stalled .horse-svg { filter: grayscale(.7) brightness(.8); }
+.runner.stalled::after { content: 'STALLED'; position: absolute; top: 20px; left: 30px; background: var(--ink); color: var(--gold); font: 700 10px var(--f-ui); padding: 1px 4px; }
+.sprint.pflash::before { content: ''; position: absolute; inset: 0; z-index: 7; background: var(--flash, #fff); pointer-events: none; animation: pflash .4s ease-out forwards; }
+@keyframes pflash { from { opacity: .45; } to { opacity: 0; } }

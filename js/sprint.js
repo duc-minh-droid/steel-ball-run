@@ -70,6 +70,8 @@ SBR.sprint = (() => {
     knife: { warn: 'throws a knife', hit: 'A cut on the flank. Stamina drains.', fx: s => { s.stamina -= 26; } },
     shove: { warn: 'rides in close to shove you', hit: 'Shoved off the line!', fx: s => { s.me.pos -= 14; s.stumble = 0.6; } },
     stand: { warn: 'uses a Stand on you', hit: 'The Stand hits home.', fx: s => { s.stumble = 1.6; s.stamina -= 12; } },
+    gust:  { warn: 'a gust', hit: 'The wind stops your horse dead.', fx: s => { s.slow = 1.8; s.stamina -= 6; } },
+    obstacle: { warn: 'an obstacle', hit: 'Your horse crashes through it!', fx: s => { s.stumble = 1.4; s.stamina -= 8; } },
     sound: { warn: 'stamps a sound onto your saddle', hit: 'DOGOOON! Your next press will misfire.', fx: s => { s.misfire = true; } },
   };
   /** what each rival does to you */
@@ -77,6 +79,58 @@ SBR.sprint = (() => {
     gyro: ['stand', 'Gyro\'s steel ball ricochets at you!'], mountaintim: ['lasso', 'Mountain Tim throws his rope!'], pocoloco: ['shove', 'Pocoloco, somehow, luckily bumps into you!'],
     mackknife: ['knife', 'Mack the Knife throws a blade!'], dixie: ['shot', 'Dixie Chicken takes a trick shot!'], dothan: ['shot', 'Dot Han fires from the saddle!'], johnny: ['stand', 'Johnny fires his nails at you!'],
     gaucho: ['lasso', 'Gaucho throws his bolas!'], babayaga: ['dust', 'Baba Yaga throws a pouch of ash!'], norisuke: ['shove', 'Norisuke cuts across your line!'] };
+
+  /* ---------- weather: every leg of the race has its own, and it gets worse each stage ---------- */
+  const WEATHER = {
+    heat:     { name: 'SCORCHING HEAT', desc: 'Stamina drains faster.', cls: 'w-heat', drain: 1.45, obstacles: 'rock' },
+    gale:     { name: 'MOUNTAIN GALE', desc: 'Headwinds and rockslides.', cls: 'w-wind', gusts: true, drain: 1.1, obstacles: 'rock' },
+    storm:    { name: 'THUNDERSTORM', desc: 'Slick mud makes every stumble longer. Lightning blinds.', cls: 'w-rain', slick: 1.5, lightning: true, obstacles: 'mud' },
+    blizzard: { name: 'BLIZZARD', desc: 'Snow blots out the ring. The cold saps stamina.', cls: 'w-snow', drain: 1.35, fogRing: true, gusts: true, obstacles: 'ice' },
+    fog:      { name: 'SEA FOG', desc: 'The gold zone fades in and out of the fog.', cls: 'w-fog', hideGold: true, obstacles: 'cart' },
+    night:    { name: 'NIGHT RIDE', desc: 'Darkness: the gold zone flickers, and there are tripwires in the road.', cls: 'w-night', hideGold: true, lightning: true, drain: 1.15, obstacles: 'trap' },
+  };
+  const ACT_WEATHER = { 1: 'heat', 2: 'gale', 3: 'storm', 4: 'blizzard', 5: 'fog', 6: 'night' };
+  const COND_WEATHER = { sandstorm: 'heat', drought: 'heat', coldsnap: 'blizzard', night: 'night' };
+  const OBST = { rock: 'ROCKSLIDE AHEAD', mud: 'DEEP MUD AHEAD', ice: 'CRACKED ICE AHEAD', cart: 'AN OVERTURNED CART', trap: 'A TRIPWIRE ACROSS THE ROAD' };
+
+  /* ---------- Stand powers you can use in the race (once each), from whoever rides with you ---------- */
+  const POWER = {
+    nails:     { name: 'Nail Shot', glyph: '爪', color: '#6b5bd6', desc: 'Tusk shoots the rider ahead: they stall for 2s.', use: A => A.stunAhead(2) },
+    steelball: { name: 'Steel Ball', glyph: '球', color: '#3fb8a9', desc: 'Knock the rider ahead back and stall them.', use: A => { const t = A.ahead(); if (t) { t.pos -= 20; t.stun = 1.4; } } },
+    cream:     { name: 'Cream Starter', glyph: '肉', color: '#f09ac0', desc: 'Patch up your horse: +50 stamina.', use: A => A.stamina(50) },
+    lasso:     { name: 'Oh! Lonesome Me', glyph: '縄', color: '#e8742a', desc: 'Rope the rider ahead and pull yourself up to them.', use: A => { const t = A.ahead(); A.me.pos = t ? Math.max(A.me.pos, t.pos - 4) : A.me.pos + 25; } },
+    heyya:     { name: 'Hey Ya!', glyph: '運', color: '#f2c14e', desc: '"You can do it!" Your next 4 presses are all GOLD.', use: A => { A.S.autoGold = 4; } },
+    wrecking:  { name: 'Wrecking Ball', glyph: '鉄', color: '#c8c8d8', desc: 'Every rider close ahead is numbed and stalls.', use: A => A.rivals().filter(x => x.pos > A.me.pos && x.pos - A.me.pos < 160).forEach(x => { x.stun = 1.6; }) },
+    ticket:    { name: 'Ticket to Ride', glyph: '幸', color: '#f09ac0', desc: 'Misfortune slides off you: every attack misses for 5s.', use: A => { A.S.shield = 5; } },
+    timestop:  { name: 'Star Platinum: The World', glyph: '止', color: '#7a5ad0', desc: 'Stop time for 3 seconds. Only you move.', use: A => A.freeze(3, 'STAR PLATINUM: THE WORLD!') },
+    crimson:   { name: 'King Crimson', glyph: '紅', color: '#c8323c', desc: 'Erase time: skip ahead, and nothing can hit you for 4s.', use: A => { A.me.pos += 22; A.S.shield = 4; A.flash('#c8323c'); } },
+    fire:      { name: 'Crossfire Hurricane', glyph: '炎', color: '#e8742a', desc: 'A ring of fire: every rider near you stalls.', use: A => A.rivals().filter(x => Math.abs(x.pos - A.me.pos) < 90).forEach(x => { x.stun = 1.4; }) },
+    emerald:   { name: 'Emerald Splash', glyph: '翠', color: '#3aa05a', desc: 'Emeralds at everyone ahead of you.', use: A => A.rivals().filter(x => x.pos > A.me.pos && x.pos - A.me.pos < 240).forEach(x => { x.stun = 1.1; }) },
+    armoroff:  { name: 'Armour Off', glyph: '脱', color: '#c8ccd8', desc: 'Silver Chariot drops its armour: +50% speed for 4s.', use: A => { A.S.boostT = 4; } },
+    restore:   { name: 'Crazy Diamond', glyph: '治', color: '#e89ac8', desc: 'Fix your horse: full stamina, no stumble, no rope.', use: A => { A.stamina(100); A.S.stumble = 0; A.S.slow = 0; } },
+    bomb:      { name: 'Killer Queen', glyph: '爆', color: '#e8a0c8', desc: 'Turn the rider ahead\'s saddle into a bomb.', use: A => { const t = A.ahead(); if (t) { t.pos -= 40; t.stun = 1.2; A.flash('#e8508a'); } } },
+    erase:     { name: 'The Hand', glyph: '削', color: '#3a6ac8', desc: 'Erase the space in front of you: jump 40 ahead.', use: A => { A.me.pos += 40; } },
+    life:      { name: 'Gold Experience', glyph: '命', color: '#f2c14e', desc: 'Life floods your horse: +60 stamina and 2s untouchable.', use: A => { A.stamina(60); A.S.shield = 2; } },
+    zipper:    { name: 'Sticky Fingers', glyph: '開', color: '#5a8ad0', desc: 'Zip open a shortcut through the ground: +30.', use: A => { A.me.pos += 30; } },
+    string:    { name: 'Stone Free', glyph: '糸', color: '#4a7ad0', desc: 'String the rider ahead to your saddle: they stall 2s, you gain on them.', use: A => { const t = A.ahead(); if (t) { t.stun = 2; A.me.pos += 10; } } },
+    disc:      { name: 'Whitesnake', glyph: '盤', color: '#e8e8f0', desc: 'Steal the rider ahead\'s disc: they stall for 3s.', use: A => A.stunAhead(3) },
+    ripple:    { name: 'Hamon Breathing', glyph: '波', color: '#f2c14e', desc: 'Breathe with the sun: full stamina.', use: A => A.stamina(100) },
+    vamp:      { name: 'Inhuman Speed', glyph: '血', color: '#8a1a2a', desc: 'Vampire legs: +50% speed for 5s.', use: A => { A.S.boostT = 5; } },
+    chestgun:  { name: 'Chest Machine Gun', glyph: '銃', color: '#8a8aa0', desc: 'Spray the road ahead: two riders stall.', use: A => A.rivals().filter(x => x.pos > A.me.pos).sort((a, b) => a.pos - b.pos).slice(0, 2).forEach(x => { x.stun = 1.5; }) },
+  };
+  const PATH_POWER = { star_platinum: 'timestop', king_crimson: 'crimson', magicians_red: 'fire', hierophant: 'emerald', silver_chariot: 'armoroff', crazy_diamond: 'restore', killer_queen: 'bomb', the_hand: 'erase', gold_experience: 'life', sticky_fingers: 'zipper', stone_free: 'string', whitesnake: 'disc', hamon: 'ripple', vampire: 'vamp', cyborg: 'chestgun' };
+  const ALLY_POWER = { gyro: 'steelball', hotpants: 'cream', mountaintim: 'lasso', pocoloco: 'heyya', wekapipo: 'wrecking', lucy: 'ticket' };
+  SBR.racePowers = r => {
+    const out = [];
+    r.party.filter(m => m.hp > 0).forEach(m => {
+      let k = null;
+      if (m.id === 'custom') k = PATH_POWER[m.path];
+      else if (m.id === 'johnny') k = r.flags.tusk1 ? 'nails' : null;
+      else k = ALLY_POWER[m.id];
+      if (k && !out.some(o => o.id === k)) out.push(Object.assign({ id: k, who: m.id }, POWER[k]));
+    });
+    return out.slice(0, 4);
+  };
 
   function run({ name, act, favourite, tutorial }) {
     SBR.music.play('sprint');
@@ -94,7 +148,7 @@ SBR.sprint = (() => {
       // participants
       const rivalKeys = Object.keys(SBR.RIVALS).filter(k => {
         const rv = SBR.RIVALS[k];
-        if (k === leadId) return false;
+        if (k === leadId || r.party.some(m => m.id === k)) return false;
         if (rv.outAfter && act > rv.outAfter) return false;
         if (rv.out && rv.out(r)) return false;
         if (k === 'gyro' && r.flags.valDead) return false;
@@ -124,6 +178,7 @@ SBR.sprint = (() => {
         <div class="sprint-ring"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="80" fill="rgba(26,16,32,.75)" stroke="#1a1020" stroke-width="10"/><circle cx="100" cy="100" r="80" fill="none" stroke="#f6ecd8" stroke-width="4" opacity=".3"/><path class="zone-good" fill="none" stroke="#6b5bd6" stroke-width="16"/><path class="zone-gold" fill="none" stroke="#f2c14e" stroke-width="16"/><g class="needle"><line x1="100" y1="100" x2="100" y2="26" stroke="#e8508a" stroke-width="6" stroke-linecap="round"/><circle cx="100" cy="100" r="10" fill="#e8508a" stroke="#1a1020" stroke-width="3"/></g></svg><div class="ring-feedback"></div><div class="ring-combo"></div></div>
         <div class="sprint-stamina"><span>STAMINA</span><div class="stam-bar"><div></div></div></div>
         <div class="sprint-warn"><b></b><span></span><i></i></div>
+        <div class="sprint-weather"></div><div class="sprint-powers"></div><div class="sprint-wname"></div>
         <div class="sprint-count"></div><div class="sprint-hazard"></div>`;
       document.getElementById('overlay').appendChild(wrap);
       requestAnimationFrame(() => wrap.classList.add('show'));
@@ -147,7 +202,14 @@ SBR.sprint = (() => {
       const fb = wrap.querySelector('.ring-feedback'), comboEl = wrap.querySelector('.ring-combo');
       const stamFill = wrap.querySelector('.stam-bar div');
       const goldSize = Math.max(14, 26 + ride * 0.5 - hard * 1.4 + (b.sprint || horse.bonus.sprint ? 6 : 0));
-      const S = { stamina: 100, stumble: 0, slow: 0, blind: 0, misfire: false, me: runners[0] };
+      const S = { stamina: 100, stumble: 0, slow: 0, blind: 0, misfire: false, me: runners[0], shield: 0, boostT: 0, autoGold: 0, frozen: 0 };
+      // weather for this leg: the act's own, or the race condition's; stronger every stage
+      const wKey = tutorial ? null : (COND_WEATHER[r.conditions && r.conditions[act]] || ACT_WEATHER[act]);
+      const WX = wKey ? WEATHER[wKey] : null;
+      const wPow = Math.min(1.6, 0.4 + hard * 0.2);
+      const slick = WX && WX.slick ? 1 + (WX.slick - 1) * wPow : 1;
+      let gustT = 6, boltT = 5, fogT = 5, obstT = 7;
+      if (WX) { wrap.classList.add(WX.cls); wrap.querySelector('.sprint-wname').innerHTML = `<b>${WX.name}</b><span>${WX.desc}</span>`; }
       let angle = 0, rot = 200 + hard * 14, zone = 90, combo = 0, cool = 0, boost = 0;
       const arc = (a0, a1) => {
         const p = a => [100 + 80 * Math.sin(a * Math.PI / 180), 100 - 80 * Math.cos(a * Math.PI / 180)];
@@ -181,10 +243,18 @@ SBR.sprint = (() => {
         rn.node.classList.add('attacking');
         SBR.audio.play('menace');
       }
-      function clearThreat() { if (!threat) return; threat.rn.node.classList.remove('attacking'); threat = null; warnEl.classList.remove('show'); }
+      function clearThreat() { if (!threat) return; if (threat.rn) threat.rn.node.classList.remove('attacking'); threat = null; warnEl.classList.remove('show'); }
+      function obstacle(kind, line, dur) {
+        threat = { rn: null, kind, t: dur, dur, line };
+        warnEl.querySelector('b').textContent = '⚠ ' + line;
+        warnEl.querySelector('span').textContent = kind === 'gust' ? 'Hit GOLD to duck the wind!' : 'Hit GOLD to jump it!';
+        warnEl.classList.add('show');
+        SBR.audio.play('whistle');
+      }
       function landThreat() {
-        const T = TRICKS[threat.kind];
-        T.fx(S); S.stamina = Math.max(0, S.stamina);
+        if (S.shield > 0) { feedback('MISSED!', 'gold'); say('It slides right off you.'); clearThreat(); return; }
+        const T = TRICKS[threat.kind] || TRICKS.shot;
+        T.fx(S); S.stumble *= slick; S.stamina = Math.max(0, S.stamina);
         if (S.blind > 0) ringEl.classList.add('blinded');
         say(T.hit); feedback('HIT!', 'bad'); SBR.audio.play(threat.kind === 'shot' ? 'gun' : 'hit');
         wrap.classList.remove('struck'); void wrap.offsetWidth; wrap.classList.add('struck');
@@ -205,30 +275,58 @@ SBR.sprint = (() => {
         if (!cands.length) return;
         // attackers are the ones close to you, ahead or behind
         const near = cands.filter(x => Math.abs(x.pos - runners[0].pos) < 120);
-        if (!threat && (near.length || Math.random() < 0.4) && Math.random() < 0.55 + hard * 0.05) attack(SBR.util.pick(near.length ? near : cands));
+        if (!threat && (near.length || Math.random() < 0.4) && Math.random() < 0.55 + hard * 0.06) attack(SBR.util.pick(near.length ? near : cands));
+        else if (threat && hard >= 4) { const o = SBR.util.pick(cands); o.surge = 2.4; o.bigSurge = 2; say(`${o.name.toUpperCase()} uses the chaos to pull ahead!`); }
         else selfBoost(SBR.util.pick(cands));
       }
       function press() {
         if (!started || finished || cool > 0) return;
         cool = 0.28;
         const d = Math.abs(((angle - zone + 540) % 360) - 180);
-        if (S.misfire) { S.misfire = false; combo = 0; S.stumble = 0.8; feedback('MISFIRE', 'bad'); SBR.audio.play('boom'); placeZone(); return; }
-        if (d <= goldSize / 2) {
+        const forced = S.autoGold > 0; if (forced) S.autoGold--;
+        if (S.misfire && !forced) { S.misfire = false; combo = 0; S.stumble = 0.8; feedback('MISFIRE', 'bad'); SBR.audio.play('boom'); placeZone(); return; }
+        if (forced || d <= goldSize / 2) {
           combo++; boost = Math.min(2.2, 0.9 + combo * 0.18); S.stamina = Math.min(100, S.stamina + 6);
-          if (threat) { feedback('DODGED!', 'gold'); say(`You slip past ${threat.rn.name}!`); clearThreat(); boost += 0.4; }
+          if (threat) { feedback(threat.rn ? 'DODGED!' : 'CLEARED!', 'gold'); say(threat.rn ? `You slip past ${threat.rn.name}!` : 'Over it!'); clearThreat(); boost += 0.4; }
           else feedback(combo >= 3 ? 'GOLDEN!' : 'PERFECT', 'gold');
           SBR.audio.play('spin');
           if (combo >= 3) wrap.classList.add('golden'); setTimeout(() => wrap.classList.remove('golden'), 300);
         } else if (d <= goldSize * 1.25) {
           combo = 0; boost = 0.55; feedback('GOOD', 'good'); SBR.audio.play('gallop');
         } else {
-          combo = 0; S.stumble = 0.7; S.stamina = Math.max(0, S.stamina - 12); feedback('STUMBLE', 'bad'); SBR.audio.play('miss');
+          combo = 0; S.stumble = 0.7 * slick; S.stamina = Math.max(0, S.stamina - 12); feedback('STUMBLE', 'bad'); SBR.audio.play('miss');
         }
         comboEl.textContent = combo > 1 ? `×${combo}` : '';
         rot = Math.min(440 + hard * 10, rot + 12);
         placeZone();
       }
-      const onKey = e => { if (e.code === 'Space') { e.preventDefault(); press(); } };
+      // race powers
+      const powers = tutorial ? [] : SBR.racePowers(r);
+      const pwBar = wrap.querySelector('.sprint-powers');
+      const API = {
+        S, me: runners[0],
+        rivals: () => runners.slice(1).filter(x => !x.done),
+        ahead: () => runners.slice(1).filter(x => !x.done && x.pos > runners[0].pos).sort((a, b) => a.pos - b.pos)[0] || runners.slice(1).filter(x => !x.done).sort((a, b) => b.pos - a.pos)[0],
+        stunAhead: s => { const t = API.ahead(); if (t) t.stun = s; },
+        stamina: n => { S.stamina = Math.min(100, S.stamina + n); },
+        freeze: (s, line) => { S.frozen = s; wrap.classList.add('timestop'); say(line || 'TIME HAS STOPPED.'); SBR.audio.play('menace'); },
+        flash: c => { wrap.style.setProperty('--flash', c); wrap.classList.remove('pflash'); void wrap.offsetWidth; wrap.classList.add('pflash'); },
+      };
+      function usePower(i) {
+        const p = powers[i]; if (!p || p.used || !started || finished) return;
+        p.used = true; p.btn.classList.add('used');
+        p.use(API);
+        if (p.id !== 'timestop') say(`「${p.name}」!`);
+        SBR.audio.play('spin');
+        API.flash(p.color);
+      }
+      powers.forEach((p, i) => {
+        p.btn = el('button', { class: 'sp-power', style: { '--pc': p.color }, html: `<kbd>${i + 1}</kbd><b>${p.glyph}</b><span>${p.name}</span>` });
+        SBR.tip.bind(p.btn, `<b>${p.name}</b> (${SBR.CHARS[p.who].short})<br>${p.desc}<br><i>Once per race. Key ${i + 1}.</i>`);
+        p.btn.addEventListener('mousedown', e => { e.stopPropagation(); usePower(i); });
+        pwBar.appendChild(p.btn);
+      });
+      const onKey = e => { if (e.code === 'Space') { e.preventDefault(); press(); } const d = /^Digit([1-4])$/.exec(e.code); if (d) usePower(+d[1] - 1); };
       document.addEventListener('keydown', onKey);
       wrap.addEventListener('mousedown', press);
 
@@ -244,12 +342,22 @@ SBR.sprint = (() => {
           cool = Math.max(0, cool - dt);
           boost = Math.max(0, boost - dt * 0.9);
           S.stumble = Math.max(0, S.stumble - dt);
+          S.shield = Math.max(0, S.shield - dt); S.boostT = Math.max(0, S.boostT - dt);
+          if (S.frozen > 0) { S.frozen -= dt; if (S.frozen <= 0) { wrap.classList.remove('timestop'); say('...and time moves again.'); } }
+          wrap.classList.toggle('shielded', S.shield > 0);
+          if (WX) {
+            if (WX.gusts && !threat && (gustT -= dt) <= 0) { gustT = Math.max(3, 8 - hard * 0.6) + Math.random() * 3; obstacle('gust', WX.name === 'BLIZZARD' ? 'A WALL OF SNOW' : 'A HEADWIND', Math.max(0.9, 1.5 - hard * 0.07)); }
+            if (WX.lightning && (boltT -= dt) <= 0) { boltT = Math.max(2.5, 7 - hard * 0.6) + Math.random() * 3; wrap.classList.remove('bolt'); void wrap.offsetWidth; wrap.classList.add('bolt'); S.blind = Math.max(S.blind, 0.3 + wPow * 0.35); ringEl.classList.add('blinded'); SBR.audio.play('boom'); }
+            if (WX.fogRing && (fogT -= dt) <= 0) { fogT = Math.max(3, 8 - hard * 0.5) + Math.random() * 2; S.blind = Math.max(S.blind, 0.6 + wPow * 0.5); ringEl.classList.add('blinded'); }
+            if (WX.hideGold) { const on = (elapsed % 2.6) < 2.6 - wPow * 1.1; goldEl.style.opacity = on ? 1 : 0.05; goodEl.style.opacity = on ? 1 : 0.1; }
+            if (WX.obstacles && !threat && me.pos < LEN - 80 && (obstT -= dt) <= 0) { obstT = Math.max(3.2, 9 - hard * 0.7) + Math.random() * 3; obstacle('obstacle', OBST[WX.obstacles], Math.max(0.85, 1.5 - hard * 0.08)); }
+          }
           S.slow = Math.max(0, S.slow - dt);
           if (S.blind > 0) { S.blind -= dt; if (S.blind <= 0) ringEl.classList.remove('blinded'); }
-          S.stamina = Math.max(0, S.stamina - dt * (3.2 + hard * 0.25));
+          S.stamina = Math.max(0, S.stamina - dt * (3.2 + hard * 0.25) * (WX && WX.drain ? 1 + (WX.drain - 1) * wPow : 1));
           stamFill.style.width = S.stamina + '%';
           wrap.classList.toggle('roped', S.slow > 0);
-          me.speed = me.base * (0.72 + S.stamina / 100 * 0.35) * (1 + boost * 0.45) * (S.stumble > 0 ? 0.55 : 1) * (S.slow > 0 ? 0.62 : 1);
+          me.speed = me.base * (0.72 + S.stamina / 100 * 0.35) * (1 + boost * 0.45) * (S.stumble > 0 ? 0.55 : 1) * (S.slow > 0 ? 0.62 : 1) * (S.boostT > 0 ? 1.5 : 1);
           runners.slice(1).forEach(rn => {
             rn.surge = Math.max(0, rn.surge - dt);
             if (Math.random() < dt * 0.7) rn.surge = 0.7 + Math.random() * 1;
@@ -257,10 +365,13 @@ SBR.sprint = (() => {
             const rubber = rn.pos < me.pos - 60 ? 1.15 : 1;
             rn.speed = rn.base * fatigue * rubber * (1 + (rn.surge > 0 ? (rn.bigSurge > 0 ? 0.6 : 0.32) : 0)) * (0.96 + Math.random() * 0.08);
             rn.bigSurge = Math.max(0, (rn.bigSurge || 0) - dt);
+            if (rn.stun > 0) { rn.stun -= dt; rn.speed *= 0.2; }
+            if (S.frozen > 0) rn.speed = 0;
+            rn.node.classList.toggle('stalled', rn.stun > 0);
           });
-          if (threat) { threat.t -= dt; warnEl.querySelector('i').style.width = Math.max(0, threat.t / threat.dur * 100) + '%'; if (threat.t <= 0) landThreat(); }
+          if (threat && S.frozen <= 0) { threat.t -= dt; warnEl.querySelector('i').style.width = Math.max(0, threat.t / threat.dur * 100) + '%'; if (threat.t <= 0) landThreat(); }
           hazardT -= dt;
-          if (hazardT <= 0 && me.pos < LEN - 60) { hazardT = Math.max(2.2, 4.6 - hard * 0.35) + Math.random() * 2; hazard(); }
+          if (S.frozen <= 0 && hazardT <= 0 && me.pos < LEN - 60) { hazardT = Math.max(2.2, 4.6 - hard * 0.35) + Math.random() * 2; hazard(); }
           runners.forEach(rn => {
             if (rn.done) return;
             rn.pos += rn.speed * dt;
@@ -317,12 +428,12 @@ SBR.sprint = (() => {
       requestAnimationFrame(frame);
       (async () => {
         // the race starts straight away; first-timers get a hint banner instead of a blocking dialogue
-        if (tutorial || !SBR.meta.sprintHintSeen2) {
-          const tip = el('div', { class: 'sprint-tip', html: '<b>HOW TO RACE</b> Press <b>SPACE</b> or click when the needle crosses the <span class="gold">GOLD</span> zone to surge. Miss and your horse stumbles. When a rival attacks (<b>⚠</b>), hit GOLD before the red bar runs out to dodge. Your act PACE is your head start.' });
+        if (tutorial || !SBR.meta.sprintHintSeen3) {
+          const tip = el('div', { class: 'sprint-tip', html: '<b>HOW TO RACE</b> Press <b>SPACE</b> or click when the needle crosses the <span class="gold">GOLD</span> zone to surge. Miss and your horse stumbles. When a rival attacks or the road is blocked (<b>⚠</b>), hit GOLD before the bar runs out to dodge. Keys <b>1-4</b> use your party&#39;s Stand powers, once each. Your act PACE is your head start.' });
           wrap.appendChild(tip);
           setTimeout(() => tip.classList.add('out'), 7000);
           setTimeout(() => tip.remove(), 7600);
-          SBR.meta.sprintHintSeen2 = true; SBR.saveMeta();
+          SBR.meta.sprintHintSeen3 = true; SBR.saveMeta();
         }
         await countdown();
       })();

@@ -244,10 +244,12 @@ SBR.game = (() => {
     SBR.run = {
       version: 1, act: 0, stage: 0, horse, starter, lead, tech: SBR.meta.equippedTech.slice(),
       party: [], reserve: [], money: 30, items: ['canteen'], flags: {}, pace: 50,
-      points: {}, usedEvents: [], mats: {}, gear: [], trinkets: [], stageCards: null, rp: 0, battles: 0, started: Date.now(), solo: lead === 'custom' && !!solo,
+      points: {}, usedEvents: [], mats: {}, gear: [], trinkets: [], stageCards: null, rp: 0, battles: 0, started: Date.now(), solo: lead === 'custom',
     };
     SBR.run.party.push(makeMember(lead));
     if (lead !== 'johnny' && !SBR.run.solo) SBR.run.party.push(makeMember('johnny'));
+    // the custom rider decides on the road whether to ride with Johnny and Gyro
+    if (lead === 'custom') SBR.campaign.later('cust_companions', 0, 0);
     G.relic(starter);
     const si = SBR.run.gear.indexOf(starter);
     if (si >= 0) equip(SBR.run.party[0], freeSlot(SBR.run.party[0], SBR.EQUIPMENT[starter].slot), si);
@@ -985,7 +987,7 @@ SBR.game = (() => {
         if (lead === 'custom') {
           const row = el('div', { class: 'solo-row' });
           row.appendChild(ui.btn('✎ Edit your rider: name and portrait', () => SBR.customUI.creator(render), 'btn-small btn-creator'));
-          [[false, 'Ride with Johnny & Gyro'], [true, 'Ride your own race']].forEach(([v, l]) => { const b = ui.btn(l, () => { SBR.meta.customSolo = v; SBR.saveMeta(); render(); }, 'btn-small' + (!!SBR.meta.customSolo === v ? ' btn-primary' : ' btn-ghost')); SBR.tip.bind(b, v ? 'Johnny and Gyro are rivals on the road, not companions. You start alone; other riders can still join you.' : 'Johnny rides with you from the start, and Gyro joins in the desert.'); row.appendChild(b); });
+          row.appendChild(el('span', { class: 'muted' }, 'You start alone. On the road you decide whether to ride with Johnny and Gyro.'));
           box.appendChild(row);
         }
         box.appendChild(el('div', { class: 'cs-sub' }, 'CHOOSE YOUR HORSE'));
@@ -1015,7 +1017,7 @@ SBR.game = (() => {
   }
   async function beginRace(horse, item, lead = 'johnny') {
     SBR.meta.lastHorse = horse; SBR.meta.lastItem = item; SBR.meta.lastLead = lead; SBR.saveMeta();
-    newRun(horse, item, lead, lead === 'custom' && SBR.meta.customSolo);
+    newRun(horse, item, lead);
     await ui.dialogue('prologue');
     // 1st Stage sprint (tutorial)
     const res = await SBR.sprint.run({ name: '1st Stage — San Diego Beach, 15,000 m', act: 1, favourite: 'gyro', tutorial: true });

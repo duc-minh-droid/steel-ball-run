@@ -426,3 +426,30 @@ SBR.customUI = (() => {
 })();
 /* riding your own race: Johnny becomes one more rival on the leaderboard */
 SBR.RIVALS.johnny = { name: 'Johnny Joestar', portrait: 'johnny', speed: 0.9, out: r => !(r && r.solo) };
+
+/* ---------------- 10. Ride with Johnny and Gyro, or ride alone: the custom rider's first choice ---------------- */
+(() => {
+  // the opening scene is the same either way now; the choice comes on the road
+  const S = SBR.STORY.act1_intro, prev = S.variants;
+  S.variants = () => { const r = SBR.run; if (r && r.lead === 'custom') return [
+    { narr: 'Gyro took the 1st Stage, and was immediately penalised for endangering Sandman. The 2nd Stage stretches 1,200 kilometres across the Arizona Desert.' },
+    { narr: `${SBR.CHARS.custom.short} rides alone into the heat. Somewhere ahead, a man with steel balls and a boy on a black horse are riding together.` },
+    { who: 'custom', text: 'Fifty million dollars. Nobody\'s going to hand it to me.' },
+  ]; return prev ? prev() : null; };
+  const join = g => { SBR.run.solo = false; g.recruit('johnny'); g.recruit('gyro'); };
+  SBR.CAMPAIGN_EVENTS.push({ id: 'cust_companions', acts: [1], type: 'event', title: 'Two Riders at the Well', blurb: 'A man with steel balls and a boy on a black horse.', icon: 'recruit', art: 'gyro',
+    cond: g => SBR.run.lead === 'custom' && SBR.run.solo && !SBR.run.flags.companionsChosen,
+    text: 'At a well in the Arizona desert, a man in a strange hat is juggling steel balls for no one. The boy beside him sits on a black horse with his legs strapped to the saddle. "Johnny Joestar," the boy says. "That\'s Gyro. He says the desert kills people who ride it alone." Gyro grins, gold teeth spelling GO GO ZEPPELI. "Nyo-ho~. I said it kills idiots. It\'s not the same thing."',
+    choices: [
+      { label: 'Ride with them', ok: { text: 'Three riders leave the well together. Gyro complains about it for the rest of the day.', fx: g => { SBR.run.flags.companionsChosen = true; join(g); } } },
+      { label: 'Race them to the next town. If you win, they ride with you (RIDING)', check: { stat: 'ride', dc: 12, who: 'custom' },
+        ok: { text: 'You beat them by a length. Gyro laughs until he chokes. "Fine! Fine. You ride with us, stray." (+8 pace.)', fx: g => { SBR.run.flags.companionsChosen = true; g.pace(8); join(g); } },
+        fail: { text: 'They beat you by a mile. "Come find us when you can keep up," Johnny calls back. You ride your own race.', fx: g => { SBR.run.flags.companionsChosen = true; g.pace(-4); } } },
+      { label: 'Ride your own race', ok: { text: '"Suit yourself," Gyro says. Johnny watches you go. From now on, they are rivals like everyone else.', fx: g => { SBR.run.flags.companionsChosen = true; g.xp(20); g.pace(4); } } },
+    ] });
+  Object.assign(SBR.CONSEQ, {
+    'cust_companions:0': { deed: 'Rode out of the Arizona desert with Johnny Joestar and Gyro Zeppeli.', rep: { naples: 1, racers: 1 } },
+    'cust_companions:1': { deed: 'Beat Johnny and Gyro in a race to the next town, and rode with them.', rep: { naples: 1, racers: 2 }, fail: { deed: 'Lost a race to Johnny and Gyro, and rode alone.', rep: { racers: 1 } } },
+    'cust_companions:2': { deed: 'Turned down Johnny Joestar and Gyro Zeppeli at a desert well.', rep: { racers: 1 } },
+  });
+})();
