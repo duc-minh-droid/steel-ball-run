@@ -67,7 +67,7 @@ Then open <http://localhost:5178>. Progress saves in your browser's local storag
    - Blackmore hides in frozen rain that only Spin attacks can pierce.
    - Valentine's copies take his hits.
    - Diego's THE WORLD stops time more often as he gets desperate.
-9. **Build up across runs.** Race Points buy permanent Techniques. Achievements unlock lead riders, horses, starting items and Techniques.
+9. **Build up across runs.** Race Points buy permanent Techniques, and unlock horses (about 70–110 RP) and starting items (45–90 RP) from the Stable or the setup screen. Achievements unlock lead riders and Techniques, and still unlock their horse or item for free.
 
 ## Risk, choices and variety
 

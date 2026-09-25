@@ -929,11 +929,11 @@ SBR.game = (() => {
     });
     body.appendChild(grid);
   }
-  function stableTab(body) {
+  function stableTab(body, refresh) {
     const grid = el('div', { class: 'horse-grid' });
     Object.entries(SBR.HORSES).forEach(([k, h]) => {
       const un = SBR.meta.unlockedHorses.includes(k);
-      grid.appendChild(horseCard(k, h, un));
+      grid.appendChild(horseCard(k, h, un, null, false, refresh));
     });
     body.appendChild(grid);
     body.appendChild(el('div', { class: 'cs-sub' }, 'STARTING ITEMS'));
@@ -941,19 +941,36 @@ SBR.game = (() => {
     Object.entries(SBR.EQUIPMENT).filter(([, R]) => R.starter).forEach(([k, R]) => {
       const un = SBR.meta.unlockedItems.includes(k);
       const ach = Object.values(SBR.ACHIEVEMENTS).find(a => a.unlockItem === k);
-      const c = el('div', { class: 'starter-card' + (un ? '' : ' locked') }, ui.equipChip(k), el('div', { html: `<b>${un ? R.name : '???'}</b><p>${un ? R.descText : (ach ? 'Unlock: ' + ach.desc : '')}</p>` }));
+      const c = el('div', { class: 'starter-card' + (un ? '' : ' locked') }, ui.equipChip(k), el('div', { html: `<b>${un ? R.name : '???'}</b><p>${un ? R.descText : (ach ? 'Or earn it: ' + ach.desc : '')}</p>` }));
+      if (!un) c.appendChild(buyBtn('item', k, refresh));
       ig.appendChild(c);
     });
     body.appendChild(ig);
   }
-  function horseCard(k, h, un, onPick, selected) {
+  /* ---------- Race Points buy locked horses and starting items (achievements still unlock them for free) ---------- */
+  const unlockCost = (kind, k) => {
+    if (kind === 'horse') { const h = SBR.HORSES[k]; return h.rp || Math.round((25 + ((h.speed || 5) + (h.stamina || 5)) * 4) / 5) * 5; }
+    const R = SBR.EQUIPMENT[k]; return R.rp || ({ arimathea: 90, dotmap: 60, spareballs: 55 })[k] || 45;
+  };
+  SBR.unlockCost = unlockCost;
+  function buyUnlock(kind, k, after) {
+    const m = SBR.meta, cost = unlockCost(kind, k), list = kind === 'horse' ? m.unlockedHorses : m.unlockedItems;
+    if (list.includes(k)) return;
+    if (m.rp < cost) { SBR.toast(`Not enough RP (${cost} needed)`, 'bad'); SBR.audio.play('back'); return; }
+    m.rp -= cost; list.push(k); SBR.saveMeta(); SBR.audio.play('coin');
+    SBR.toast(`${kind === 'horse' ? 'Horse' : 'Starting item'} unlocked: <b>${kind === 'horse' ? SBR.HORSES[k].name : SBR.EQUIPMENT[k].name}</b> (−${cost} RP)`, 'good');
+    if (after) after();
+  }
+  const buyBtn = (kind, k, after) => { const cost = unlockCost(kind, k); const b = ui.btn(el('span', { html: `${art.icon('trophy', 14)} Unlock · ${cost} RP` }), e => { if (e) e.stopPropagation(); buyUnlock(kind, k, after); }, 'btn-small btn-unlock' + (SBR.meta.rp < cost ? ' poor' : '')); return b; };
+  function horseCard(k, h, un, onPick, selected, onBought) {
     const ach = Object.values(SBR.ACHIEVEMENTS).find(a => a.unlockHorse === k);
     const c = el('div', { class: 'horse-card' + (un ? '' : ' locked') + (selected ? ' selected' : '') });
     c.innerHTML = `<div class="hc-art">${art.horse({ coat: un ? h.coat : '#3a3040', mane: un ? h.mane : '#1a1020', wrap: un ? h.wrap : '#3a3040', spots: un ? h.spots : null })}</div>
       <div class="hc-name">${un ? h.name : '???'}</div><div class="hc-breed">${un ? h.breed : 'Locked'}</div>
       <div class="hc-bars"><span>SPEED</span><div class="bar"><div style="width:${h.speed * 10}%"></div></div><span>STAMINA</span><div class="bar"><div style="width:${h.stamina * 10}%"></div></div></div>
-      <div class="hc-perk">${un ? h.perk : art.icon('lock', 14) + ' ' + (h.unlock || (ach && ach.desc) || '')}</div>${un && h.res ? `<div class="hc-res">${SBR.resChips(h.res)}</div>` : ''}`;
+      <div class="hc-perk">${un ? h.perk : art.icon('lock', 14) + ' Or earn it: ' + (h.unlock || (ach && ach.desc) || '')}</div>${un && h.res ? `<div class="hc-res">${SBR.resChips(h.res)}</div>` : ''}`;
     if (un && onPick) c.addEventListener('click', () => { SBR.audio.play('select'); onPick(k); });
+    if (!un && onBought) c.appendChild(buyBtn('horse', k, onBought));
     return c;
   }
   function achvTab(body) {
@@ -988,7 +1005,7 @@ SBR.game = (() => {
     body.appendChild(eg);
     body.appendChild(el('div', { class: 'cs-sub' }, 'STATUS EFFECTS'));
     const sg = el('div', { class: 'status-glossary' });
-    Object.entries(SBR.STATUS).forEach(([k, d]) => sg.appendChild(el('div', { class: 'sgl', html: `<span class="st-chip ${d.kind}" style="--c:${d.color}"><span class="g">${d.glyph}</span></span><div><b>${d.name}</b><p>${d.desc(2)}</p></div>` })));
+    Object.entries(SBR.STATUS).forEach(([k, d]) => sg.appendChild(el('div', { class: 'sgl', html: `<span class="st-chip ${d.kind}" style="--c:${d.color}">${SBR.icons.status(k)}</span><div><b>${d.name}</b><p>${d.desc(2)}</p></div>` })));
     body.appendChild(sg);
   }
 
@@ -1025,8 +1042,9 @@ SBR.game = (() => {
         }
         box.appendChild(el('div', { class: 'cs-sub' }, 'CHOOSE YOUR HORSE'));
         const hg = el('div', { class: 'horse-grid' });
-        Object.entries(SBR.HORSES).forEach(([k, h]) => hg.appendChild(horseCard(k, h, SBR.meta.unlockedHorses.includes(k), kk => { horse = kk; render(); }, k === horse)));
+        Object.entries(SBR.HORSES).forEach(([k, h]) => hg.appendChild(horseCard(k, h, SBR.meta.unlockedHorses.includes(k), kk => { horse = kk; render(); }, k === horse, () => { horse = k; render(); })));
         box.appendChild(hg);
+        box.appendChild(el('p', { class: 'muted rp-have', html: `${art.icon('trophy', 14)} <b>${SBR.meta.rp}</b> RP to spend on locked horses and items` }));
         box.appendChild(el('div', { class: 'cs-sub' }, 'CHOOSE ONE ITEM'));
         const ig = el('div', { class: 'starter-grid' });
         Object.entries(SBR.EQUIPMENT).filter(([, R]) => R.starter).forEach(([k, R]) => {
@@ -1034,6 +1052,7 @@ SBR.game = (() => {
           const ach = Object.values(SBR.ACHIEVEMENTS).find(a => a.unlockItem === k);
           const c = el('div', { class: 'starter-card' + (un ? '' : ' locked') + (k === item ? ' selected' : '') }, ui.equipChip(k), el('div', { html: `<b>${un ? R.name : '???'}</b><p>${un ? R.descText : (ach ? art.icon('lock', 12) + ' ' + ach.desc : '')}</p>` }));
           if (un) c.onclick = () => { SBR.audio.play('select'); item = k; render(); };
+          else c.appendChild(buyBtn('item', k, () => { item = k; render(); }));
           ig.appendChild(c);
         });
         box.appendChild(ig);
