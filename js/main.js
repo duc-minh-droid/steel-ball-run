@@ -66,7 +66,7 @@ SBR.game = (() => {
     const r = SBR.run;
     const lead = SBR.CHARS[r.lead || 'johnny'];
     const list = [{ key: 'player', name: lead.name, portrait: lead.portrait, points: r.points.player || 0, player: true }];
-    Object.entries(SBR.RIVALS).forEach(([k, rv]) => list.push({ key: k, name: rv.name, portrait: rv.portrait, points: r.points[k] || 0 }));
+    Object.entries(SBR.RIVALS).filter(([k, rv]) => k !== 'johnny' || !(rv.out && rv.out(r))).forEach(([k, rv]) => list.push({ key: k, name: rv.name, portrait: rv.portrait, points: r.points[k] || 0 }));
     return list.sort((a, b) => b.points - a.points || (a.player ? -1 : 1));
   }
   const playerRank = () => standings().findIndex(s => s.player) + 1;
@@ -93,6 +93,7 @@ SBR.game = (() => {
     recruit(id, silent) {
       const r = SBR.run;
       if (findMember(id)) return;
+      if (r.solo && (id === 'johnny' || id === 'gyro')) return;
       const m = makeMember(id, Math.max(1, partyLevel() - 1));
       SBR.meta.seen.allies[id] = true;
       if (r.party.length < 4) r.party.push(m); else r.reserve.push(m);
@@ -239,14 +240,14 @@ SBR.game = (() => {
   }
 
   /* ---------- run lifecycle ---------- */
-  function newRun(horse, starter, lead = 'johnny') {
+  function newRun(horse, starter, lead = 'johnny', solo = false) {
     SBR.run = {
       version: 1, act: 0, stage: 0, horse, starter, lead, tech: SBR.meta.equippedTech.slice(),
       party: [], reserve: [], money: 30, items: ['canteen'], flags: {}, pace: 50,
-      points: {}, usedEvents: [], mats: {}, gear: [], trinkets: [], stageCards: null, rp: 0, battles: 0, started: Date.now(),
+      points: {}, usedEvents: [], mats: {}, gear: [], trinkets: [], stageCards: null, rp: 0, battles: 0, started: Date.now(), solo: lead === 'custom' && !!solo,
     };
     SBR.run.party.push(makeMember(lead));
-    if (lead !== 'johnny') SBR.run.party.push(makeMember('johnny'));
+    if (lead !== 'johnny' && !SBR.run.solo) SBR.run.party.push(makeMember('johnny'));
     G.relic(starter);
     const si = SBR.run.gear.indexOf(starter);
     if (si >= 0) equip(SBR.run.party[0], freeSlot(SBR.run.party[0], SBR.EQUIPMENT[starter].slot), si);
@@ -981,7 +982,12 @@ SBR.game = (() => {
           lg.appendChild(c);
         });
         box.appendChild(lg);
-        if (lead === 'custom') box.appendChild(ui.btn('✎ Edit your rider: name and portrait', () => SBR.customUI.creator(render), 'btn-small btn-creator'));
+        if (lead === 'custom') {
+          const row = el('div', { class: 'solo-row' });
+          row.appendChild(ui.btn('✎ Edit your rider: name and portrait', () => SBR.customUI.creator(render), 'btn-small btn-creator'));
+          [[false, 'Ride with Johnny & Gyro'], [true, 'Ride your own race']].forEach(([v, l]) => { const b = ui.btn(l, () => { SBR.meta.customSolo = v; SBR.saveMeta(); render(); }, 'btn-small' + (!!SBR.meta.customSolo === v ? ' btn-primary' : ' btn-ghost')); SBR.tip.bind(b, v ? 'Johnny and Gyro are rivals on the road, not companions. You start alone; other riders can still join you.' : 'Johnny rides with you from the start, and Gyro joins in the desert.'); row.appendChild(b); });
+          box.appendChild(row);
+        }
         box.appendChild(el('div', { class: 'cs-sub' }, 'CHOOSE YOUR HORSE'));
         const hg = el('div', { class: 'horse-grid' });
         Object.entries(SBR.HORSES).forEach(([k, h]) => hg.appendChild(horseCard(k, h, SBR.meta.unlockedHorses.includes(k), kk => { horse = kk; render(); }, k === horse)));
@@ -1009,7 +1015,7 @@ SBR.game = (() => {
   }
   async function beginRace(horse, item, lead = 'johnny') {
     SBR.meta.lastHorse = horse; SBR.meta.lastItem = item; SBR.meta.lastLead = lead; SBR.saveMeta();
-    newRun(horse, item, lead);
+    newRun(horse, item, lead, lead === 'custom' && SBR.meta.customSolo);
     await ui.dialogue('prologue');
     // 1st Stage sprint (tutorial)
     const res = await SBR.sprint.run({ name: '1st Stage — San Diego Beach, 15,000 m', act: 1, favourite: 'gyro', tutorial: true });

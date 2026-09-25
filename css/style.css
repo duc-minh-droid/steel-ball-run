@@ -1165,4 +1165,26 @@ body.reduced .sun-rays, body.reduced .windmill, body.reduced .bird, body.reduced
 .creator .cr-val { min-width: 90px; text-align: center; text-transform: capitalize; }
 .creator .cr-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
 .btn-creator { margin: 4px 0 8px; }
+.solo-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 4px 0 8px; }
+.solo-row .btn-creator { margin: 0; }
 @media (max-width: 640px) { .creator .cr-main { grid-template-columns: 1fr; } .creator .cr-prev { max-width: 180px; position: static; } }
+
+/* ---------- Sprint: one long course, and rivals' attacks ---------- */
+.sprint-world { overflow: hidden; }
+.sprint-world .sw-sky { position: absolute; inset: 0; }
+.sprint-world .sw-sun { position: absolute; right: 16%; top: 12%; width: 90px; height: 90px; border-radius: 50%; background: #fff3c0; box-shadow: 0 0 60px 20px rgba(255, 243, 192, .6); }
+.sprint-world .sw-layer { position: absolute; left: 0; top: 0; will-change: transform; }
+.sprint-world .sw-layer svg { display: block; }
+.sprint-warn { position: absolute; left: 50%; top: 32%; transform: translate(-50%, -10px); z-index: 9; min-width: min(460px, 90vw); background: #c8323c; color: #fff; border: 4px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); padding: 8px 14px 14px; text-align: center; opacity: 0; pointer-events: none; transition: opacity .15s, transform .15s; }
+.sprint-warn.show { opacity: 1; transform: translate(-50%, 0); animation: warnShake .3s ease infinite alternate; }
+.sprint-warn b { display: block; font-family: var(--f-sfx); font-size: 22px; letter-spacing: .04em; }
+.sprint-warn span { font-size: 13px; font-weight: 700; color: #fff3a0; }
+.sprint-warn i { position: absolute; left: 0; bottom: 0; height: 6px; width: 100%; background: #f2c14e; }
+@keyframes warnShake { from { margin-left: -2px; } to { margin-left: 2px; } }
+.runner.attacking .horse-svg { filter: drop-shadow(0 0 10px #c8323c) drop-shadow(0 0 4px #c8323c); }
+.runner.attacking .runner-tag { background: #c8323c; color: #fff; }
+.sprint.struck .sprint-track { animation: struck .35s ease; }
+@keyframes struck { 0%, 100% { transform: none; } 25% { transform: translate(-8px, 3px); } 50% { transform: translate(7px, -3px); } 75% { transform: translate(-4px, 2px); } }
+.sprint.roped .runner.me .horse-svg { filter: sepia(.6) hue-rotate(-20deg); }
+.sprint-results { z-index: 60; }
+.sprint-stamina { background: rgba(26, 16, 32, .75); padding: 6px 10px; border: 2px solid var(--ink); }

@@ -405,3 +405,24 @@ SBR.customUI = (() => {
   }
   return { creator, OPT };
 })();
+
+/* ---------------- 9. Story: the custom rider's own opening ---------------- */
+(() => {
+  const S = SBR.STORY;
+  const wrapVar = (id, fn) => { const s = S[id]; if (!s) return; const prev = s.variants; s.variants = () => { const r = SBR.run; const v = r && r.lead === 'custom' ? fn(r) : null; return v || (prev ? prev() : null); }; };
+  const me = () => SBR.CHARS.custom.short;
+  wrapVar('act1_intro', r => r.solo ? [
+    { narr: 'Gyro took the 1st Stage, and was immediately penalised for endangering Sandman. The 2nd Stage stretches 1,200 kilometres across the Arizona Desert.' },
+    { narr: `${me()} rides alone. Ahead, a man with steel balls and a boy on a black horse ride together. They are rivals now, like everyone else.` },
+    { who: 'custom', text: 'Fifty million dollars. Nobody\'s going to hand it to me.' },
+    { narr: 'You ride your own race. Each stage, choose an encounter.' },
+  ] : [
+    { narr: 'Gyro took the 1st Stage, and was immediately penalised for endangering Sandman. The 2nd Stage stretches 1,200 kilometres across the Arizona Desert.' },
+    { who: 'johnny', text: `You too? Fine. ${me()}, right? Stay close. Gyro doesn't wait for anyone.` },
+    { who: 'gyro', text: 'Nyo-ho~. A stray and a wheelchair boy. What a team.' },
+    { who: 'custom', text: 'I don\'t need a team. But I\'ll take one.' },
+    { narr: 'JOHNNY and GYRO ride with you. Each stage, choose an encounter.' },
+  ]);
+})();
+/* riding your own race: Johnny becomes one more rival on the leaderboard */
+SBR.RIVALS.johnny = { name: 'Johnny Joestar', portrait: 'johnny', speed: 0.9, out: r => !(r && r.solo) };
