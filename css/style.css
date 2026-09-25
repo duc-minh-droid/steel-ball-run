@@ -1106,3 +1106,46 @@ body.reduced .sun-rays, body.reduced .windmill, body.reduced .bird, body.reduced
 .chr-recap .chr-ending h2 { font-size: 30px; margin: 0 0 6px; }
 .whisper { font-family: 'Rye', Georgia, serif; color: #3a2210; }
 .toast.whisper { background: #f3e2bd; border-color: #6a4a2a; }
+
+/* ---------- Economy: grouped materials, bench, forge, sell, pin ---------- */
+.mat-groups .cs-sub { margin-top: 8px; }
+.mat-rows { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.mat-row { display: flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, .5); border: 2px solid var(--ink); padding: 3px 6px 3px 3px; }
+.mat-row .mr-t { display: flex; flex-direction: column; line-height: 1.1; min-width: 0; }
+.mat-row .mr-t b { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mat-row .mr-t small { font-size: 10px; color: var(--purple); letter-spacing: .04em; }
+.craft-inv { max-height: 30vh; overflow-y: auto; }
+.tip-src { margin-top: 4px; font-size: 11px; line-height: 1.3; border-top: 1px dashed rgba(255, 255, 255, .25); padding-top: 3px; }
+.tab-n { font-style: normal; background: #c8323c; color: #fff; border-radius: 9px; padding: 0 6px; font-size: 11px; margin-left: 4px; }
+.ready-filter { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; font-weight: 700; font-size: 12px; cursor: pointer; }
+.craft-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.recipe { position: relative; }
+.recipe.pinned { box-shadow: 0 0 0 3px var(--gold), 4px 4px 0 var(--ink); }
+.rc-pin { position: absolute; top: 4px; right: 4px; background: none; border: 0; cursor: pointer; font-size: 14px; opacity: .35; filter: grayscale(1); }
+.rc-pin.on, .rc-pin:hover { opacity: 1; filter: none; }
+.rc-from { font-size: 11px; font-weight: 700; color: #3a8c4a; margin-top: 2px; }
+.ing.from .icon-chip { outline: 2px dashed #3a8c4a; }
+.ing.soul span { font-size: 10px; letter-spacing: .06em; }
+.icon-chip.trinket { background: linear-gradient(135deg, #fff3c0, #e8c070); }
+.drop-tot { display: inline-flex; flex-direction: column; align-items: center; animation: puIn .4s both; }
+.drop-tot small { font-size: 10px; font-weight: 700; color: var(--purple); }
+.hud-stat.pin { cursor: pointer; gap: 4px; background: #f6ecd8; }
+.hud-stat.pin .pin-ico svg, .hud-stat.pin span svg { width: 20px; height: 20px; vertical-align: middle; }
+.hud-stat.pin b { font-size: 11px; margin-right: 4px; }
+.hud-stat.pin.ready { background: #f2c14e; animation: pinPulse 1.4s ease-in-out infinite; }
+@keyframes pinPulse { 50% { box-shadow: 0 0 0 3px #fff3c0; } }
+.rail-tab { position: relative; }
+.rail-badge { position: absolute; top: 2px; right: 2px; font-style: normal; background: #c8323c; color: #fff; border: 2px solid var(--ink); border-radius: 10px; min-width: 18px; height: 18px; font-size: 11px; line-height: 14px; text-align: center; font-weight: 700; }
+.sell-panel { margin: 10px 0; border-top: 3px double var(--ink); padding-top: 4px; }
+.sell-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.sell-item { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.sell-item .btn-small { padding: 2px 6px; font-size: 11px; }
+.forge-list { display: flex; flex-direction: column; gap: 6px; max-height: 56vh; overflow-y: auto; }
+.forge-row { display: flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, .55); border: 2px solid var(--ink); padding: 4px 8px 4px 4px; flex-wrap: wrap; }
+.forge-row .fr-t { display: flex; flex-direction: column; flex: 1; min-width: 120px; }
+.forge-row .fr-t small { color: var(--purple); font-size: 11px; }
+.fr-cost { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.btn-side.disabled { opacity: .5; pointer-events: none; }
+.hud-stat.pin { flex-direction: row; white-space: nowrap; }
+.hud-stat.pin > span { display: inline-flex; align-items: center; gap: 2px; }
+.hud-stat.pin svg { display: inline-block; }

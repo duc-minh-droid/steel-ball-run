@@ -66,6 +66,41 @@ Then open <http://localhost:5178>. Progress saves in your browser's local storag
    - Diego's THE WORLD stops time more often as he gets desperate.
 9. **Build up across runs.** Race Points buy permanent Techniques. Achievements unlock lead riders, horses, starting items and Techniques.
 
+## Materials, gear and money
+
+The crafting system follows *An Average Campaign*: a few materials that are reused everywhere.
+
+- **16 materials.**
+  - Nine generic: Scrap Iron, Leather, Cloth, Gunpowder, Frontier Herbs, Pelts & Feathers, Bone & Fang, Silver and Gold.
+  - Five special: Steel Ball Shard, Golden Sap, Menger Dust, Frozen Water and Fossil Shard.
+  - Two found only on detours: Devil's Palm Sand and Eleven Men Ink.
+  - Every material is used in at least four recipes. Its tooltip lists where it drops and what it makes.
+- **Souls.** Stand Remnants are recipe keys. Owning one unlocks that boss's gear for the rest of the run, and crafting never uses it up.
+- **Upgrades.** Some recipes take a piece you already own and make a better one. For example, a Colt Navy becomes a Winchester '73, and Riding Boots become Cavalry Boots.
+- **Reinforce and salvage.**
+  - At the bench, any piece can be raised to +1 and then +2. It costs materials that match its slot, plus money.
+  - A blacksmith in town does the same for money only.
+  - Salvaging gear gives back half its materials.
+- **Tracking.** Pin a recipe and its missing materials show in the HUD. The Craft tab shows how many recipes you can make right now, and the bench has a "Craftable now" filter.
+- **Money has uses.**
+  - Shops buy gear, supplies and sell-only trinkets, such as Sandman's emerald.
+  - Town services: a doctor, a farrier, guides, the telegraph office, the church, newspaper adverts and the blacksmith.
+  - Paid training.
+  - Stage checkpoint fees, which you can dodge if you don't mind the law remembering.
+  - Bribing a scout to redraw the stage's encounters.
+
+## More of Steel Ball Run
+
+About 26 encounters are taken from the manga's side stories, in race order. They include:
+
+- Mr. Steel's press tent, and Sandman trying to pay with an emerald.
+- Mountain Tim's dented horseshoe, and the Boomboom family framing you in disguise.
+- Gaucho and Ringo's cabin, the Green Tomb pigeon, Dot Han caught by In a Silent Way, and Diego thrown in the storm.
+- The Milwaukee casino and its eleven men, the log road under the ice, the wolf carrying the Corpse's legs, Nicholas's boots and Kuma-chan, and the First Lady's hotel in Chicago.
+- Magent in the Delaware River, Lucy at Independence Hall, the steamboat *Blue Hawaii*, and Trinity Church.
+
+Other racers join the leaderboard: Sloop John B, Georgy Porgy, Nellyville, Gaucho, Mack the Knife, Dixie Chicken, Baba Yaga and Norisuke Higashikata. Tubular Bells now happens in Chicago, in Act IV.
+
 ## Your choices matter
 
 Every choice feeds a hidden world state, like a tabletop campaign. Nothing tells you what a choice will do.
@@ -126,6 +161,8 @@ The theme keys are `title`, `act1` to `act6`, `devilspalm`, `silvermine`, `lakei
 | `js/paths.js` | Paths (subclasses), their abilities, trainers and emblems |
 | `js/crafting.js` | Materials, Stand Remnants, equipment and slots, recipes, drop tables |
 | `js/variety.js` | Threat, generated fights, enemy traits, race conditions, act lineups |
+| `js/sbr.js` | Racers, canon side-story encounters, manga items, Act IV Tubular Bells |
+| `js/economy.js` | The 16 materials, Souls, upgrades, reinforce, salvage, selling, trinkets, services, fees |
 | `js/campaign.js` | World state, factions, consequences, follow-up encounters, story branches, endings, the Chronicle |
 | `js/debug.js` | Debug panel and `SBR.debug` jump API |
 | `js/areas.js` | Detour areas, hazards, their enemies, bosses, events and gear |

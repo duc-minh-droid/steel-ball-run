@@ -104,7 +104,32 @@ SBR.ui = (() => {
   function matChip(id, n, extra = '') {
     const m = SBR.MATERIALS[id];
     const c = el('div', { class: 'icon-chip mat rarity-' + m.rarity + ' ' + extra, html: SBR.matIcon(id) + (n != null ? `<span class="chip-n">${n}</span>` : '') });
-    SBR.tip.bind(c, () => `<b>${m.name}</b> <i>${m.rarity === 'remnant' ? 'Stand Remnant' : m.rarity + ' material'}</i><br>${m.desc}`);
+    SBR.tip.bind(c, () => SBR.matTip(id, SBR.run ? SBR.run.mats[id] || 0 : null));
+    return c;
+  }
+  function trinketChip(id, extra = '') {
+    const T = SBR.TRINKETS[id];
+    const c = el('div', { class: 'icon-chip trinket rarity-' + T.rarity + ' ' + extra, html: SBR.trinketIcon(id) });
+    SBR.tip.bind(c, `<b>${T.name}</b> <i>Trinket · sells for ${fmtMoney(T.value)}</i><br>${T.desc}`);
+    return c;
+  }
+  /* ---------- crafting helpers shared by the bench and the HUD ---------- */
+  function recipeEntries(tab) {
+    const eq = ([id, e], rec, from) => ({ id, kind: 'equip', rec, from, remnant: e.remnant, name: e.name, desc: SBR.equipDesc(id), icon: SBR.icons.equip(id), rarity: e.rarity });
+    if (tab === 'item') return Object.entries(SBR.ITEM_RECIPES).map(([id, rec]) => ({ id, kind: 'item', rec, name: SBR.ITEMS[id].name, desc: SBR.ITEMS[id].desc, icon: SBR.icons.item(id), rarity: 'common' }));
+    if (tab === 'upgrade') return Object.entries(SBR.EQUIPMENT).filter(([, e]) => e.upgrades && !e.derived).map(x => eq(x, x[1].upgrades.rec, x[1].upgrades.from));
+    return Object.entries(SBR.EQUIPMENT).filter(([, e]) => !e.derived && e.recipe && (tab === 'gear' ? ['hat', 'coat', 'boots'].includes(e.slot) : e.slot === tab)).map(x => eq(x, x[1].recipe));
+  }
+  const allRecipes = () => ['weapon', 'gear', 'charm', 'item', 'upgrade'].flatMap(recipeEntries);
+  const craftableCount = () => SBR.run ? allRecipes().filter(en => SBR.game.canCraft(en)).length : 0;
+  function pinnedEntry() { const p = SBR.run && SBR.run.pin; return p ? allRecipes().find(en => en.id === p.id && !!en.from === !!p.up) : null; }
+  function pinChip() {
+    const en = pinnedEntry(); if (!en) return '';
+    const r = SBR.run;
+    const miss = Object.entries(en.rec).filter(([k, n]) => (r.mats[k] || 0) < n);
+    const c = el('div', { class: 'hud-stat pin' + (miss.length ? '' : ' ready'), html: `<span class="pin-ico">${en.icon}</span><span>${miss.length ? miss.map(([k, n]) => `${SBR.matIcon(k)}<b>${r.mats[k] || 0}/${n}</b>`).join('') : 'READY'}</span>` });
+    SBR.tip.bind(c, `<b>Tracking: ${en.name}</b><br>${miss.length ? 'Still missing: ' + miss.map(([k, n]) => `${n - (r.mats[k] || 0)} ${SBR.MATERIALS[k].name}`).join(', ') : 'You have everything. Open the bench (C).'}${en.from ? `<br>Upgrades your ${SBR.EQUIPMENT[en.from].name}.` : ''}`);
+    c.onclick = () => craftScreen();
     return c;
   }
   function equipTip(id) { const e = SBR.EQUIPMENT[id]; return `<b>${e.name}</b> <i>${e.rarity} ${e.slot}${e.family ? ' · ' + SBR.FAMILY[e.family] : ''}</i><br>${SBR.equipDesc(id)}`; }
@@ -293,10 +318,11 @@ SBR.ui = (() => {
     const right = el('div', { class: 'hud-right' },
       (() => { const ti = SBR.threatTier(), T = SBR.THREAT_TIERS[ti]; const w = el('div', { class: 'hud-stat wanted t' + ti, html: `${art.wanted(ti)}<span>${T.name}</span>` }); SBR.tip.bind(w, `<b style="color:${T.color}">THREAT: ${T.name}</b> (${(r.threat || 0).toFixed(1)})<br>${T.desc}<br><small>Corpse Parts, podium finishes, elite wins and some choices raise it. Hiding and paying off hunters lower it.</small>`); return w; })(),
       (() => { const C = SBR.curCondition(); if (!C) return ''; const c = el('div', { class: 'hud-stat cond', style: { '--cc': C.color }, html: `<i></i><span>${C.name}</span>` }); SBR.tip.bind(c, `<b>Race condition: ${C.name}</b><br>${C.desc}`); return c; })(),
+      pinChip(),
       el('div', { class: 'hud-stat money', html: `${art.icon('coin', 22)}<span>${fmtMoney(r.money)}</span>` }),
       el('div', { class: 'hud-stat rank', html: `${art.icon('trophy', 22)}<span>${SBR.util.ordinal(rank)}</span>` }),
       iconBtn('gear', 'Settings (Esc)', () => settingsScreen(true)));
-    SBR.tip.bind(right.children[1], '<b>Overall standing</b><br>Based on points from stage sprints.');
+    SBR.tip.bind(right.querySelector('.rank'), '<b>Overall standing</b><br>Based on points from stage sprints.');
     if (r.sugar) right.prepend(el('div', { class: 'hud-stat sugar', html: `${art.icon('hourglass', 20)}<span>Sunset: ${r.sugar.left} stage${r.sugar.left !== 1 ? 's' : ''}</span>` }));
     bar.append(left, pace, right);
     return bar;
@@ -304,7 +330,8 @@ SBR.ui = (() => {
   function sideRail() {
     const rail = el('nav', { class: 'side-rail', 'aria-label': 'Saddlebags' });
     [['party', 'Party', 'P', () => partyScreen()], ['bag', 'Bag', 'B', () => bagScreen()], ['anvil', 'Craft', 'C', () => craftScreen()], ['map', 'Map', 'M', () => mapScreen()], ['book', 'Chronicle', 'J', () => SBR.chronicleUI.open()]].forEach(([ico, label, key, fn]) => {
-      const b = el('button', { class: 'rail-tab', html: `${art.icon(ico, 26)}<span>${label}</span><kbd>${key}</kbd>` });
+      const b = el('button', { class: 'rail-tab rail-' + ico, html: `${art.icon(ico, 26)}<span>${label}</span><kbd>${key}</kbd>` });
+      if (ico === 'anvil') { const n = craftableCount(); if (n) b.appendChild(el('i', { class: 'rail-badge' }, String(n))); }
       b.onclick = () => { SBR.audio.play('click'); fn(); };
       rail.appendChild(b);
     });
@@ -348,7 +375,7 @@ SBR.ui = (() => {
     // one choice per stage: ignore double clicks and clicks during the transition out
     let locked = false;
     const guard = fn => (...a) => { if (locked) return; locked = true; document.querySelectorAll('.enc-card, .btn-side').forEach(n => n.style.pointerEvents = 'none'); fn(...a); };
-    const handlers = { pick: guard(rawHandlers.pick), scavenge: guard(rawHandlers.scavenge), rest: guard(rawHandlers.rest) };
+    const handlers = { pick: guard(rawHandlers.pick), scavenge: guard(rawHandlers.scavenge), rest: guard(rawHandlers.rest), reroll: rawHandlers.reroll };
     transition(root => {
       const r = SBR.run;
       const act = SBR.ACTS[r.act];
@@ -377,6 +404,12 @@ SBR.ui = (() => {
         const rs = btn(el('span', { html: `${art.icon('fire', 20)} Short Rest <small>−12 pace</small>` }), handlers.rest, 'btn-side');
         SBR.tip.bind(rs, `<b>Short Rest</b><br>Heal 35% HP${SBR.bonus().restHeal ? ' (+' + Math.round(SBR.bonus().restHeal * 100) + '%)' : ''} and remove 1 Exhaustion from everyone. Costs pace.`);
         side.append(sc2, rs);
+        if (handlers.reroll) {
+          const cost = SBR.econ.rerollCost();
+          const rr = btn(el('span', { html: `${art.icon('dice', 20)} Bribe a Scout <small>${fmtMoney(cost)}</small>` }), () => { if (r.money < cost) return; if (!locked) { locked = true; handlers.reroll(); } }, 'btn-side' + (r.money < cost ? ' disabled' : ''));
+          SBR.tip.bind(rr, `<b>Bribe a Scout</b><br>Pay ${fmtMoney(cost)} for word of other roads: redraw this stage's encounters. The price goes up each time.`);
+          side.append(rr);
+        }
       } else {
         const rs = btn(el('span', { html: `${art.icon('fire', 20)} Short Rest first <small>−12 pace</small>` }), handlers.rest, 'btn-side');
         side.append(rs);
@@ -538,9 +571,29 @@ SBR.ui = (() => {
     if (strip) strip.replaceWith(partyStrip());
     const h = document.querySelector('.hud');
     if (h) h.replaceWith(hud());
+    const rl = document.querySelector('.side-rail');
+    if (rl && SBR.run) rl.replaceWith(sideRail());
   }
 
   /* ---------- Bag ---------- */
+  /** materials grouped the AAC way, each with how many recipes use it */
+  function matGroups(r, opts = {}) {
+    const wrap = el('div', { class: 'mat-groups' });
+    const keys = Object.keys(r.mats).filter(k => r.mats[k] > 0 && SBR.MATERIALS[k]);
+    if (!keys.length) { wrap.appendChild(el('p', { class: 'muted' }, 'Defeat enemies and scavenge to collect materials.')); return wrap; }
+    SBR.MAT_GROUPS.forEach(([g, label]) => {
+      const ks = keys.filter(k => (SBR.MATERIALS[k].group || 'generic') === g);
+      if (!ks.length) return;
+      wrap.appendChild(el('div', { class: 'cs-sub' }, label + (g === 'soul' ? ' — kept forever, unlock boss gear' : '')));
+      const grid = el('div', { class: 'mat-rows' });
+      ks.forEach(k => {
+        const used = g === 'holy' ? '' : `used in ${SBR.matUses(k).length}`;
+        grid.appendChild(el('div', { class: 'mat-row' }, matChip(k, g === 'soul' ? null : r.mats[k]), el('div', { class: 'mr-t', html: `<b>${SBR.MATERIALS[k].name}</b><small>${g === 'soul' ? 'Soul' : used}</small>` })));
+      });
+      wrap.appendChild(grid);
+    });
+    return wrap;
+  }
   function bagScreen() {
     const r = SBR.run;
     const box = el('div', { class: 'bag-screen' });
@@ -563,10 +616,14 @@ SBR.ui = (() => {
       r.gear.forEach(id => gl.appendChild(equipChip(id)));
       if (!r.gear.length) gl.appendChild(el('p', { class: 'muted' }, 'Craft gear at the bench (C), then equip it from the Party screen (P).'));
       box.appendChild(gl);
-      box.appendChild(el('div', { class: 'cs-sub' }, 'MATERIALS'));
-      const ml = el('div', { class: 'bag-grid' });
-      Object.keys(r.mats).filter(k => r.mats[k] > 0).forEach(k => ml.appendChild(matChip(k, r.mats[k])));
-      box.appendChild(ml);
+      box.appendChild(matGroups(r));
+      if ((r.trinkets || []).length) {
+        const tv = r.trinkets.reduce((a, id) => a + SBR.TRINKETS[id].value, 0);
+        box.appendChild(el('div', { class: 'cs-sub' }, `TRINKETS — worth ${fmtMoney(tv)} at any shop`));
+        const tl = el('div', { class: 'bag-grid' });
+        r.trinkets.forEach(id => tl.appendChild(trinketChip(id)));
+        box.appendChild(tl);
+      }
 
       if (r.tech && r.tech.length) {
         box.appendChild(el('div', { class: 'cs-sub' }, 'TECHNIQUES'));
@@ -616,7 +673,7 @@ SBR.ui = (() => {
           const def = s.kind === 'relic' ? SBR.RELICS[s.id] : s.kind === 'item' ? SBR.ITEMS[s.id] : s.kind === 'equip' ? { name: SBR.EQUIPMENT[s.id].name, desc: SBR.equipDesc(s.id) } : s.kind === 'mat' ? { name: SBR.MATERIALS[s.id].name + ' ×' + s.n, desc: SBR.MATERIALS[s.id].desc } : s;
           const card = el('div', { class: 'shop-card ' + (s.sold ? 'sold' : '') + ' kind-' + s.kind });
           const chip = s.kind === 'relic' ? relicChip(s.id) : s.kind === 'item' ? itemChip(s.id) : s.kind === 'equip' ? equipChip(s.id) : s.kind === 'mat' ? matChip(s.id, s.n) : el('div', { class: 'item-chip service', html: art.icon(s.icon || 'heart', 28) });
-          card.append(chip, el('div', { class: 'shop-name' }, def.name), el('div', { class: 'shop-desc' }, def.desc));
+          card.append(chip, el('div', { class: 'shop-name' }, def.name), el('div', { class: 'shop-desc', html: def.desc || '' }));
           const canBuy = !s.sold && r.money >= price && (s.kind !== 'item' || r.items.length < SBR.game.beltSize());
           const b = btn(s.sold ? 'SOLD' : fmtMoney(price), () => {
             if (!canBuy) return;
@@ -625,7 +682,9 @@ SBR.ui = (() => {
             else if (s.kind === 'item') r.items.push(s.id);
             else if (s.kind === 'equip') r.gear.push(s.id);
             else if (s.kind === 'mat') r.mats[s.id] = (r.mats[s.id] || 0) + s.n;
-            else s.run();
+            else if (s.svc && SBR.SERVICES[s.svc].smith) { r.money += price; forgeScreen(true).then(render); return; }
+            else if (s.svc) SBR.SERVICES[s.svc].run(SBR.game.G);
+            else if (s.run) s.run();
             if (!s.repeat) s.sold = true;
             SBR.audio.play('coin');
             SBR.saveRun(); render();
@@ -634,10 +693,77 @@ SBR.ui = (() => {
           grid.appendChild(card);
         });
         box.appendChild(grid);
+        box.appendChild(sellPanel(render));
         box.appendChild(btn('Leave shop ▸', () => { closeModal(w); refreshStage(); resolve(); }, 'btn-primary'));
       };
       render();
       const w = modal(box, { title: 'Shop', size: 'wide', noClose: true });
+    });
+  }
+
+  /** the shop's buy-back counter: unequipped gear 40%, consumables 30%, trinkets full value */
+  function sellPanel(rerender) {
+    const r = SBR.run;
+    const wrap = el('div', { class: 'sell-panel' }, el('div', { class: 'cs-sub' }, 'SELL — the keeper buys gear at 40%, supplies at 30%, trinkets at full value'));
+    const row = el('div', { class: 'sell-row' });
+    const add = (kind, list, chip) => list.forEach((id, i) => {
+      const v = Math.round(SBR.sellValue(kind, id) * (1 + (SBR.bonus().discount || 0)));
+      const c = el('div', { class: 'sell-item' }, chip(id), btn('+' + fmtMoney(v), () => { SBR.game.sell(kind, i); SBR.audio.play('coin'); rerender(); }, 'btn-small'));
+      row.appendChild(c);
+    });
+    add('trinket', r.trinkets || [], id => trinketChip(id));
+    add('equip', r.gear, id => equipChip(id));
+    add('item', r.items, id => itemChip(id));
+    if (!row.children.length) row.appendChild(el('p', { class: 'muted' }, 'Nothing to sell. Unequipped gear, spare supplies and trinkets show up here.'));
+    wrap.appendChild(row);
+    if ((r.trinkets || []).length > 1) wrap.appendChild(btn(`Sell all trinkets (+${fmtMoney(r.trinkets.reduce((a, id) => a + SBR.sellValue('trinket', id), 0))})`, () => { while (r.trinkets.length) SBR.game.sell('trinket', 0); SBR.audio.play('coin'); rerender(); }, 'btn-small btn-ghost'));
+    return wrap;
+  }
+  /** reinforce and salvage. smith = the blacksmith service (money only, pricier, no salvage) */
+  function forgeScreen(smith) {
+    return new Promise(done => {
+      const r = SBR.run;
+      const box = el('div', { class: 'forge' });
+      const render = () => {
+        box.innerHTML = '';
+        box.appendChild(el('p', { class: 'muted' }, smith ? 'The smith works for cash. No materials needed, but he charges for it.' : 'Reinforce a piece to +1, then +2: better stats and bonuses. Salvage gear from your bag for half its materials.'));
+        const list = el('div', { class: 'forge-list' });
+        const rows = [];
+        r.party.concat(r.reserve).forEach(m => Object.entries(m.equip || {}).forEach(([slot, id]) => { if (id) rows.push({ where: { m, slot }, id, who: SBR.CHARS[m.id].short }); }));
+        r.gear.forEach((id, bag) => rows.push({ where: { bag }, id, who: 'Bag' }));
+        if (!rows.length) list.appendChild(el('p', { class: 'muted' }, 'You have no gear yet.'));
+        rows.forEach(o => {
+          const C = SBR.reinforceCost(o.id);
+          const row = el('div', { class: 'forge-row' }, equipChip(o.id), el('div', { class: 'fr-t', html: `<b>${SBR.EQUIPMENT[o.id].name}</b><small>${o.who}</small>` }));
+          const cost = el('div', { class: 'fr-cost' });
+          if (C) {
+            const money = smith ? C.smith : C.money;
+            const matsOk = smith || Object.entries(C.mats).every(([k, n]) => (r.mats[k] || 0) >= n);
+            if (!smith) Object.entries(C.mats).forEach(([k, n]) => cost.appendChild(el('div', { class: 'ing' + ((r.mats[k] || 0) >= n ? ' ok' : ' no') }, matChip(k), el('span', {}, `${r.mats[k] || 0}/${n}`))));
+            const ok = matsOk && r.money >= money;
+            const b = btn(`${SBR.gearBase(o.id)[1] ? '+2' : '+1'} · ${fmtMoney(money)}`, async () => {
+              if (!ok) return;
+              const nid = SBR.game.reinforce(o.where, smith);
+              if (nid) { await craftFx(SBR.icons.equip(nid), SBR.EQUIPMENT[nid].name); render(); refreshStage(); }
+            }, 'btn-small' + (ok ? ' btn-primary' : ' disabled'));
+            SBR.tip.bind(b, () => `<b>${SBR.ensureGear(C.next).name}</b><br>${SBR.equipDesc(C.next)}`);
+            cost.appendChild(b);
+          } else cost.appendChild(el('span', { class: 'muted' }, 'Fully reinforced'));
+          if (!smith && o.where.bag != null) {
+            const y = SBR.salvageYield(o.id);
+            const sb = btn('Salvage', () => { SBR.game.salvage(o.where.bag); SBR.audio.play('anvil'); SBR.toast('Salvaged: ' + Object.entries(y).map(([k, n]) => `${n} ${SBR.MATERIALS[k].name}`).join(', '), 'good'); render(); refreshStage(); }, 'btn-small btn-ghost');
+            SBR.tip.bind(sb, 'Break it down for: ' + Object.entries(y).map(([k, n]) => `${n} ${SBR.MATERIALS[k].name}`).join(', '));
+            cost.appendChild(sb);
+          }
+          row.appendChild(cost);
+          list.appendChild(row);
+        });
+        box.appendChild(list);
+      };
+      render();
+      if (smith) modal(box, { title: 'Blacksmith', size: 'wide', onClose: done });
+      else done(box);
+      box._render = render;
     });
   }
 
@@ -692,12 +818,12 @@ SBR.ui = (() => {
       box.appendChild(row);
       if (res.loot && res.loot.length) {
         const lr = el('div', { class: 'loot-row' }, el('span', {}, 'Loot: '));
-        res.loot.forEach(l => lr.appendChild(l.kind === 'relic' ? relicChip(l.id, 'pop') : l.kind === 'equip' ? equipChip(l.id, 'pop') : itemChip(l.id)));
+        res.loot.forEach(l => lr.appendChild(l.kind === 'relic' ? relicChip(l.id, 'pop') : l.kind === 'equip' ? equipChip(l.id, 'pop') : l.kind === 'trinket' ? trinketChip(l.id, 'pop') : itemChip(l.id)));
         box.appendChild(lr);
       }
       if (res.mats && Object.keys(res.mats).length) {
         const mr = el('div', { class: 'loot-row mats' }, el('span', {}, 'Drops: '));
-        Object.entries(res.mats).forEach(([k, n], i) => { const ch = matChip(k, n, 'drop-in'); ch.style.animationDelay = (0.25 + i * 0.12) + 's'; mr.appendChild(ch); });
+        Object.entries(res.mats).forEach(([k, n], i) => { const w = el('div', { class: 'drop-tot' }, matChip(k, n, 'drop-in'), el('small', {}, SBR.MATERIALS[k].remnant ? 'SOUL' : `(${SBR.run.mats[k] || n})`)); w.style.animationDelay = (0.25 + i * 0.12) + 's'; mr.appendChild(w); });
         box.appendChild(mr);
       }
       const members = el('div', { class: 'reward-members' });
@@ -789,37 +915,49 @@ SBR.ui = (() => {
     const r = SBR.run;
     const box = el('div', { class: 'craft-screen' });
     let tab = 'weapon';
+    let onlyReady = false;
+    try { onlyReady = localStorage.getItem('sbr_ready') === '1'; } catch (e) { /* storage off */ }
     const render = () => {
       box.innerHTML = '';
-      const inv = el('div', { class: 'craft-inv' }, el('div', { class: 'cs-sub' }, 'MATERIALS & REMNANTS'));
-      const grid = el('div', { class: 'mat-grid' });
-      const keys = Object.keys(r.mats).filter(k => r.mats[k] > 0);
-      if (!keys.length) grid.appendChild(el('p', { class: 'muted' }, 'Defeat enemies and scavenge to collect materials.'));
-      keys.sort((a, b) => (SBR.MATERIALS[a].remnant ? 1 : 0) - (SBR.MATERIALS[b].remnant ? 1 : 0)).forEach(k => grid.appendChild(matChip(k, r.mats[k])));
-      inv.appendChild(grid);
+      const inv = el('div', { class: 'craft-inv' });
+      inv.appendChild(matGroups(r));
       const tabs = el('div', { class: 'craft-tabs' });
-      [['weapon', 'Weapons'], ['gear', 'Clothing'], ['charm', 'Charms'], ['item', 'Consumables']].forEach(([k, l]) => {
-        const t = el('button', { class: 'lobby-tab' + (tab === k ? ' active' : '') }, l);
+      [['weapon', 'Weapons'], ['gear', 'Clothing'], ['charm', 'Charms'], ['item', 'Consumables'], ['upgrade', 'Upgrades ↑'], ['forge', 'Reinforce & Salvage']].forEach(([k, l]) => {
+        const n = k === 'forge' ? 0 : recipeEntries(k).filter(en => SBR.game.canCraft(en)).length;
+        const t = el('button', { class: 'lobby-tab' + (tab === k ? ' active' : ''), html: l + (n ? ` <i class="tab-n">${n}</i>` : '') });
         t.onclick = () => { tab = k; SBR.audio.play('click'); render(); };
         tabs.appendChild(t);
       });
+      if (tab !== 'forge') {
+        const f = el('label', { class: 'ready-filter' }, el('input', { type: 'checkbox' }), el('span', {}, 'Craftable now'));
+        f.firstChild.checked = onlyReady;
+        f.firstChild.onchange = () => { onlyReady = f.firstChild.checked; try { localStorage.setItem('sbr_ready', onlyReady ? '1' : '0'); } catch (e) { /* storage off */ } render(); };
+        tabs.appendChild(f);
+      }
+      if (tab === 'forge') { box.append(inv, tabs); forgeScreen(false).then(fb => box.appendChild(fb)); return; }
       const list = el('div', { class: 'recipe-grid' });
-      const entries = tab === 'item'
-        ? Object.entries(SBR.ITEM_RECIPES).map(([id, rec]) => ({ id, kind: 'item', rec, name: SBR.ITEMS[id].name, desc: SBR.ITEMS[id].desc, icon: SBR.icons.item(id), rarity: 'common' }))
-        : Object.entries(SBR.EQUIPMENT).filter(([, e]) => (tab === 'gear' ? ['hat', 'coat', 'boots'].includes(e.slot) : e.slot === tab) && e.recipe).map(([id, e]) => ({ id, kind: 'equip', rec: e.recipe, remnant: e.remnant, name: e.name, desc: SBR.equipDesc(id), icon: SBR.icons.equip(id), rarity: e.rarity }));
+      let entries = recipeEntries(tab);
+      if (onlyReady) entries = entries.filter(en => SBR.game.canCraft(en));
+      if (!entries.length) list.appendChild(el('p', { class: 'muted' }, onlyReady ? 'Nothing you can craft here yet. Untick "Craftable now" to see every recipe, and pin one to track it.' : 'No recipes.'));
       entries.sort((a, b) => SBR.game.canCraft(b) - SBR.game.canCraft(a));
       entries.forEach(en => {
         const known = !en.remnant || (r.mats[en.remnant] || 0) > 0 || (r.crafted || []).includes(en.id);
         const ok = SBR.game.canCraft(en);
-        const card = el('div', { class: 'recipe rarity-' + en.rarity + (ok ? ' ready' : '') + (known ? '' : ' unknown') });
+        const pinned = r.pin && r.pin.id === en.id && !!r.pin.up === !!en.from;
+        const card = el('div', { class: 'recipe rarity-' + en.rarity + (ok ? ' ready' : '') + (known ? '' : ' unknown') + (pinned ? ' pinned' : '') });
         card.innerHTML = `<div class="rc-icon">${en.icon}</div><div class="rc-body"><div class="rc-name">${known ? en.name : '??? — ' + SBR.REMNANTS[en.remnant].from}</div><div class="rc-desc">${known ? en.desc : 'Requires the Stand Remnant <b>' + SBR.REMNANTS[en.remnant].name + '</b>. Defeat ' + SBR.REMNANTS[en.remnant].from + '.'}</div></div>`;
         const ing = el('div', { class: 'rc-ing' });
-        const all = Object.assign({}, en.rec, en.remnant ? { [en.remnant]: 1 } : {});
-        Object.entries(all).forEach(([mat, n]) => {
+        if (en.from) { const has = !!SBR.game.findOwned(en.from); ing.appendChild(el('div', { class: 'ing from' + (has ? ' ok' : ' no') }, equipChip(en.from), el('span', {}, '↑'))); }
+        Object.entries(en.rec).forEach(([mat, n]) => {
           const have = r.mats[mat] || 0;
           ing.appendChild(el('div', { class: 'ing' + (have >= n ? ' ok' : ' no') }, matChip(mat), el('span', {}, `${have}/${n}`)));
         });
+        if (en.remnant) { const have = (r.mats[en.remnant] || 0) > 0; ing.appendChild(el('div', { class: 'ing soul' + (have ? ' ok' : ' no') }, matChip(en.remnant), el('span', {}, have ? 'kept' : 'Soul'))); }
         card.appendChild(ing);
+        if (en.from) (card.querySelector('.rc-body') || card).appendChild(el('div', { class: 'rc-from' }, `↑ Upgrades your ${SBR.EQUIPMENT[en.from].name} (keeps its +level)`));
+        const pin = el('button', { class: 'rc-pin' + (pinned ? ' on' : ''), title: pinned ? 'Stop tracking' : 'Track this recipe in the HUD', html: '📌' });
+        pin.onclick = () => { r.pin = pinned ? null : { id: en.id, up: !!en.from }; SBR.audio.play('click'); SBR.saveRun(); render(); refreshStage(); };
+        card.appendChild(pin);
         const b = btn(ok ? 'CRAFT' : 'Missing', async () => {
           if (!SBR.game.canCraft(en)) return;
           SBR.game.craft(en);
@@ -866,5 +1004,5 @@ SBR.ui = (() => {
 
   return { btn, artFor, portraitOf, transition, modal, closeModal, closeAllModals, sfxText, menacing, shake, statusTip, abilityTip, relicTip, itemTip, relicChip, itemChip,
     matChip, equipChip, equipTip, dialogue, diceCheck, eventPanel, resultPanel, hud, partyStrip, stageScreen, partyScreen, bagScreen, mapScreen, standingsTable, shopScreen,
-    chooseMember, chooseAbility, craftScreen, equipPicker, pathUnlock, pathRow, rewardsScreen, settingsScreen, refreshStage };
+    chooseMember, chooseAbility, craftScreen, forgeScreen, trinketChip, equipPicker, pathUnlock, pathRow, rewardsScreen, settingsScreen, refreshStage };
 })();

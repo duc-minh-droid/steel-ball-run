@@ -206,13 +206,20 @@ SBR.game = (() => {
     say(id, text) { SBR.toast(`<div class="toast-port">${ui.portraitOf(id)}</div><div><i>"${text}"</i></div>`, 'say'); },
     mat(id, n = 1, silent) {
       const r = SBR.run;
+      id = SBR.matId(id);
+      if (SBR.MATERIALS[id].remnant && (r.mats[id] || 0) > 0) return;
       r.mats[id] = (r.mats[id] || 0) + n;
-      if (!silent) SBR.toast(`<span class="toast-ico">${SBR.matIcon(id)}</span> +${n} ${SBR.MATERIALS[id].name}`, 'good');
+      if (!silent) SBR.toast(`<span class="toast-ico">${SBR.matIcon(id)}</span> +${n} ${SBR.MATERIALS[id].name} <small>(${r.mats[id]})</small>`, 'good');
     },
+    trinket(id, silent) {
+      const r = SBR.run; r.trinkets = r.trinkets || []; r.trinkets.push(id);
+      if (!silent) SBR.toast(`<span class="toast-ico">${SBR.trinketIcon(id)}</span> ${SBR.TRINKETS[id].name} <small>(sells for ${fmtMoney(SBR.TRINKETS[id].value)})</small>`, 'good');
+    },
+    spend(n) { const r = SBR.run; if (r.money < n) return false; r.money -= n; SBR.audio.play('coin'); return true; },
     exhaust(id, n = 1) { const m = id === 'random' ? pick(SBR.run.party) : findMember(id); if (m) { m.exhaustion = (m.exhaustion || 0) + n; SBR.toast(`${SBR.CHARS[m.id].short} gains ${n} Exhaustion`, 'bad'); } },
     hasItem: id => SBR.run.items.includes(id),
-    hasMat: (id, n = 1) => (SBR.run.mats[id] || 0) >= n,
-    spendMat(id, n) { const r = SBR.run; r.mats[id] = Math.max(0, (r.mats[id] || 0) - n); },
+    hasMat: (id, n = 1) => (SBR.run.mats[SBR.matId(id)] || 0) >= n,
+    spendMat(id, n) { const r = SBR.run; id = SBR.matId(id); r.mats[id] = Math.max(0, (r.mats[id] || 0) - n); },
     hasFlag: k => !!SBR.run.flags[k],
     gear(id) { SBR.run.gear.push(id); SBR.toast(`<span class="toast-ico">${SBR.icons.equip(id)}</span><div><b>${SBR.EQUIPMENT[id].name}</b><br><small>${SBR.equipDesc(id)}</small></div>`, 'good'); },
     sugar() {
@@ -226,7 +233,7 @@ SBR.game = (() => {
 
   function randomRelic(rarities) {
     const want = rarities.includes('rare') ? ['uncommon', 'rare'] : ['common', 'uncommon'];
-    const pool = Object.keys(SBR.EQUIPMENT).filter(k => { const E = SBR.EQUIPMENT[k]; return want.includes(E.rarity) && !E.remnant && !E.starter; });
+    const pool = Object.keys(SBR.EQUIPMENT).filter(k => { const E = SBR.EQUIPMENT[k]; return want.includes(E.rarity) && !E.remnant && !E.starter && !E.derived; });
     return pool.length ? pick(pool) : null;
   }
 
@@ -235,7 +242,7 @@ SBR.game = (() => {
     SBR.run = {
       version: 1, act: 0, stage: 0, horse, starter, lead, tech: SBR.meta.equippedTech.slice(),
       party: [], reserve: [], money: 30, items: ['canteen'], flags: {}, pace: 50,
-      points: {}, usedEvents: [], mats: {}, gear: [], stageCards: null, rp: 0, battles: 0, started: Date.now(),
+      points: {}, usedEvents: [], mats: {}, gear: [], trinkets: [], stageCards: null, rp: 0, battles: 0, started: Date.now(),
     };
     SBR.run.party.push(makeMember(lead));
     if (lead !== 'johnny') SBR.run.party.push(makeMember('johnny'));
@@ -280,6 +287,7 @@ SBR.game = (() => {
     SBR.saveRun();
     await actCard(n);
     await playScene(SBR.ACTS[n].intro);
+    if (n > 1 && !r.area) { const ev = SBR.checkpointEvent(n); const ch = await ui.eventPanel(ev); await resolveChoice(ch, 'checkpoint:' + ev.choices.indexOf(ch)); }
     if (n === 6 && r.party.length < 2) G.recruit('pocoloco');
     SBR.saveRun();
     showStage();
@@ -353,12 +361,25 @@ SBR.game = (() => {
     SBR.music.play(SBR.music.themeForStage());
     if (!r.stageCards) { r.stageCards = drawCards(); SBR.saveRun(); }
     ui.stageScreen(r.stageCards, {
+      reroll: () => rerollCards(),
       pick: card => resolveCard(card),
       scavenge: () => scavenge(),
       rest: () => rest(),
     });
   }
 
+  /** pay to redraw the stage's encounter cards; the price climbs each time in the same stage */
+  function rerollCards() {
+    const r = SBR.run, key = `${r.act}-${r.stage}`, cost = SBR.econ.rerollCost();
+    if (r.stageCards && r.stageCards[0] && r.stageCards[0].forced) return false;
+    if (!G.spend(cost)) return false;
+    if (!r.rerolls || r.rerolls.stage !== key) r.rerolls = { stage: key, n: 0 };
+    r.rerolls.n++;
+    r.stageCards = null; r.shop = null;
+    SBR.saveRun();
+    showStage();
+    return true;
+  }
   async function advanceStage() {
     const r = SBR.run;
     const act = SBR.ACTS[r.act];
@@ -512,13 +533,11 @@ SBR.game = (() => {
       const id = pick(pool); used.add(id);
       stock.push({ kind: 'equip', id, price: SBR.EQUIPMENT[id].price + SBR.run.act * 5 });
     });
-    const eqPool = shuffle(Object.keys(SBR.EQUIPMENT).filter(k => !SBR.EQUIPMENT[k].remnant && (SBR.run.act > 2 || SBR.EQUIPMENT[k].rarity !== 'rare')));
+    const eqPool = shuffle(Object.keys(SBR.EQUIPMENT).filter(k => !SBR.EQUIPMENT[k].remnant && !SBR.EQUIPMENT[k].derived && !SBR.EQUIPMENT[k].area && (SBR.run.act > 2 || SBR.EQUIPMENT[k].rarity !== 'rare')));
     eqPool.slice(0, kind === 'trapper' ? 1 : 2).forEach(id => stock.push({ kind: 'equip', id, price: SBR.EQUIPMENT[id].price + SBR.run.act * 4 }));
     const mp = SBR.SCAVENGE_MATS[SBR.run.act] || SBR.SCAVENGE_MATS[1];
     shuffle(mp).slice(0, 2).forEach(id => stock.push({ kind: 'mat', id, n: 2, price: { common: 12, uncommon: 20, rare: 34 }[SBR.MATERIALS[id].rarity] || 15 }));
-    stock.push({ kind: 'service', name: 'Doctor\'s Visit', desc: 'Heal the party 50%.', price: 25 + SBR.run.act * 3, icon: 'heart', run: () => G.healAll(0.5) });
-    stock.push({ kind: 'service', name: 'Hot Bath & Bed', desc: 'Remove all Exhaustion.', price: 40, icon: 'fire', run: () => G.unexhaust(9) });
-    if (kind === 'sugar') stock.push({ kind: 'service', name: 'Casino Chips', desc: 'Lose $50 at the tables. It\'s about spending, not winning.', price: 50, icon: 'dice', repeat: true, run: () => {} });
+    SBR.shopServices(kind).forEach(id => { const S = SBR.SERVICES[id]; stock.push({ kind: 'service', svc: id, name: S.name, desc: S.desc, price: S.price(), icon: S.icon, repeat: !!S.repeat }); });
     return stock;
   }
   async function openShop(kind, keeper) {
@@ -578,7 +597,8 @@ SBR.game = (() => {
     if (Math.random() < (opts.elite || opts.boss ? 0.6 : 0.25)) { const it = pick(Object.keys(SBR.ITEMS)); if (r.items.length < beltSize()) { r.items.push(it); loot.push({ kind: 'item', id: it }); } }
     const mats = rollDrops(combat);
     Object.entries(mats).forEach(([k, n]) => { r.mats[k] = (r.mats[k] || 0) + n; });
-    if ((opts.elite || opts.boss) && Math.random() < 0.35) { const eqPool = Object.keys(SBR.EQUIPMENT).filter(k => !SBR.EQUIPMENT[k].remnant && SBR.EQUIPMENT[k].rarity !== 'common'); const eid = pick(eqPool); r.gear.push(eid); loot.push({ kind: 'equip', id: eid }); }
+    SBR.econ.rollTrinkets(combat, opts).forEach(id => { G.trinket(id, true); loot.push({ kind: 'trinket', id }); });
+    if ((opts.elite || opts.boss) && Math.random() < 0.35) { const eqPool = Object.keys(SBR.EQUIPMENT).filter(k => !SBR.EQUIPMENT[k].remnant && !SBR.EQUIPMENT[k].derived && SBR.EQUIPMENT[k].rarity !== 'common'); const eid = pick(eqPool); r.gear.push(eid); loot.push({ kind: 'equip', id: eid }); }
     const rp = opts.boss ? 10 : opts.elite ? 3 : 1;
     addRp(rp);
     const members = combat.party().filter(u => !u.removed).map(u => ({ id: u.id, leveled: gainXp(u.ref, xp), fell: !!u._fell }));
@@ -594,23 +614,70 @@ SBR.game = (() => {
       const tb = 1 + 0.12 * SBR.threatTier() + ((u.traits || []).length ? 0.25 : 0);
       (SBR.DROPS[u.id] || []).forEach(([mat, ch, a, b]) => { if (Math.random() < (ch + luck) * tb) out[mat] = (out[mat] || 0) + randInt(a, b); });
       const rem = SBR.REMNANT_DROPS[u.id];
-      if (rem) out[rem] = (out[rem] || 0) + 1;
+      if (rem && !(SBR.run.mats[rem] > 0)) out[rem] = 1;
     });
     return out;
+  }
+  /** where an owned piece is: in the bag, or worn by someone (bag first) */
+  function findOwned(id) {
+    const r = SBR.run;
+    const i = r.gear.findIndex(g => SBR.gearBase(g)[0] === id);
+    if (i >= 0) return { bag: i, id: r.gear[i] };
+    for (const m of r.party.concat(r.reserve)) for (const s in m.equip) if (m.equip[s] && SBR.gearBase(m.equip[s])[0] === id) return { m, slot: s, id: m.equip[s] };
+    return null;
   }
   function canCraft(en) {
     const r = SBR.run;
     const need = Object.assign({}, en.rec, en.remnant ? { [en.remnant]: 1 } : {});
     if (en.kind === 'item' && r.items.length >= beltSize()) return false;
+    if (en.from && !findOwned(en.from)) return false;
     return Object.entries(need).every(([k, n]) => (r.mats[k] || 0) >= n);
   }
   function craft(en) {
     const r = SBR.run;
-    const need = Object.assign({}, en.rec, en.remnant ? { [en.remnant]: 1 } : {});
-    Object.entries(need).forEach(([k, n]) => { r.mats[k] -= n; });
-    if (en.kind === 'item') r.items.push(en.id); else r.gear.push(en.id);
+    Object.entries(en.rec).forEach(([k, n]) => { r.mats[k] -= n; });
+    if (en.from) {
+      const o = findOwned(en.from);
+      const lv = SBR.gearBase(o.id)[1], nid = lv ? `${en.id}+${lv}` : en.id;
+      SBR.ensureGear(nid);
+      if (o.m) o.m.equip[o.slot] = nid; else r.gear.splice(o.bag, 1, nid);
+    } else if (en.kind === 'item') r.items.push(en.id); else r.gear.push(en.id);
     r.crafted = (r.crafted || []).concat(en.id);
     SBR.saveRun();
+  }
+  /** raise a piece to +1 / +2. smith: money only, at a higher price */
+  function reinforce(where, smith) {
+    const r = SBR.run;
+    const id = where.m ? where.m.equip[where.slot] : r.gear[where.bag];
+    const C = SBR.reinforceCost(id);
+    if (!C) return false;
+    const money = smith ? C.smith : C.money;
+    if (r.money < money) return false;
+    if (!smith && !Object.entries(C.mats).every(([k, n]) => (r.mats[k] || 0) >= n)) return false;
+    r.money -= money;
+    if (!smith) Object.entries(C.mats).forEach(([k, n]) => { r.mats[k] -= n; });
+    SBR.ensureGear(C.next);
+    if (where.m) where.m.equip[where.slot] = C.next; else r.gear[where.bag] = C.next;
+    SBR.saveRun();
+    return C.next;
+  }
+  function salvage(bagIdx) {
+    const r = SBR.run, id = r.gear[bagIdx]; if (!id) return null;
+    const y = SBR.salvageYield(id);
+    r.gear.splice(bagIdx, 1);
+    Object.entries(y).forEach(([k, n]) => { r.mats[k] = (r.mats[k] || 0) + n; });
+    SBR.saveRun();
+    return y;
+  }
+  function sell(kind, idx) {
+    const r = SBR.run;
+    const list = kind === 'equip' ? r.gear : kind === 'item' ? r.items : r.trinkets;
+    const id = list[idx]; if (id == null) return 0;
+    const v = Math.round(SBR.sellValue(kind, id) * (1 + (SBR.bonus().discount || 0)));
+    list.splice(idx, 1);
+    r.money += v;
+    SBR.saveRun();
+    return v;
   }
   /** first slot on a member that takes this item type (an empty one if possible) */
   function freeSlot(m, type) {
@@ -672,9 +739,9 @@ SBR.game = (() => {
   function applySprint(res) {
     const r = SBR.run;
     res.order.forEach((k, i) => { r.points[k] = (r.points[k] || 0) + (SBR.POINTS[i] || 3); });
-    Object.keys(SBR.RIVALS).forEach(k => { if (!res.order.includes(k)) r.points[k] = (r.points[k] || 0) + randInt(0, 12); });
+    Object.keys(SBR.RIVALS).forEach(k => { if (SBR.RIVALS[k].out && SBR.RIVALS[k].out(r)) return; if (!res.order.includes(k)) r.points[k] = (r.points[k] || 0) + randInt(0, 12); });
     const C = SBR.curCondition && SBR.curCondition();
-    const money = Math.round(([110, 70, 45, 30, 20, 15][res.place - 1] || 10) * (C && C.sprintMoney || 1));
+    const money = Math.round(([110, 70, 45, 30, 20, 15][res.place - 1] || 10) * (C && C.sprintMoney || 1) * (r.flags.advert ? 1.5 : 1)); r.flags.advert = false;
     if (res.place <= 3) G.threat(1);
     r.money += money;
     if (res.place === 1) { SBR.meta.stats.sprintsWon++; achieve('sprint1'); }
@@ -762,7 +829,10 @@ SBR.game = (() => {
   function resumeRun() {
     const r = SBR.run;
     if (!r || !r.act) { SBR.clearRun(); return titleScreen(); }
-    r.mats = r.mats || {}; r.gear = r.gear || [];
+    r.mats = r.mats || {}; r.gear = r.gear || []; r.trinkets = r.trinkets || [];
+    SBR.migrateMats(r);
+    r.gear.forEach(id => SBR.ensureGear(id));
+    r.party.concat(r.reserve).forEach(m => Object.values(m.equip || {}).forEach(id => SBR.ensureGear(id)));
     (r.relics || []).forEach(id => G.relic(id)); delete r.relics;
     r.party.concat(r.reserve).forEach(m => SBR.migrateEquip(m));
     const act = SBR.ACTS[r.act];
@@ -964,8 +1034,8 @@ SBR.game = (() => {
     if (n >= 1 && n <= cards.length) cards[n - 1].click();
   });
 
-  const _debug = { newRun, startAct, fight, bossStage, playScene, showStage, actFinish, resolveCard, advanceStage, ending, gameOver, applySprint, drawCards, G };
-  return { canCraft, craft, equip, unequip, freeSlot, _debug, makeMember, memberAbilities, xpToNext, autoAssign, beltSize, achieve, standings, playerRank, G, bestFor, checkMod, fieldUseItem, toTitle, titleScreen, lobbyScreen };
+  const _debug = { rerollCards, resumeRun, newRun, startAct, fight, bossStage, playScene, showStage, actFinish, resolveCard, advanceStage, ending, gameOver, applySprint, drawCards, G };
+  return { canCraft, craft, reinforce, salvage, sell, findOwned, rerollCards, equip, unequip, freeSlot, _debug, makeMember, memberAbilities, xpToNext, autoAssign, beltSize, achieve, standings, playerRank, G, bestFor, checkMod, fieldUseItem, toTitle, titleScreen, lobbyScreen };
 })();
 
 /* boot */

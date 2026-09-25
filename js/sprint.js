@@ -17,6 +17,7 @@ SBR.sprint = (() => {
       const rivalKeys = Object.keys(SBR.RIVALS).filter(k => {
         const rv = SBR.RIVALS[k];
         if (rv.outAfter && act > rv.outAfter) return false;
+        if (rv.out && rv.out(r)) return false;
         if (k === 'gyro' && r.flags.valDead) return false;
         if (k === 'diego' && act === 5 && r.flags.valDead) return false;
         return true;
