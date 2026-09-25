@@ -232,7 +232,7 @@ SBR.pathAbilities = m => { const p = SBR.pathOf(m); return p ? p.abilities.filte
       check: { stat: 'ride', dc: 13, label: 'Race him to the ridge' }, duel: 'Let him test you the hard way', decline: { label: 'Just ask about Johnny\'s father', text: 'He tells stories until the fire is embers. (Johnny +2 RIDING.)', fx: g => g.statUp('johnny', 'ride', 2) } },
     { path: 'nailgunner', foe: 't_bounty', art: 'bounty', title: 'Tenfinger Colby', blurb: 'A bounty hunter who shoots with both hands is using a fence post for practice.',
       text: '"They call me Tenfinger. Heard you shoot with your nails. That\'s ten guns, kid. Stop firing them one at a time."',
-      check: { stat: 'aim', dc: 14, label: 'Match him shot for shot' }, duel: 'Draw on him', decline: { label: 'Trade for his ammunition', text: 'He sells you a powder horn at a fair price. Mostly fair.', fx: g => g.gear('powder_horn') } },
+      check: { stat: 'aim', dc: 14, label: 'Match him shot for shot' }, duel: 'Draw on him', decline: { label: 'Trade for his ammunition', text: 'He sells you a pouch of spare rounds at a fair price. Mostly fair.', fx: g => g.gear('powder_horn') } },
     { path: 'goldenheir', foe: 't_mason', art: 'mason', title: 'The Stonemason\'s Ratio', blurb: 'A mason carves spirals into a cathedral cornerstone.',
       text: '"1 to 1.618. The ratio is in the snail, the storm, the horse\'s stride. Your friend throws it. You... you could fire it."',
       check: { stat: 'spin', dc: 14, label: 'Find the spiral in the stone' }, duel: 'Prove it against his chisel', decline: { label: 'Buy his sketches', text: 'He draws the rectangle for you on a scrap of paper. (Johnny +2 SPIN.)', fx: g => g.statUp('johnny', 'spin', 2) } },

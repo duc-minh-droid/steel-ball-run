@@ -8,55 +8,106 @@ SBR.sprint = (() => {
   const K = '#1a1020';
 
   /* ---------- the course: long parallax layers that end at the goal ---------- */
+  // drawn with the scenery props (js/scenery.js): Araki skies, ink outlines, screentone, and landmarks per act
   const PAL = {
-    1: { sky: ['#f6b26b', '#fde9c9'], far: '#d08a6a', mid: '#b86a44', ground: '#e8c080', dirt: '#c89a5a', deco: 'cactus' },
-    2: { sky: ['#8ab8e8', '#e8f4ff'], far: '#8a9ab8', mid: '#4a6a4a', ground: '#9aaa5a', dirt: '#8a7a4a', deco: 'pine', snowcap: true },
-    3: { sky: ['#7ab0e0', '#f6f0d0'], far: '#9ab870', mid: '#6a9a4a', ground: '#b8c870', dirt: '#a08a50', deco: 'fence' },
-    4: { sky: ['#9ab0c8', '#eef4fa'], far: '#b8c8d8', mid: '#6a8a9a', ground: '#eef4f8', dirt: '#c8d4e0', deco: 'snowpine', snowcap: true },
-    5: { sky: ['#e8a070', '#f8e0c0'], far: '#a88a7a', mid: '#7a6a5a', ground: '#9aa860', dirt: '#8a7a50', deco: 'farm' },
-    6: { sky: ['#6a5a9a', '#f0b890'], far: '#5a5070', mid: '#3a3050', ground: '#8a8a8a', dirt: '#6a6a70', deco: 'city' },
+    1: { sky: ['#3a2a9a', '#2fb8b0', '#ffe08a'], sun: '#fff2a8', cloud: '#ffd0e6', cloudSh: '#a878e0', far: '#b86ab8', farSh: '#7a3a8a', mid: '#e8843a', midSh: '#8a1a4a', ground: '#f0c070', dirt: '#c8904a', fence: '#8a6a4a', deco: 'desert' },
+    2: { sky: ['#1e0a52', '#8a3ac8', '#ff9ac8'], sun: '#ffe8f8', cloud: '#fff0fa', cloudSh: '#c078e0', far: '#5a4ab8', farSh: '#2a1a6a', mid: '#5a9a4a', midSh: '#1f5a3a', ground: '#c0c860', dirt: '#8a8a4a', fence: '#7a5a3a', deco: 'rockies', snowcap: true },
+    3: { sky: ['#0f4a5a', '#3ab8a0', '#f8f0a0'], sun: '#fffbd0', cloud: '#e8fff0', cloudSh: '#6a8ab8', far: '#3a8a8a', farSh: '#1a5a5a', mid: '#8ac840', midSh: '#4a7a2a', ground: '#d8c860', dirt: '#a8904a', fence: '#f6ecd8', deco: 'plains' },
+    4: { sky: ['#1a2a7a', '#6ab0f0', '#ffd0e8'], sun: '#ffffff', cloud: '#ffffff', cloudSh: '#b0a0e8', far: '#8aa8e0', farSh: '#4a5aa8', mid: '#e4eeff', midSh: '#8aa8d8', ground: '#eef4fa', dirt: '#b8c8e0', fence: '#8a5a3a', deco: 'north', snowcap: true },
+    5: { sky: ['#2a0a3a', '#d8305a', '#ffb040'], sun: '#fff0a0', cloud: '#ffb870', cloudSh: '#8a2a5a', far: '#6a2a5a', farSh: '#3a1030', mid: '#9aa860', midSh: '#5a6a3a', ground: '#b0a878', dirt: '#7a7050', fence: '#6a4a3a', deco: 'east' },
+    6: { sky: ['#1a0a4a', '#8a2a8a', '#ff9a70'], sun: '#fff4c0', cloud: '#c89ae8', cloudSh: '#5a2a8a', far: '#3a2a6a', farSh: '#1e1446', mid: '#4a3a6a', midSh: '#2a1e4a', ground: '#a098b0', dirt: '#6a6078', fence: '#2a2a3a', deco: 'city' },
   };
   function seeded(seed) { return () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }; }
+  const SC = () => SBR.scenery;
+  const mesa = (w, h, c, sh) => `<path d="M${-w / 2} 0L${-w / 2 + 10} ${-h + 12}L${-w / 2 + 16} ${-h}H${w / 2 - 16}L${w / 2 - 8} ${-h + 14}L${w / 2} 0Z" fill="${c}" stroke="${K}" stroke-width="3"/><path d="M${w * .1} ${-h}H${w / 2 - 16}L${w / 2 - 8} ${-h + 14}L${w / 2} 0H${w * .05}Z" fill="${sh}" opacity=".6"/><path d="M${w * .1} ${-h}H${w / 2 - 16}L${w / 2 - 8} ${-h + 14}L${w / 2} 0H${w * .05}Z" fill="url(#@h)" opacity=".35"/><path d="M${-w / 2 + 16} ${-h + 1}H${w * .1}" stroke="#fff" stroke-width="2.4" opacity=".5"/>`;
+  /** mid-layer landmarks per region: (P, x, base, s, rnd, pal) -> svg */
   const DECO = {
-    cactus: (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M-5 0V-40a5 5 0 0 1 10 0V0zM-5-18h-8v-12a4 4 0 0 1 8 0M5-24h8v-10a4 4 0 0 0-8 0" fill="#5a8a3a" stroke="${K}" stroke-width="2.4"/></g>`,
-    pine: (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M0-60L-16-20h8L-20 0h40L8-20h8z" fill="#2a5a3a" stroke="${K}" stroke-width="2.4"/><rect x="-3" y="0" width="6" height="8" fill="#5a3a2a"/></g>`,
-    snowpine: (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M0-60L-16-20h8L-20 0h40L8-20h8z" fill="#3a6a5a" stroke="${K}" stroke-width="2.4"/><path d="M0-60l-8 20 8-4 8 4zM-12-20l12 6 12-6" fill="#fff" stroke="${K}" stroke-width="1.4"/></g>`,
-    fence: (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M-30-14h60M-30-26h60" stroke="#8a6a4a" stroke-width="4"/><path d="M-26 0v-32M0 0v-32M26 0v-32" stroke="#6a4a2a" stroke-width="5"/></g>`,
-    farm: (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M-24 0v-26l24-16 24 16V0z" fill="#b8423a" stroke="${K}" stroke-width="2.4"/><path d="M-8 0v-14h16V0" fill="#f6ecd8" stroke="${K}" stroke-width="2"/></g>`,
-    city: (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M0 0v-44" stroke="${K}" stroke-width="3"/><circle cx="0" cy="-46" r="5" fill="#fff3a0" stroke="${K}" stroke-width="2"/></g>`,
+    desert: [(P, x, b, s) => SC().T(x, b, s, P.saguaro(150)), (P, x, b, s, r, c) => SC().T(x, b, s, mesa(160 + r() * 80, 90 + r() * 60, c.mid, c.midSh)), (P, x, b, s) => SC().T(x, b, s * .8, P.waterTower('#a86a3a')), (P, x, b, s) => SC().T(x, b, s * .8, P.windmill(140)), (P, x, b, s) => SC().T(x, b, s, P.wagon()), (P, x, b, s, r, c) => SC().T(x, b, s, mesa(120, 150, c.mid, c.midSh))],
+    rockies: [(P, x, b, s) => SC().T(x, b, s, P.pine(150, '#1f6a5a') + SC().T(34, 4, .7, P.pine(150, '#1a5a4a')) + SC().T(-30, 2, .6, P.pine(150, '#246a55'))), (P, x, b, s, r, c) => SC().T(x, b, s, mesa(150, 130, '#c84a3a', '#6a1a3a')), (P, x, b, s) => SC().T(x, b, s, P.mineMouth()), (P, x, b, s) => SC().T(x, b, s * .8, P.cabin()), (P, x, b, s) => SC().T(x, b, s, P.pine(180, '#1a5a4a'))],
+    plains: [(P, x, b, s) => SC().T(x, b, s, P.barn()), (P, x, b, s) => SC().T(x, b, s, P.farmhouse()), (P, x, b, s) => SC().T(x, b, s, P.silo() + SC().T(34, 0, 1, P.silo())), (P, x, b, s) => SC().T(x, b, s, P.windmill(150)), (P, x, b, s) => SC().T(x, b, s, P.tree(80) + SC().T(40, 2, .8, P.tree(80, '#6aaa3a'))), (P, x, b, s) => SC().T(x, b, s, P.waterTower('#9a6a3a'))],
+    north: [(P, x, b, s) => SC().T(x, b, s, P.pine(160, '#1f5a6a', true) + SC().T(36, 4, .7, P.pine(160, '#2a6a6a', true))), (P, x, b, s) => SC().T(x, b, s, P.cabin()), (P, x, b, s) => SC().T(x, b, s * 1.2, P.hut(['#e8508a', '#3b5bb5', '#f2c14e', '#c8323c'][Math.floor(x) % 4])), (P, x, b, s) => SC().T(x, b, s, P.wolf() + SC().T(40, 2, .9, P.wolf(), true)), (P, x, b, s) => SC().T(x, b, s, P.pine(190, '#1f4a4a', true))],
+    east: [(P, x, b, s, r) => SC().T(x, b, s, P.rowhouse('#9a3a2a', 90, 130, r) + SC().T(94, 0, 1, P.rowhouse('#a8462e', 84, 110, r))), (P, x, b, s) => SC().T(x, b, s, P.barn()), (P, x, b, s) => SC().T(x, b, s, P.tree(90)), (P, x, b, s) => SC().T(x, b, s * .9, P.lighthouse()), (P, x, b, s) => SC().T(x, b, s, P.farmhouse()), (P, x, b, s) => SC().T(x, b, s * .6, P.indHall())],
+    city: [(P, x, b, s, r, c) => SC().T(x, b, 1, P.skyline(r, -160, 160, 0, c.mid, 'ny', true, 50 * s * 2, 80 * s * 2)), (P, x, b, s) => SC().T(x, b, s, P.lamp()), (P, x, b, s, r, c) => SC().T(x, b, 1, P.skyline(r, -120, 120, 0, c.midSh, 'ny', true, 40 * s * 2, 60 * s * 2) + SC().T(0, 0, s, P.lamp())), (P, x, b, s) => SC().T(x, b, s * .9, P.waterTower('#5a3a2a'))],
+  };
+  /** far-layer landmark every so often */
+  const FAR_MARK = {
+    desert: (P, c) => `<path d="M-90 0L-80 -120Q0 -190 80 -120L90 0H60L56 -96Q0 -146 -54 -96L-60 0Z" fill="${c.farSh}" stroke="${K}" stroke-width="2.4"/>`,
+    rockies: (P, c) => P.peak(260, 190, c.far, c.farSh),
+    plains: (P, c) => `<path d="M-8 0V-90L0 -120L8 -90V0Z" fill="${c.farSh}" stroke="${K}" stroke-width="2"/><path d="M0 -120V-132M-5 -127H5" stroke="${K}" stroke-width="2"/>` + SC().T(40, 0, .5, P.silo()) + SC().T(58, 0, .5, P.silo()),
+    north: (P, c) => P.skyline(seeded(7), -120, 120, 0, c.farSh, 'chicago', true, 20, 60),
+    east: (P, c) => SC().T(0, 0, .5, P.indHall()),
+    city: (P, c) => SC().T(0, 0, .45, P.liberty('#4ab89a')),
+  };
+  /** trackside props: a fence pattern, telegraph poles, SBR flags and region props */
+  const SIDE = {
+    desert: P => [P.skull(), P.wheel(), P.tumble(), P.saguaro(90), P.pear(), P.mineCart()],
+    rockies: P => [P.rock(20, '#9a8a8a'), P.pine(110, '#1f6a5a'), P.skull(), P.wheel(), P.cow('#6a3a2a')],
+    plains: P => [P.hay(), P.wheat(90, 30), P.cow('#f6ecd8', '#1a1020'), P.cow('#8a4a2a'), P.hay()],
+    north: P => [P.pine(110, '#1f4a4a', true), P.rock(16, '#c8d8f0'), P.hut('#c8323c'), P.lantern()],
+    east: P => [P.crates(), P.barrel(), P.hay(), P.tree(70)],
+    city: P => [P.lamp(), P.crates(), P.barrel(), P.lamp()],
   };
   /** build the course; returns layers [{node, rate}] and the goal's x in near-layer coordinates */
   function buildCourse(host, act, W, H, LEN, PRE, scale) {
     const P = PAL[act] || PAL[1];
+    const L = SC().P, T = SC().T, circ = SC().circ;
     const rnd = seeded(act * 977 + 13);
-    host.innerHTML = `<div class="sw-sky" style="background:linear-gradient(${P.sky[1]}, ${P.sky[0]})"><div class="sw-sun"></div></div>`;
+    const uid = 'sc' + Math.floor(Math.random() * 1e9).toString(36);
+    const defs = SC().DEFS.replace(/@/g, uid);
+    const u = s => s.replace(/@/g, uid);
+    const k = Math.max(.6, H / 720);
+    // sky: gradient, bands, screentone and a rayed sun (static)
+    const sx = W * .78, sy = H * .13;
+    let rays = ''; for (let i = 0; i < 18; i++) { const a = i / 18 * Math.PI * 2, a2 = a + .08; rays += `M${sx} ${sy}L${Math.round(sx + Math.cos(a) * 2400)} ${Math.round(sy + Math.sin(a) * 2400)}L${Math.round(sx + Math.cos(a2) * 2400)} ${Math.round(sy + Math.sin(a2) * 2400)}Z`; }
+    const sun = P.deco === 'city' ? `<circle cx="${sx}" cy="${sy}" r="${70 * k}" fill="${P.sun}" opacity=".2"/><path d="M${sx} ${sy - 38 * k}A${38 * k} ${38 * k} 0 1 0 ${sx} ${sy + 38 * k}A${28 * k} ${38 * k} 0 1 1 ${sx} ${sy - 38 * k}Z" fill="${P.sun}" stroke="${K}" stroke-width="3.4"/>`
+      : `<g class="sun-rays" style="transform-origin:${sx}px ${sy}px"><path d="${rays}" fill="${P.sun}" opacity=".2"/></g><circle cx="${sx}" cy="${sy}" r="${110 * k}" fill="${P.sun}" opacity=".16"/><circle cx="${sx}" cy="${sy}" r="${66 * k}" fill="none" stroke="${P.sun}" stroke-width="3" opacity=".6" stroke-dasharray="4 12"/><circle cx="${sx}" cy="${sy}" r="${42 * k}" fill="${P.sun}" stroke="${K}" stroke-width="3.6"/><circle cx="${sx}" cy="${sy}" r="${33 * k}" fill="none" stroke="${K}" stroke-width="1.2" opacity=".4"/>`;
+    host.innerHTML = `<div class="sw-sky scn-sky" style="background:linear-gradient(${P.sky[0]}, ${P.sky[1]} 60%, ${P.sky[2]})"><svg class="sw-skyart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">${defs}<rect y="${H * .1}" width="${W}" height="${H * .04}" fill="#fff" opacity=".1"/><rect y="${H * .2}" width="${W}" height="${H * .02}" fill="#fff" opacity=".12"/>${sun}<rect width="${W}" height="${H * .5}" fill="url(#${uid}d)" opacity=".12"/></svg></div>`;
     const worldW = rate => Math.ceil(W * 1.6 + (LEN + PRE + 400) * scale * rate);
-    const mk = (rate, inner, w, cls) => { const d = el('div', { class: 'sw-layer ' + cls, html: `<svg width="${w}" height="${H}" viewBox="0 0 ${w} ${H}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>` }); host.appendChild(d); return { node: d, rate }; };
+    const mk = (rate, inner, w, cls) => { const d = el('div', { class: 'sw-layer ' + cls, html: `<svg width="${w}" height="${H}" viewBox="0 0 ${w} ${H}" xmlns="http://www.w3.org/2000/svg">${defs}<g stroke-linejoin="round" stroke-linecap="round">${u(inner)}</g></svg>` }); host.appendChild(d); return { node: d, rate }; };
     const layers = [];
-    // far: mountains / skyline and clouds
-    { const w = worldW(0.12), base = H * 0.36; let d = `M0 ${H}L0 ${base}`; let x = 0; const peaks = [];
-      while (x < w) { const pw = 80 + rnd() * 140, ph = 30 + rnd() * (P.deco === 'city' ? 50 : 90); if (P.deco === 'city') { d += `L${x} ${base - ph}L${x + pw * 0.6} ${base - ph}L${x + pw * 0.6} ${base - ph * 0.6}`; } else { d += `L${x + pw / 2} ${base - ph}L${x + pw} ${base}`; peaks.push([x + pw / 2, base - ph]); } x += pw * (P.deco === 'city' ? 0.6 : 0.8); }
+    // far: Araki clouds, mountains / skyline, and a landmark now and then
+    { const w = worldW(0.12), base = H * 0.36; let d = `M0 ${H}L0 ${base}`, shd = '', snow = ''; let x = 0;
+      const city = P.deco === 'city' || P.deco === 'east';
+      while (x < w) { const pw = 80 + rnd() * 140, ph = 30 + rnd() * (city ? 50 : 90); if (city) { d += `L${x} ${base - ph}` + (rnd() < .3 ? `L${x + pw * .3 - 7} ${base - ph}L${x + pw * .3} ${base - ph - 44}L${x + pw * .3 + 7} ${base - ph}` : '') + `L${x + pw * 0.6} ${base - ph}L${x + pw * 0.6} ${base - ph * 0.6}`; } else { const px = x + pw / 2, py = base - ph; d += `L${px} ${py}L${x + pw} ${base}`; shd += `M${px} ${py}L${x + pw} ${base}L${px + pw * .08} ${base}L${px - pw * .04} ${py + ph * .5}Z`; if (P.snowcap) snow += `M${px - 12} ${py + 16}L${px} ${py}L${px + 12} ${py + 16}l-6-3-6 5-6-5z`; } x += pw * (city ? 0.6 : 0.8); }
       d += `L${w} ${base}L${w} ${H}z`;
-      const snow = P.snowcap ? peaks.map(([px, py]) => `<path d="M${px - 12} ${py + 16}L${px} ${py}L${px + 12} ${py + 16}l-6-3-6 5-6-5z" fill="#fff" opacity=".9"/>`).join('') : '';
-      const clouds = [...Array(Math.ceil(w / 260))].map((_, i) => { const cx = i * 260 + rnd() * 120, cy = H * (0.08 + rnd() * 0.18); return `<g opacity=".85"><ellipse cx="${cx}" cy="${cy}" rx="46" ry="14" fill="#fff"/><ellipse cx="${cx + 24}" cy="${cy - 8}" rx="26" ry="14" fill="#fff"/></g>`; }).join('');
-      layers.push(mk(0.12, clouds + `<path d="${d}" fill="${P.far}" stroke="${K}" stroke-width="2"/>` + snow, w, 'far')); }
+      let clouds = ''; for (let i = 0; i < Math.ceil(w / 300); i++) clouds += L.cloud(i * 300 + rnd() * 120, H * (0.05 + rnd() * 0.16), (.28 + rnd() * .22) * k, P.cloud, P.cloudSh);
+      let marks = ''; for (let mx = 500 + rnd() * 300; mx < w - 200; mx += 800 + rnd() * 500) marks += T(mx, base + 2, .5 * k, FAR_MARK[P.deco](L, P));
+      layers.push(mk(0.12, clouds + `<path d="${d}" fill="${P.far}" stroke="${K}" stroke-width="2.4"/><path d="${shd}" fill="${P.farSh}" opacity=".7"/><path d="${shd}" fill="url(#@h)" opacity=".3"/>` + (snow ? `<path d="${snow}" fill="#fff" stroke="${K}" stroke-width="1.4"/>` : '') + `<path d="M0 ${base - 20}H${w}V${base + 40}H0Z" fill="url(#@d)" opacity=".14"/>` + marks, w, 'far')); }
     // mid: hills and landmarks
     { const w = worldW(0.4), base = H * 0.43; let d = `M0 ${H}L0 ${base}`; for (let x = 0; x <= w; x += 60) d += `Q${x + 30} ${base - 10 - rnd() * 34} ${x + 60} ${base - rnd() * 8}`; d += `L${w} ${H}z`;
-      const deco = [...Array(Math.ceil(w / 170))].map((_, i) => (DECO[P.deco] || DECO.cactus)(i * 170 + rnd() * 90, base + 4, 0.55 + rnd() * 0.3)).join('');
-      layers.push(mk(0.4, `<path d="${d}" fill="${P.mid}" stroke="${K}" stroke-width="2"/>${deco}`, w, 'mid')); }
-    // near: the track itself, distance posts, and the goal
+      const list = DECO[P.deco] || DECO.desert;
+      let deco = ''; for (let x = 60 + rnd() * 100; x < w - 60; x += 240 + rnd() * 260) deco += list[Math.floor(rnd() * list.length)](L, x, base + 6, (0.55 + rnd() * 0.25) * k, rnd, P);
+      layers.push(mk(0.4, `<path d="${d}" fill="${P.mid}" stroke="${K}" stroke-width="2.4"/><path d="M0 ${base + 6}H${w}V${base + 30}H0Z" fill="url(#@d)" opacity=".16"/>${deco}`, w, 'mid')); }
+    // near: the track itself, trackside dressing, checkpoints, distance posts, and the goal
     { const w = worldW(1), top = H * 0.47;
       const X = p => W * 0.38 + (p + PRE) * scale;
-      let s = `<rect x="0" y="${top}" width="${w}" height="${H - top}" fill="${P.ground}"/><path d="M0 ${top}H${w}" stroke="${K}" stroke-width="3"/>`;
+      const fenceP = P.deco === 'city' ? `<path d="M0 6H40M0 22H40" stroke="${K}" stroke-width="3"/><path d="M4 0V28M14 4V28M24 0V28M34 4V28" stroke="${K}" stroke-width="2.4"/>` : `<path d="M0 8H60M0 20H60" stroke="${K}" stroke-width="5"/><path d="M0 8H60M0 20H60" stroke="${P.fence}" stroke-width="2.6"/><path d="M8 0V30" stroke="${K}" stroke-width="7"/><path d="M8 0V30" stroke="${P.fence}" stroke-width="4"/>`;
+      const fw = P.deco === 'city' ? 40 : 60;
+      let s = `<defs><pattern id="${uid}fence" width="${fw}" height="30" patternUnits="userSpaceOnUse" y="${top - 30 * k}">${fenceP}</pattern>` +
+        `<g id="${uid}pole">${L.pole(110)}</g><g id="${uid}fR">${L.flag('#c8323c', 80)}</g><g id="${uid}fB">${L.flag('#3b5bb5', 80)}</g><g id="${uid}fY">${L.flag('#f2c14e', 80)}</g>` +
+        SIDE[P.deco](L).map((p, i) => `<g id="${uid}p${i}">${p}</g>`).join('') + `</defs>`;
+      s += `<rect x="0" y="${top}" width="${w}" height="${H - top}" fill="${P.ground}"/><path d="M0 ${top}H${w}V${top + 40}H0Z" fill="url(#@d)" opacity=".16"/><path d="M0 ${H - 60}H${w}V${H}H0Z" fill="url(#@d)" opacity=".2"/>`;
       s += [...Array(6)].map((_, i) => `<path d="M0 ${top + 24 + i * 34}H${w}" stroke="${P.dirt}" stroke-width="${3 + i}" stroke-dasharray="${30 + i * 10} ${40 + i * 12}" opacity=".6"/>`).join('');
+      let peb = '', hoof = ''; for (let i = 0; i < w / 90; i++) { const x = i * 90 + rnd() * 60, y = top + 10 + rnd() * (H - top - 20), r = 4 + rnd() * 6; peb += `M${Math.round(x - r)} ${Math.round(y)}q${r} ${-r} ${2 * r} 0z`; if (i % 2) hoof += `M${Math.round(x + 30)} ${Math.round(y + 12)}a6 5 0 1 1 10 0l-2 -1a3 3 0 0 0 -6 0z`; }
+      s += `<path d="${peb}" fill="${P.dirt}" stroke="${K}" stroke-width="1.2" opacity=".8"/><path d="${hoof}" fill="${K}" opacity=".16"/>`;
+      // trackside: fence, telegraph line, flags and props, all standing on the track's far edge
+      const edge = top + 2;
+      s += `<rect x="0" y="${top - 30 * k}" width="${w}" height="${30 * k}" fill="url(#${uid}fence)"/>`;
+      let wire = ''; const px = []; for (let x = 120; x < w; x += 560) px.push(x);
+      px.forEach(x => { s += `<use href="#${uid}pole" transform="translate(${x} ${edge - 26 * k}) scale(${k})"/>`; });
+      for (let i = 0; i < px.length - 1; i++) [[-19, -104], [19, -104], [-13, -92]].forEach(([dx, dy]) => { const y = edge - 26 * k + dy * k; wire += `M${px[i] + dx * k} ${y}Q${(px[i] + px[i + 1]) / 2 + dx * k} ${y + 26} ${px[i + 1] + dx * k} ${y}`; });
+      s += `<path d="${wire}" stroke="${K}" stroke-width="1.2" fill="none"/>`;
+      const nProps = SIDE[P.deco](L).length;
+      for (let x = 60 + rnd() * 80; x < w; x += 150 + rnd() * 170) { const r0 = rnd(); if (r0 < .35) s += `<use href="#${uid}${['fR', 'fB', 'fY'][Math.floor(rnd() * 3)]}" transform="translate(${Math.round(x)} ${edge}) scale(${(.7 * k).toFixed(2)})"/>`; else s += `<use href="#${uid}p${Math.floor(rnd() * nProps)}" transform="translate(${Math.round(x)} ${edge + 4 + rnd() * 10}) scale(${((.55 + rnd() * .25) * k).toFixed(2)})"/>`; }
+      // checkpoints: SBR banners and a few spectators at each quarter
+      const crowdAt = (cx0, n) => [...Array(n)].map((_, i) => { const cx = cx0 + i * 14 + rnd() * 6, cy = top - 6 - rnd() * 8; const c = ['#c8323c', '#3b5bb5', '#f2c14e', '#3a8c4a', '#e8508a', '#f6ecd8'][i % 6]; return `<path d="M${cx - 6} ${cy + 6}q6-18 12 0z" fill="${c}" stroke="${K}" stroke-width="1.4"/><circle cx="${cx}" cy="${cy - 12}" r="4.4" fill="#f0c8a0" stroke="${K}" stroke-width="1.4"/>`; }).join('');
+      [[0, 'STEEL BALL RUN', '#c8323c'], [0.25, 'CHECKPOINT 1', '#3b5bb5'], [0.5, 'CHECKPOINT 2', '#c8323c'], [0.75, 'CHECKPOINT 3', '#3b5bb5']].forEach(([t, txt, col]) => { const bx = X(LEN * t) + (t ? 0 : 40); s += crowdAt(bx - 150, 8) + crowdAt(bx + 70, 7) + T(bx, edge, 1.25 * k, L.banner(220, txt, col, 140)) + L.bunting(bx - 290 * k, bx - 138 * k, edge - 150 * k, 18) + L.bunting(bx + 138 * k, bx + 290 * k, edge - 150 * k, 18); });
       for (let p = 0; p <= LEN; p += 100) { const x = X(p); const left = LEN - p; s += `<g transform="translate(${x} ${top})"><path d="M0 0v-40" stroke="#6a4a2a" stroke-width="5"/><rect x="-22" y="-58" width="44" height="18" fill="#f6ecd8" stroke="${K}" stroke-width="2"/><text x="0" y="-45" font-size="11" text-anchor="middle" font-family="Anton,Impact,sans-serif" fill="${K}">${left ? left * 15 + 'm' : 'GOAL'}</text></g>`; }
-      for (let i = 0; i < w / 90; i++) { const x = i * 90 + rnd() * 60; s += `<ellipse cx="${x}" cy="${top + 10 + rnd() * (H - top - 20)}" rx="${4 + rnd() * 6}" ry="${2 + rnd() * 3}" fill="${K}" opacity=".18"/>`; }
       // start line
       s += `<rect x="${X(0) - 6}" y="${top}" width="10" height="${H - top}" fill="#fff" opacity=".8"/>`;
       // goal: checkered arch, banner and a crowd
       const gx = X(LEN) + 80;
-      const crowd = [...Array(26)].map((_, i) => { const cx = gx - 160 + i * 14 + rnd() * 6, cy = top - 6 - rnd() * 8; const c = ['#c8323c', '#3b5bb5', '#f2c14e', '#3a8c4a', '#e8508a', '#f6ecd8'][i % 6]; return `<path d="M${cx - 6} ${cy + 6}q6-18 12 0z" fill="${c}" stroke="${K}" stroke-width="1.4"/><circle cx="${cx}" cy="${cy - 12}" r="4.4" fill="#f0c8a0" stroke="${K}" stroke-width="1.4"/>`; }).join('');
-      s += crowd + `<g transform="translate(${gx} ${top})"><path d="M-70 0v-150M70 0v-150" stroke="${K}" stroke-width="10"/><path d="M-70 0v-150M70 0v-150" stroke="#f6ecd8" stroke-width="6" stroke-dasharray="12 12"/><rect x="-90" y="-176" width="180" height="36" fill="#c8323c" stroke="${K}" stroke-width="3"/><text x="0" y="-150" font-size="26" text-anchor="middle" font-family="Anton,Impact,sans-serif" fill="#f2c14e" stroke="${K}" stroke-width="1.4" paint-order="stroke">GOAL</text>${[...Array(8)].map((_, i) => `<path d="M${-90 + i * 24} -140l12 14 12-14" fill="${i % 2 ? '#fff' : '#3b5bb5'}" stroke="${K}" stroke-width="1.4"/>`).join('')}</g>`;
+      s += crowdAt(gx - 160, 26) + `<g transform="translate(${gx} ${top})"><path d="M-70 0v-150M70 0v-150" stroke="${K}" stroke-width="10"/><path d="M-70 0v-150M70 0v-150" stroke="#f6ecd8" stroke-width="6" stroke-dasharray="12 12"/><rect x="-90" y="-176" width="180" height="36" fill="#c8323c" stroke="${K}" stroke-width="3"/><text x="0" y="-150" font-size="26" text-anchor="middle" font-family="Anton,Impact,sans-serif" fill="#f2c14e" stroke="${K}" stroke-width="1.4" paint-order="stroke">GOAL</text>${[...Array(8)].map((_, i) => `<path d="M${-90 + i * 24} -140l12 14 12-14" fill="${i % 2 ? '#fff' : '#3b5bb5'}" stroke="${K}" stroke-width="1.4"/>`).join('')}</g>` + L.bunting(gx + 70, gx + 260, top - 150, 20) + L.bunting(gx - 260, gx - 70, top - 150, 20);
       layers.push(mk(1, s, w, 'near'));
     }
     return layers;
@@ -145,6 +196,26 @@ SBR.sprint = (() => {
   // riders who like to follow each other up
   const PAIR = { dothan: 'dixie', dixie: 'dothan', diego: 'hotpants', hotpants: 'diego', gyro: 'johnny', johnny: 'gyro', sandman: 'mountaintim', mountaintim: 'sandman' };
 
+  // Stands are held back in a horse race unless they actually help someone ride: Scary Monsters' raptor legs,
+  // Hey Ya's luck, Tim's rope, the Spin in a horse's gait and Cream Starter patching a horse. The rest ride like anyone.
+  ['sandman', 'hotpants', 'gyro', 'johnny', 'wekapipo'].forEach(k => { if (SKILL[k]) delete SKILL[k].atk; });
+  ['johnny', 'magent'].forEach(k => { if (SKILL[k]) delete SKILL[k].self; });
+  SKILL.mountaintim.atk = { kind: 'lasso', proj: 'rope', line: 'MOUNTAIN TIM throws a lasso at your horse!', kana: 'ヒュンヒュン' };
+  SKILL.wekapipo.plain = 'shove'; SKILL.sandman.plain = 'shove';
+
+  /* ---------- the pack: 3,852 riders started. Most of them are nobodies, and the trail kills them ---------- */
+  const FIRST = ['Hank', 'Jeb', 'Silas', 'Otis', 'Amos', 'Clem', 'Ezra', 'Wade', 'Luther', 'Abel', 'Rufus', 'Virgil', 'Hiram', 'Cyrus', 'Pierre', 'Hans', 'Ivan', 'Kenji', 'Tomás', 'Olaf', 'Nils', 'Moses', 'Eli', 'Boone'];
+  const LAST = ['Voss', 'McCready', 'Tolliver', 'Pike', 'Hatch', 'Bramble', 'Crenshaw', 'Duval', 'Kessler', 'Lund', 'Morrow', 'Quint', 'Rourke', 'Stroud', 'Tanaka', 'Weller', 'Yancey', 'Colter', 'Grady', 'Haskell'];
+  const FILL_PORT = ['gunslinger', 'bandit', 'thug', 'bounty', 'soldier'];
+  const DEATHS = {
+    1: ['collapses from heatstroke', 'is bitten by a rattlesnake', 'rides into a sinkhole in the Devil\'s Palm', 'is shot off his horse by a bandit in the rocks', 'goes down when his horse breaks a leg in a gopher hole', 'drinks from a poisoned waterhole'],
+    2: ['falls from the canyon trail', 'is buried by a rockslide', 'freezes on the high pass', 'is dragged off the trail by something with claws', 'is thrown into a ravine', 'is crushed under his own horse'],
+    3: ['is swept away crossing the river', 'is trampled in a cattle stampede', 'is shot by the President\'s men', 'rides into a stranger\'s Stand and never comes out', 'is struck by lightning', 'is sucked under in the mud'],
+    4: ['falls through the ice', 'freezes solid in the blizzard', 'is lost in the whiteout', 'is picked off by a sniper in the pines', 'is dragged under the frozen lake', 'is torn apart by wolves'],
+    5: ['is run down by a train', 'is caught in a crossfire in the streets', 'vanishes into the sea fog', 'is found in two pieces on the road', 'is shot by a man in a balloon'],
+    6: ['is hit by a streetcar', 'is dragged into another world by a flag', 'falls from the bridge', 'is shot in the crowd', 'is found with a tiny hole through his skull'],
+  };
+
   /* ---------- weather: every leg of the race has its own, and it gets worse each stage ---------- */
   const WEATHER = {
     heat:     { name: 'SCORCHING HEAT', desc: 'Stamina drains faster.', cls: 'w-heat', drain: 1.45, obstacles: 'rock' },
@@ -184,14 +255,19 @@ SBR.sprint = (() => {
     chestgun:  { name: 'Chest Machine Gun', glyph: '銃', color: '#8a8aa0', desc: 'Spray the road ahead: two riders stall.', use: A => A.rivals().filter(x => x.pos > A.me.pos).sort((a, b) => a.pos - b.pos).slice(0, 2).forEach(x => { x.stun = 1.5; }) },
   };
   POWER.dismantle = { name: 'Dismantle', glyph: '解', color: '#c8323c', desc: 'Invisible slashes carve the road: every rival stalls 3s and falls back.', use: A => { A.rivals().forEach(x => { x.stun = 3; x.pos -= 25; }); A.freeze(1.2, '「DISMANTLE」'); } };
-  const PATH_POWER = { star_platinum: 'timestop', king_crimson: 'crimson', magicians_red: 'fire', hierophant: 'emerald', silver_chariot: 'armoroff', crazy_diamond: 'restore', killer_queen: 'bomb', the_hand: 'erase', gold_experience: 'life', sticky_fingers: 'zipper', stone_free: 'string', whitesnake: 'disc', hamon: 'ripple', vampire: 'vamp', cyborg: 'chestgun' };
-  const ALLY_POWER = { gyro: 'steelball', hotpants: 'cream', mountaintim: 'lasso', pocoloco: 'heyya', wekapipo: 'wrecking', lucy: 'ticket' };
+  // only powers that help you ride: moving, healing your horse, dodging misfortune, or stopping time
+  POWER.spinstride = { name: 'Spin on the Reins', glyph: '回', color: '#3fb8a9', desc: 'Gyro spins the rhythm into your horse\'s gait: +50% speed for 3s and +20 stamina.', use: A => { A.S.boostT = 3; A.stamina(20); } };
+  const PATH_POWER = { star_platinum: 'timestop', king_crimson: 'crimson', crazy_diamond: 'restore', the_hand: 'erase', gold_experience: 'life', sticky_fingers: 'zipper', hamon: 'ripple', vampire: 'vamp' };
+  const ALLY_POWER = { gyro: 'spinstride', hotpants: 'cream', mountaintim: 'lasso', pocoloco: 'heyya', lucy: 'ticket' };
   SBR.racePowers = r => {
     const out = [];
+    // your horse's own trick comes first (js/horses.js)
+    const H = SBR.HORSES[r.horse];
+    if (H && H.race && H.race.use) out.push(Object.assign({ id: 'horse', who: r.lead, whoName: H.name }, H.race));
     r.party.filter(m => m.hp > 0).forEach(m => {
       let k = null;
       if (m.id === 'custom' || m.id === 'sukuna') k = PATH_POWER[m.path] || (m.id === 'sukuna' ? 'dismantle' : null);
-      else if (m.id === 'johnny') k = r.flags.tusk1 ? 'nails' : null;
+      else if (m.id === 'johnny') k = null;
       else k = ALLY_POWER[m.id];
       if (k && !out.some(o => o.id === k)) out.push(Object.assign({ id: k, who: m.id }, POWER[k]));
     });
@@ -224,6 +300,12 @@ SBR.sprint = (() => {
       let chosen = SBR.util.shuffle(rivalKeys.filter(k => k !== favourite)).slice(0, 4);
       if (favourite && rivalKeys.includes(favourite)) chosen.unshift(favourite); else chosen = SBR.util.shuffle(rivalKeys).slice(0, 5);
       chosen = chosen.slice(0, 5);
+      // nobodies: numbered riders who make up the pack, and who the trail kills off. More of them every stage.
+      const nFill = tutorial ? 1 : Math.min(7, 1 + Math.round(act * 1.1 + (SBR.threatTier ? SBR.threatTier() * 0.3 : 0)));
+      const fillers = [...Array(nFill)].map(() => {
+        const nm = `${SBR.util.pick(FIRST)} ${SBR.util.pick(LAST)}`;
+        return { key: 'filler', filler: true, num: SBR.util.randInt(12, 3852), full: nm, portrait: SBR.util.pick(FILL_PORT) };
+      });
       const LEN = 1000, PRE = 250;
       const startOffset = (r.pace - 50) * 1.6;
       const actScale = tutorial ? 1.05 : 1.1 + act * 0.07;
@@ -233,7 +315,8 @@ SBR.sprint = (() => {
           const rv = SBR.RIVALS[k];
           const coats = ['#c8c8d0', '#6a4a2a', '#e8d8c0', '#3a2a1a', '#8a5a30', '#b8703a'];
           return { key: k, name: rv.name.split(' ')[0], coat: coats[i % coats.length], mane: '#1a1020', wrap: ['#3fb8a9', '#e8508a', '#f2c14e', '#c8323c', '#6b5bd6'][i % 5], pos: SBR.util.randInt(-30, 20), speed: 0, base: (47 + horse.speed * 0.4) * rv.speed * actScale * (k === favourite ? 1.12 : 1), surge: 0 };
-        }));
+        }))
+        .concat(fillers.map((f, i) => Object.assign(f, { name: 'No.' + f.num, coat: ['#9a7a5a', '#5a4a3a', '#c8b098', '#7a5a3a'][i % 4], mane: '#2a1a10', wrap: '#8a8070', pos: SBR.util.randInt(-40, 10), speed: 0, base: (47 + horse.speed * 0.4) * (0.74 + Math.random() * 0.12 + act * 0.01) * actScale, surge: 0 })));
 
       // DOM
       const wrap = el('div', { class: 'sprint' });
@@ -251,7 +334,8 @@ SBR.sprint = (() => {
       const track = wrap.querySelector('.sprint-track');
       const prog = wrap.querySelector('.sprint-progress');
       runners.forEach((rn, i) => {
-        rn.node = el('div', { class: 'runner' + (rn.player ? ' me' : ''), style: { top: (i * 15) + '%', zIndex: 10 + i, '--sc': (0.78 + i * 0.07).toFixed(2) } });
+        const gap = Math.min(15, 84 / Math.max(1, runners.length - 1));
+        rn.node = el('div', { class: 'runner' + (rn.player ? ' me' : '') + (rn.filler ? ' filler' : ''), style: { top: (i * gap) + '%', zIndex: 10 + i, '--sc': (0.78 + i * gap / 15 * 0.07).toFixed(2) } });
         rn.node.innerHTML = `<div class="runner-tag">${rn.player ? 'YOU' : rn.name}</div>${art.horse({ coat: rn.coat, mane: rn.mane, wrap: rn.wrap, spots: rn.spots, rider: { cape: rn.player ? riderCol : rn.wrap, body: rn.player ? '#3b5bb5' : '#6a4a2a', hat: rn.player ? riderCol : '#3a2a1a' } })}`;
         track.appendChild(rn.node);
         rn.dot = el('div', { class: 'sp-dot' + (rn.player ? ' me' : ''), title: rn.name });
@@ -290,7 +374,7 @@ SBR.sprint = (() => {
       placeZone();
       const feedback = (t, cls) => { fb.textContent = t; fb.className = 'ring-feedback show ' + cls; clearTimeout(fb._t); fb._t = setTimeout(() => fb.classList.remove('show'), 500); };
 
-      let started = false, finished = false, finishOrder = [], last = 0, elapsed = 0, hazardT = 3, feudT = 2;
+      let started = false, finished = false, finishOrder = [], last = 0, elapsed = 0, hazardT = 3, feudT = 2, deathT = 5;
       const hazEl = wrap.querySelector('.sprint-hazard');
       const ringEl = wrap.querySelector('.sprint-ring');
       const warnEl = wrap.querySelector('.sprint-warn');
@@ -496,6 +580,45 @@ SBR.sprint = (() => {
         }
         rn.surge = 2; rn.bigSurge = 1.5; say(rn.name.toUpperCase() + ' makes a break for it!');
       }
+      /** the trail kills a nobody. If he goes down right in front of you, his horse becomes your obstacle */
+      const dead = [];
+      function killFiller() {
+        const live = runners.filter(x => x.filler && !x.done);
+        if (!live.length) return;
+        const me = runners[0];
+        // the ones near you die where you can see it
+        const near = live.filter(x => Math.abs(x.pos - me.pos) < 150);
+        const v = SBR.util.pick(near.length ? near : live);
+        const cause = SBR.util.pick(DEATHS[act] || DEATHS[1]);
+        v.done = true; v.dead = cause; dead.push(v);
+        v.node.classList.add('rn-dead');
+        const P = at(v);
+        spot('sk-kana', 'ドサッ', { x: P.x, y: P.y - 40 }, 1.1, '#f6ecd8');
+        spot('sk-fx-cross', '✝', { x: P.x, y: P.y - 70 }, 1.6, '#c8323c');
+        announce(`☠ No.${v.num} ${v.full.toUpperCase()}`, `${cause}.`, 'death');
+        SBR.audio.play('boom');
+        if (!threat && !pending && v.pos > me.pos && v.pos - me.pos < 70 && me.pos < LEN - 60) obstacle('obstacle', `No.${v.num}'s HORSE GOES DOWN IN FRONT OF YOU`, Math.max(0.8, 1.4 - hard * 0.07));
+      }
+      /** a race announcer's banner across the top */
+      const annEl = el('div', { class: 'sp-announce' }); wrap.appendChild(annEl);
+      let annT = null;
+      function announce(big, small, cls = '') {
+        annEl.className = 'sp-announce ' + cls;
+        annEl.innerHTML = `<i>📣</i><b>${big}</b>${small ? `<span>${small}</span>` : ''}`;
+        void annEl.offsetWidth; annEl.classList.add('show');
+        clearTimeout(annT); annT = setTimeout(() => annEl.classList.remove('show'), 2600);
+      }
+      const leaderOf = () => runners.filter(x => !x.dead).sort((a, b) => b.pos - a.pos)[0];
+      const nameOf = x => x.player ? L.short.toUpperCase() : x.filler ? `No.${x.num} ${x.full.toUpperCase()}` : SBR.RIVALS[x.key].name.toUpperCase();
+      let lastLeader = null, called = {};
+      function commentary() {
+        const me = runners[0], ld = leaderOf();
+        if (!ld) return;
+        if (!called.half && ld.pos > LEN * 0.5) { called.half = 1; announce('HALFWAY!', `${nameOf(ld)} leads the pack!`); return; }
+        if (!called.final && ld.pos > LEN * 0.82) { called.final = 1; announce('THE FINAL STRETCH!', me === ld ? 'And it\'s YOUR race to lose!' : `${nameOf(ld)} is in front, with ${Math.round((ld.pos - me.pos) / 10)} lengths to make up!`, 'hot'); return; }
+        if (lastLeader && ld !== lastLeader && ld.pos > LEN * 0.15 && elapsed - (called.lead || 0) > 5) { called.lead = elapsed; announce(`${nameOf(ld)} TAKES THE LEAD!`, ld.player ? 'The crowd goes wild!' : ''); }
+        lastLeader = ld;
+      }
       /** rivals fight each other too: a shot, a rope or a Stand flies between two other riders */
       let feudSaid = 0;
       function feud(cands) {
@@ -582,7 +705,7 @@ SBR.sprint = (() => {
       }
       powers.forEach((p, i) => {
         p.btn = el('button', { class: 'sp-power', style: { '--pc': p.color }, html: `<kbd>${i + 1}</kbd><b>${p.glyph}</b><span>${p.name}</span>` });
-        SBR.tip.bind(p.btn, `<b>${p.name}</b> (${SBR.CHARS[p.who].short})<br>${p.desc}<br><i>Once per race. Key ${i + 1}.</i>`);
+        SBR.tip.bind(p.btn, `<b>${p.name}</b> (${p.whoName || (SBR.CHARS[p.who] || {}).short || ''})<br>${p.desc}<br><i>Once per race. Key ${i + 1}.</i>`);
         p.btn.addEventListener('mousedown', e => { e.stopPropagation(); usePower(i); });
         pwBar.appendChild(p.btn);
       });
@@ -639,6 +762,11 @@ SBR.sprint = (() => {
           });
           if (threat && S.frozen <= 0) { threat.t -= dt; warnEl.querySelector('i').style.width = Math.max(0, threat.t / threat.dur * 100) + '%'; if (threat.t <= 0) landThreat(); }
           hazardT -= dt;
+          if (S.frozen <= 0) {
+            commentary();
+            // deaths on the trail: rarer on the 1st Stage, constant by the end
+            if (!tutorial && (deathT -= dt) <= 0) { deathT = Math.max(2.6, 9 - hard * 0.8) + Math.random() * 4; if (Math.random() < Math.min(0.9, 0.35 + hard * 0.08)) killFiller(); }
+          }
           // riders fighting among themselves, on their own clock
           if (!tutorial && S.frozen <= 0 && (feudT -= dt) <= 0) { feudT = Math.max(1.8, 3.6 - hard * 0.2) + Math.random() * 1.5; const fc = runners.slice(1).filter(x => !x.done); if (fc.length >= 2) feud(fc); }
           if (S.frozen <= 0 && hazardT <= 0 && me.pos < LEN - 60) { hazardT = threat || pending ? 1.1 : Math.max(2.1, 4.4 - hard * 0.3) + Math.random() * 1.6; if (!threat) hazard(); }
@@ -689,14 +817,69 @@ SBR.sprint = (() => {
         if (SBR.sprint.live && SBR.sprint.live.wrap === wrap) SBR.sprint.live = null;
         document.removeEventListener('keydown', onKey);
         const place = finishOrder.findIndex(x => x.player) + 1;
-        await sleep(400);
+        const win = finishOrder[0];
+        // how many of the 3,852 are still in it
+        r.fieldLeft = Math.max(40, (r.fieldLeft || 3852) - dead.length - SBR.util.randInt(90, 160) * (1 + act * 0.35));
+        await sleep(300);
+        await finishSplash(win, place);
+        await finishPanels(win, place);
+        const portOf = x => x.player ? art.portrait(L.portrait) : art.portrait(x.filler ? x.portrait : SBR.RIVALS[x.key].portrait);
         const res = el('div', { class: 'sprint-results' });
         res.innerHTML = `<div class="sr-title">${place === 1 ? 'STAGE WINNER!' : SBR.util.ordinal(place) + ' PLACE'}</div>
-          <div class="podium">${finishOrder.map((x, i) => `<div class="pod-row ${x.player ? 'me' : ''}" style="animation-delay:${i * 0.12}s"><span class="pod-pos">${i + 1}</span><span class="pod-port">${x.player ? art.portrait(L.portrait) : art.portrait(SBR.RIVALS[x.key].portrait)}</span><span class="pod-name">${x.player ? L.name : SBR.RIVALS[x.key].name}</span><span class="pod-pts">+${SBR.POINTS[i] || 3}</span></div>`).join('')}</div>`;
-        const go = SBR.ui.btn('Continue ▸', () => { wrap.classList.remove('show'); setTimeout(() => wrap.remove(), 300); resolve({ place, order: finishOrder.map(x => x.key) }); }, 'btn-primary');
+          <div class="podium">${finishOrder.map((x, i) => `<div class="pod-row ${x.player ? 'me' : ''} ${x.filler ? 'filler' : ''}" style="animation-delay:${i * 0.1}s"><span class="pod-pos">${i + 1}</span><span class="pod-port">${portOf(x)}</span><span class="pod-name">${x.player ? L.name : x.filler ? `No.${x.num} ${x.full}` : SBR.RIVALS[x.key].name}</span><span class="pod-pts">${x.filler ? '' : '+' + (SBR.POINTS[finishOrder.filter(y => !y.filler).indexOf(x)] || 3)}</span></div>`).join('')}
+          ${dead.map(x => `<div class="pod-row dead"><span class="pod-pos">✝</span><span class="pod-port">${portOf(x)}</span><span class="pod-name">No.${x.num} ${x.full}<small>${x.dead}</small></span><span class="pod-pts">DNF</span></div>`).join('')}</div>
+          <div class="sr-field">${dead.length ? `${dead.length} rider${dead.length > 1 ? 's' : ''} never reached the line. ` : ''}<b>${Math.round(r.fieldLeft).toLocaleString()}</b> of 3,852 still racing.</div>`;
+        const go = SBR.ui.btn('Continue ▸', () => { wrap.classList.remove('show'); setTimeout(() => wrap.remove(), 300); resolve({ place, order: finishOrder.filter(x => !x.filler).map(x => x.key), dead: dead.length }); }, 'btn-primary');
         res.appendChild(go);
         wrap.appendChild(res);
         SBR.audio.play(place <= 3 ? 'level' : 'coin');
+      }
+      /** the finish: a full-screen announcer card with the winner's face */
+      function finishSplash(win, place) {
+        return new Promise(res => {
+          const mine = place === 1;
+          const nm = win.player ? L.name : win.filler ? `No.${win.num} ${win.full}` : SBR.RIVALS[win.key].name;
+          const port = win.player ? art.portrait(L.portrait) : art.portrait(win.filler ? win.portrait : SBR.RIVALS[win.key].portrait);
+          const stageName = name.split(/\s[—-]\s/)[0].replace(/ Finish$/, '');
+          const o = el('div', { class: 'sp-finish' + (mine ? ' mine' : '') });
+          o.innerHTML = `<div class="spf-lines"></div><div class="spf-burst"></div>
+            <div class="spf-kicker">📣 THE WINNER OF THE ${stageName.toUpperCase()} IS...</div>
+            <div class="spf-port">${port}</div>
+            <div class="spf-name">${nm}!!</div>
+            <div class="spf-sub">${mine ? 'FIRST ACROSS THE LINE!' : `You came in ${SBR.util.ordinal(place)}.`}</div>
+            <div class="spf-kana">${mine ? 'ドォォォン' : 'ゴゴゴゴ'}</div>
+            ${mine ? [...Array(40)].map((_, i) => `<i class="spf-conf" style="--x:${Math.random() * 100}%;--d:${(Math.random() * 1.2).toFixed(2)}s;--c:${['#f2c14e', '#e8508a', '#3fb8a9', '#f6ecd8', '#6b5bd6'][i % 5]}"></i>`).join('') : ''}`;
+          wrap.appendChild(o);
+          SBR.audio.play(mine ? 'level' : 'menace');
+          requestAnimationFrame(() => o.classList.add('show'));
+          let done = false;
+          const fin = () => { if (done) return; done = true; o.classList.add('out'); setTimeout(() => { o.remove(); res(); }, 350); };
+          setTimeout(() => o.addEventListener('mousedown', fin), 500);
+          setTimeout(fin, 3200);
+        });
+      }
+      /** then a manga page: the organiser calls it, the winner and you react */
+      function finishPanels(win, place) {
+        if (!SBR.panels || tutorial) return Promise.resolve();
+        const speak = k => SBR.CHARS[k] && !['johnny', 'gyro'].includes(k) || r.party.some(m => m.id === k);
+        const winName = win.player ? L.name : win.filler ? `rider No.${win.num}, ${win.full}` : SBR.RIVALS[win.key].name;
+        const stageName = name.split(/\s[—-]\s/)[0].replace(/ Finish$/, '');
+        const WIN = ['Nobody hands you fifty million dollars. You take it, one stage at a time.', 'Tha’ one. Wh’ next?', 'Did you see that?! First across!', 'Keep the champagne. Wher’ the next line?'];
+        const LOSE = place <= 3 ? ['Close. Not close enough.', 'Points are points. ’l take them.', 'Next stage, that line is mine.'] : ['Eat my dust next time. I swear it.', 'The race is’ over. Not by a long way.', 'Keep riding. Just keep riding.'];
+        const GLOAT = { diego: 'Did you really think a stable boy would lose to you? WRYYY... I mean, how quaint.', pocoloco: 'Hey Ya said today was my lucky day! I’ ALWAYS my lucky day!', hotpants: 'God rides with me. You only have a horse.', mountaintim: 'Ride hard, friend. The trail is long.', sandman: 'My peopl’ land. My peopl’ speed.', wekapipo: '...' };
+        const lines = [
+          { who: 'steven', text: place === 1 ? `LADIES AND GENTLEMEN! The ${stageName} goes to ${L.name.toUpperCase()}!!` : `LADIES AND GENTLEMEN! The ${stageName} goes to ${winName.toUpperCase()}!!` },
+          { narr: place === 1 ? 'The crowd tears down the fences. Hats fly. Somebody fires a pistol into the air.' : 'The crowd roars for the winner. Your horse heaves under you, soaked in sweat.' },
+        ];
+        if (place === 1) lines.push({ who: leadId, text: SBR.util.pick(WIN) });
+        else {
+          if (!win.player && !win.filler && speak(win.key)) lines.push({ who: win.key, text: GLOAT[win.key] || 'Better luck next stage.' });
+          else lines.push({ narr: `${winName} raises a fist and doesn't look back.` });
+          lines.push({ who: leadId, text: SBR.util.pick(LOSE) });
+        }
+        if (dead.length) lines.push({ narr: `${dead.length} rider${dead.length > 1 ? 's' : ''} never reached the line. Nobody stops to bury them.` });
+        const scene = { panels: true, bg: act, lines };
+        return SBR.panels.play('race_finish_' + act, scene).catch(() => {});
       }
 
       // debug handle for the live race (used by tests and SBR.debug): force a rival skill
@@ -705,7 +888,7 @@ SBR.sprint = (() => {
       (async () => {
         // the race starts straight away; first-timers get a hint banner instead of a blocking dialogue
         if (tutorial || !SBR.meta.sprintHintSeen3) {
-          const tip = el('div', { class: 'sprint-tip', html: '<b>HOW TO RACE</b> Press <b>SPACE</b> or click when the needle crosses the <span class="gold">GOLD</span> zone to surge. Miss and your horse stumbles. When a rival attacks or the road is blocked (<b>⚠</b>), hit GOLD before the bar runs out to dodge. Keys <b>1-4</b> use your party&#39;s Stand powers, once each. Your act PACE is your head start.' });
+          const tip = el('div', { class: 'sprint-tip', html: '<b>HOW TO RACE</b> Press <b>SPACE</b> or click when the needle crosses the <span class="gold">GOLD</span> zone to surge. Miss and your horse stumbles. When a rival attacks or the road is blocked (<b>⚠</b>), hit GOLD before the bar runs out to dodge. Keys <b>1-4</b> use your horse&#39;s trick and your party&#39;s riding powers, once each. Your act PACE is your head start.' });
           wrap.appendChild(tip);
           setTimeout(() => tip.classList.add('out'), 7000);
           setTimeout(() => tip.remove(), 7600);

@@ -1415,7 +1415,7 @@
     choices: [
       { label: 'Ride with the posse', ok: { text: 'For the next three fights, deputies open fire from the ridge before you do.', fx: g => { W().posse = 3; } } },
       { label: 'Ask them to clear the road', ok: { text: 'They ride ahead and make arrests. (−2 Threat.)', fx: g => g.threat(-2) } },
-      { label: 'Ask for supplies', ok: { text: 'Army rations and a box of cartridges. (Party heals 40%, +3 Gunpowder.)', fx: g => { g.healAll(0.4); g.mat('powder', 3); } } },
+      { label: 'Ask for supplies', ok: { text: 'Army rations and a box of cartridges. (Party heals 40%, +3 German Army Powder.)', fx: g => { g.healAll(0.4); g.mat('powder', 3); } } },
     ] }, [
     { rep: { law: 1 }, deed: 'Rode with a federal marshal’s posse.' },
     { rep: { law: 1, president: -1 }, deed: 'Sent the marshal’s posse to clear the road.' },

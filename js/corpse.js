@@ -239,7 +239,7 @@ SBR.icons.define('relic', 'c_fused', () => {
         SBR.toast('<b>The land\'s gift:</b> party +2 RESOLVE, +1 GRIT, and +1 regeneration in every battle for the rest of the race.', 'corpse'); }) } },
       { label: 'Pray with her at the spring (RESOLVE)', check: { stat: 'res', dc: 12 }, ok: { text: 'You pray all night. The grass does not grow, but the water tastes sweet again, and you sleep like the dead. (Party heals 60%, +20 XP.)', fx: g => { g.healAll(0.6); g.xp(20); } },
         fail: { text: 'You fall asleep in the middle of it. She lets you. (Party heals 30%.)', fx: g => g.healAll(0.3) } },
-      { label: 'Refuse. The Saint is not for burying.', ok: { text: '"No," she agrees. "He is for carrying. We will see where you carry him." She gives you sage for the road. (+2 Frontier Herbs, +10 XP.)', fx: g => { g.mat('herb', 2); g.xp(10); } } },
+      { label: 'Refuse. The Saint is not for burying.', ok: { text: '"No," she agrees. "He is for carrying. We will see where you carry him." She gives you herbs for the road. (+2 Trussardi Herbs, +10 XP.)', fx: g => { g.mat('herb', 2); g.xp(10); } } },
     ] }, [
     { deed: 'Buried a Corpse Part to heal a sick land.', rep: { natives: 3, vatican: -1 }, npc: { cv_elder: 'friend' } },
     { deed: 'Prayed all night at a sick spring.', rep: { natives: 1 }, fail: { deed: 'Fell asleep praying at a sick spring.' } },

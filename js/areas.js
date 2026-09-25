@@ -14,13 +14,13 @@ Object.assign(SBR.MATERIALS, {
   tattooink:  { name: 'Eleven Men Ink', rarity: 'rare', desc: 'Tattoo You!\'s ink. It shifts when you look away.' },
 });
 Object.assign(SBR.EQUIPMENT, {
-  sunbone_knife:   { slot: 'weapon', name: 'Sun-Bone Knife', rarity: 'rare', stats: { aim: 4, luck: 3 }, bonus: { bleedOnBasic: 0.35, res: { holy: -0.1 } }, recipe: { sunbone: 2, leather: 1 }, price: 120, area: 'devilspalm' },
+  sunbone_knife:   { slot: 'weapon', name: 'Stone Mask Spike', rarity: 'rare', stats: { aim: 4, luck: 3 }, bonus: { bleedOnBasic: 0.35, res: { holy: -0.1 } }, recipe: { sunbone: 2, leather: 1 }, price: 120, area: 'devilspalm', note: 'One of the bone spikes a Stone Mask drives into the skull. The Palm sand dug it up. It still wants blood.' },
   palm_charm:      { slot: 'charm', family: 'holy', name: 'Palm-Sand Locket', rarity: 'rare', stats: { res: 3, luck: 2 }, bonus: { palm: 1 }, recipe: { palmsand: 2, silver: 1 }, price: 140, area: 'devilspalm', note: 'Start each battle with a random blessing.' },
   fossil_cuirass:  { slot: 'coat', name: 'Fossil-Bone Cuirass', rarity: 'rare', stats: { grit: 6 }, bonus: { res: { phys: -0.15, stand: -0.1 }, immune: ['fossil'] }, recipe: { fossil: 3, deepsilver: 1 }, price: 140, area: 'silvermine' },
   deepvein_spurs:  { slot: 'boots', name: 'Deep-Vein Spurs', rarity: 'rare', stats: { ride: 4 }, bonus: { init: 3, crit: 0.04, res: { cold: -0.1 } }, recipe: { deepsilver: 2, leather: 1 }, price: 120, area: 'silvermine' },
-  frost_monocle:   { slot: 'hat', name: 'Frost-Glass Monocle', rarity: 'rare', stats: { aim: 4 }, bonus: { crit: 0.06, res: { cold: -0.3 } }, recipe: { lakeice: 2, silver: 1 }, price: 120, area: 'lakeice' },
+  frost_monocle:   { slot: 'hat', name: 'Ghiaccio\'s Glasses', rarity: 'rare', stats: { aim: 4 }, bonus: { crit: 0.06, res: { cold: -0.3 } }, recipe: { lakeice: 2, silver: 1 }, price: 120, area: 'lakeice', note: 'White Album\'s wearer never took them off. Frost never fogs them.' },
   alpha_mantle:    { slot: 'coat', name: 'Alpha Pelt Mantle', rarity: 'rare', stats: { grit: 5 }, bonus: { maxHp: 14, res: { cold: -0.35, bleed: -0.1 } }, recipe: { alphapelt: 1, wolfpelt: 2 }, price: 150, area: 'lakeice' },
-  spike_knuckles:  { slot: 'weapon', name: 'Rail-Spike Knuckles', rarity: 'rare', stats: { grit: 4, aim: 3 }, bonus: { dmg: 0.1, res: { bullet: -0.1 } }, recipe: { railspike: 3, scrap: 2 }, price: 120, area: 'railyard' },
+  spike_knuckles:  { slot: 'weapon', name: 'Stroheim\'s Cyborg Fist', rarity: 'rare', stats: { grit: 4, aim: 3 }, bonus: { dmg: 0.1, res: { bullet: -0.1 } }, recipe: { railspike: 3, scrap: 2 }, price: 120, area: 'railyard', note: 'A spare hand for the Major, bolted from rail steel. It shrugs off bullets.' },
   ink_charm:       { slot: 'charm', family: 'trophy', name: 'Eleven Men Ink', rarity: 'rare', stats: { ride: 3 }, bonus: { dodge: 0.08, res: { stand: -0.15 } }, recipe: { tattooink: 1, cloth: 1 }, price: 140, area: 'railyard' },
 });
 
@@ -161,7 +161,7 @@ SBR.AREA_EVENTS = {
     text: 'The rope is new. The water is cold. Someone has carved a spiral into the stone rim, and below it: "DRINK AND BE GIVEN."',
     choices: [
       { label: 'Drink (RESOLVE)', check: { stat: 'res', dc: 12 }, ok: { text: 'Visions of a man with holes in his palms. You wake up stronger. (Party +1 all stats... for the lead.)', fx: g => { const l = SBR.run.lead || 'johnny'; ['spin', 'aim', 'grit', 'ride', 'res', 'luck'].forEach(s => g.statUp(l, s, 1)); } }, fail: { text: 'The water tastes of sand. Something climbs out after you.', fight: { enemies: ['dust_wraith', 'dust_wraith', 'dust_wraith'] } } },
-      { label: 'Fill every canteen', ok: { text: 'You leave with water for days. (2 Canteens, party heals 30%.)', fx: g => { g.item('canteen'); g.item('canteen'); g.healAll(0.3); } } },
+      { label: 'Fill every canteen', ok: { text: 'You leave with water for days. (2 SPW Canteens, party heals 30%.)', fx: g => { g.item('canteen'); g.item('canteen'); g.healAll(0.3); } } },
       { label: 'Break the rope and move on', ok: { text: 'The well collapses into itself. Under the stones: Palm sand, bone, and a wrapped knife.', fx: g => { g.mat('palmsand', 1); g.mat('sunbone', 2); } } },
     ] },
   mine_cart: { area: 'silvermine', type: 'event', title: 'The Runaway Cart', blurb: 'A loaded ore cart and a long, dark track.', icon: 'star',
@@ -169,7 +169,7 @@ SBR.AREA_EVENTS = {
     choices: [
       { label: 'Ride the cart down (RIDING)', check: { stat: 'ride', dc: 13 }, ok: { text: 'You scream down the shaft and crash into their camp before they can draw.', fight: { enemies: ['claim_jumper', 'claim_jumper'], after: g => g.mat('deepsilver', 2) } }, fail: { text: 'The cart jumps the rails. Everyone is bruised. (Party loses 15% HP.)', fx: g => g.hurtAll(0.15) } },
       { label: 'Push the ore up to daylight', ok: { text: 'Hours of work. The silver is yours. (2 Silver, 1 Deep-Vein Silver, 1 Exhaustion.)', fx: g => { g.mat('silver', 2); g.mat('deepsilver', 1); g.exhaust('random'); } } },
-      { label: 'Send it down empty as a warning', ok: { text: 'The crash echoes for a minute. When you go down, they have fled, leaving their dynamite.', fx: g => { g.item('dynamite'); g.item('dynamite'); } } },
+      { label: 'Send it down empty as a warning', ok: { text: 'The crash echoes for a minute. When you go down, they have fled, leaving a crate of German stick grenades. (2 Stroheim\'s Grenades.)', fx: g => { g.item('dynamite'); g.item('dynamite'); } } },
     ] },
   lake_crack: { area: 'lakeice', type: 'event', title: 'The Ice Cracks', blurb: 'A long black line runs under your horses.', icon: 'star',
     text: 'The ice groans. A crack races ahead of you, and on the far side a trapper\'s sled has already gone through. Someone is still holding onto the edge.',
@@ -226,13 +226,16 @@ SBR.AREA_EVENTS = {
   m('railspike', () => `<path d="M20 4h14v6H28v32l-4 4-4-4V10h-6z" fill="#7a7a8a" ${st}/>${shine(26, 20, 2)}`);
   m('tattooink', () => P.bottle('#2a2a3a', '#c8323c') + `<path d="M20 30l4-4 4 4-4 4z" fill="#1a1020"/>`);
   const e = (id, fn) => I.define('equip', id, fn);
-  e('sunbone_knife', () => P.blade('#f6ecd8', '#c8323c'));
+  // Stone Mask Spike: a curved bone spike on a chip of the mask's stone
+  e('sunbone_knife', () => `<path d="M10 40q8-22 32-34-6 12-26 38z" fill="#efe4c8" ${st}/><path d="M16 38q8-14 22-28" stroke="${K}" stroke-width="1.2" opacity=".35" fill="none"/><path d="M42 6l-5 7" stroke="#c8323c" stroke-width="3" stroke-linecap="round"/><path d="M4 36l9-5 6 9-9 5z" fill="#a8a090" ${st}/><path d="M8 38l4-2" stroke="${K}" stroke-width="1.2" opacity=".5"/>`);
   e('palm_charm', () => P.coin('#e8b36a', '✋'));
   e('fossil_cuirass', () => `<path d="M14 6h20l6 10-4 28H12L8 16z" fill="#d8d0b8" ${st}/>` + [18, 24, 30, 36].map(y => `<path d="M12 ${y}q12 4 24 0" stroke="${K}" stroke-width="1.8" fill="none"/>`).join('') + `<path d="M24 8v34" stroke="${K}" stroke-width="2"/>`);
   e('deepvein_spurs', () => I.BOOT('#3a3a4a', '#c8d0e0') + `<circle cx="8" cy="40" r="4" fill="none" stroke="#9fd0f0" stroke-width="2.4"/>`);
-  e('frost_monocle', () => `<circle cx="22" cy="22" r="14" fill="#dff2ff" opacity=".85" ${st}/><circle cx="22" cy="22" r="14" fill="none" stroke="#c8c8d8" stroke-width="3"/><path d="M34 32q6 6 4 14" stroke="#c8a040" stroke-width="2" fill="none"/>${shine(16, 16, 3.5)}`);
+  // Ghiaccio's Glasses: round lenses, frosted over
+  e('frost_monocle', () => `<path d="M4 20l6 2M44 20l-6 2" ${st}/><path d="M20 24q4-4 8 0" fill="none" ${st}/><circle cx="13" cy="26" r="9" fill="#dff2ff" ${st}/><circle cx="35" cy="26" r="9" fill="#dff2ff" ${st}/><path d="M9 30l8-8M31 30l8-8" stroke="#fff" stroke-width="1.6"/><g stroke="#6aa0d0" stroke-width="1.6" stroke-linecap="round"><path d="M24 6v10M19 8.5l10 5M29 8.5l-10 5"/></g>${shine(10, 23, 2.4)}${shine(32, 23, 2.4)}`);
   e('alpha_mantle', () => `<path d="M24 4q-12 0-16 12L4 44h40L40 16Q36 4 24 4z" fill="#f6fbff" ${st}/><path d="M16 14l-4-8 8 4M32 14l4-8-8 4" fill="#f6fbff" ${st}/><circle cx="19" cy="14" r="1.6" fill="#6a9ac8"/><circle cx="29" cy="14" r="1.6" fill="#6a9ac8"/>`);
-  e('spike_knuckles', () => `<rect x="8" y="16" width="32" height="14" rx="4" fill="#7a7a8a" ${st}/>` + [13, 21, 29, 37].map(x => `<path d="M${x - 3} 16l3-10 3 10" fill="#9a9aaa" ${st} stroke-width="1.4"/>`).join('') + `<path d="M12 30v10h24V30" fill="none" ${st}/>`);
+  // Stroheim's Cyborg Fist: a riveted steel gauntlet with a gear at the wrist
+  e('spike_knuckles', () => [12, 19, 26, 33].map(x => `<rect x="${x}" y="8" width="6" height="14" rx="3" fill="#a0a0b4" ${st} stroke-width="1.8"/>`).join('') + `<rect x="10" y="18" width="30" height="16" rx="4" fill="#8a8aa0" ${st}/><path d="M40 22q6 0 4 8l-4 2" fill="#8a8aa0" ${st}/>` + [15, 22, 29, 36].map(x => `<circle cx="${x}" cy="30" r="1.4" fill="${K}"/>`).join('') + `<rect x="14" y="34" width="22" height="10" fill="#5a5a6a" ${st}/><circle cx="25" cy="39" r="3.2" fill="#c8a040" ${st} stroke-width="1.4"/>`);
   e('ink_charm', () => P.coin('#2a2a3a', '11').replace('fill="#1a1020">11', 'fill="#c8323c">11'));
   I.define('status', 'cramped', () => `<rect x="6" y="10" width="36" height="28" fill="#8a6a4a" ${st}/><path d="M14 10v28M34 10v28" stroke="${K}" stroke-width="2"/><path d="M18 24h12M18 24l4-4M18 24l4 4M30 24l-4-4M30 24l-4 4" stroke="#fff" stroke-width="2"/>`);
 })();

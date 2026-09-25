@@ -26,7 +26,7 @@ Then open <http://localhost:5178>. Progress saves in your browser's local storag
 | ![Cut-in](docs/media/cutin.jpg) **Manga cut-ins.** Big moves slam a diagonal panel across the screen with the attacker and the move's name. | ![Boss intro](docs/media/bossintro.jpg) **Boss intros.** Each Stand user explains their mechanic before the fight. |
 | ![Lead riders](docs/media/setup.jpg) **Lead riders and horses.** Pick your lead, a horse and a starting item. The horse gives resistances the way a race does in AAC. | ![Paths](docs/media/paths.jpg) **Paths.** Each lead has three subclasses, learned from trainers on the road. |
 | ![Detours](docs/media/detours.jpg) **Detour areas.** Four optional regions, each with its own hazard, enemies, materials and boss. | ![Resistances](docs/media/resist.jpg) **Damage types.** Every hit has a type, and every enemy has its own resistances and weaknesses. |
-| ![Gear](docs/media/gear.jpg) **Six gear slots.** Weapon, hat, coat, boots and two charms. Charms of the same family don't stack. | ![Sprint](docs/media/sprint.jpg) **Stage sprints.** Time your presses to the golden zone while rivals use their Stands on you and on each other. |
+| ![Gear](docs/media/gear.jpg) **Six gear slots.** Weapon, hat, coat, boots and two charms. Charms of the same family don't stack. | ![Sprint](docs/media/sprint.jpg) **Stage sprints.** Time your presses to the golden zone while rivals attack you and each other. Numbered nobodies fill out the pack, and the trail kills more of them every stage. Only Stands that help someone ride work in a race, and your horse has its own once-per-race trick. The winner gets an announcer's splash and a manga page. |
 
 ## How a run plays
 
@@ -95,12 +95,16 @@ They start with nothing but an old six-shooter and a punch, and can earn **one**
 The crafting system follows *An Average Campaign*: a few materials that are reused everywhere.
 
 - **16 materials.**
-  - Nine generic: Scrap Iron, Leather, Cloth, Gunpowder, Frontier Herbs, Pelts & Feathers, Bone & Fang, Silver and Gold.
+  - Nine generic, each borrowed from another part of JoJo: Cyborg Scrap (Stroheim's German science), SPW Saddle Leather (Speedwagon Foundation stock), Satiporoja Silk (the beetle-hair silk of Lisa Lisa's scarf), German Army Powder, Trussardi Herbs (Tonio's garden), Pet Shop Feathers, Vampire Fang, Chariot Silver and Aztec Gold (from the ruins of the Stone Masks).
   - Five special: Steel Ball Shard, Golden Sap, Menger Dust, Frozen Water and Fossil Shard.
   - Two found only on detours: Devil's Palm Sand and Eleven Men Ink.
   - Every material is used in at least four recipes. Its tooltip lists where it drops and what it makes.
+- **Crossover gear and supplies.** Most everyday gear and consumables are real objects from Parts 1–6 rather than generic Western kit:
+  - Supplies: the SPW Canteen, Kakyoin's Cherries, Iggy's Coffee Gum, Tonio's Mineral Water, Stroheim's Grenade, a Heaven's Door Page (revive), Zeppeli's Hamon Wine and an Aqua Necklace Bottle (a gamble).
+  - Gear: Mista's Revolver, Jotaro's Cap and Gakuran, Speedwagon's Bowler Hat, Zeppeli's Top Hat, Mista's Hat, Lisa Lisa's Scarf, the Stone Mask, DIO's Throwing Knife and the Anubis Sword, Bucciarati's Zipper Suit, Pucci's Vestments, Stroheim's Cyborg Legs and Fist, White Album Skates, Ghiaccio's Glasses, Hol Horse's Spurs, D'Arby's Poker Chip, Polnareff's Earrings, Kira's Skull Tie, the Echoes Egg, Giorno's Ladybug Brooch, Rohan's G-Pen, Caesar's Bandana, Joseph's Polaroid Camera, the Hamon Breathing Mask, Boingo's Prophecy Comic, Speedwagon's Oil Deed, the Trattoria Trussardi Menu, DIO's Diary, Mista's Bullet Pouch and Sex Pistols Rounds.
+  - Things the race's own story hands you (the Winchester, Pocoloco's horseshoe, Wekapipo's sabre, Hot Pants' sandwiches, Gyro's tar coffee, Sandman's emerald) stay as they are.
 - **Souls.** Stand Remnants are recipe keys. Owning one unlocks that boss's gear for the rest of the run, and crafting never uses it up.
-- **Upgrades.** Some recipes take a piece you already own and make a better one. For example, a Colt Navy becomes a Winchester '73, and Riding Boots become Cavalry Boots.
+- **Upgrades.** Some recipes take a piece you already own and make a better one. For example, a Colt Navy becomes a Winchester '73, DIO's Throwing Knife becomes the Anubis Sword, and Riding Boots become Cavalry Boots.
 - **Reinforce and salvage.**
   - At the bench, any piece can be raised to +1 and then +2. It costs materials that match its slot, plus money.
   - A blacksmith in town does the same for money only.

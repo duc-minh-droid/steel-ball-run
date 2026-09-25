@@ -232,13 +232,13 @@ SBR.CAMPAIGN_EVENTS = [
       { label: 'Ride around the magnets', ok: { text: 'It takes time. (-10 pace.)', fx: g => g.pace(-10) } },
       { label: 'Charge through', ok: { text: 'Iron sand clings to you. (The Boomboom family will start with the advantage.)', fx: g => g.flag('boomMagnetised') } },
     ] },
-  { id: 'dothan_sabotage', type: 'event', title: 'Dot Han’s Grudge', blurb: 'Your horse won’t drink.', icon: 'horseshoe', art: 'gunslinger', reveals: 'Dot Han couldn’t stand losing to you and fouled your water.',
+  { id: 'dothan_sabotage', type: 'event', title: 'Dot Han’s Grudge', blurb: 'Your horse won’t drink.', icon: 'horseshoe', art: 'dothan', reveals: 'Dot Han couldn’t stand losing to you and fouled your water.',
     text: 'Someone fouled the trough. Steppe-pony tracks lead away.',
     choices: [
       { label: 'Track him down', ok: { text: 'He laughs and throws you his flask. "Fair. You find me, you drink." (+10 pace.)', fx: g => { g.pace(10); g.npc('dothan', 'respect'); g.rep('racers', 1); } } },
       { label: 'Find clean water (-12 pace)', ok: { text: 'Slow going.', fx: g => g.pace(-12) } },
     ] },
-  { id: 'dothan_help', type: 'event', title: 'Dot Han Returns the Favour', blurb: 'A stocky pony falls in beside you.', icon: 'horseshoe', art: 'gunslinger', reveals: 'Dot Han remembered the race and came back to help.',
+  { id: 'dothan_help', type: 'event', title: 'Dot Han Returns the Favour', blurb: 'A stocky pony falls in beside you.', icon: 'horseshoe', art: 'dothan', reveals: 'Dot Han remembered the race and came back to help.',
     text: '"The steppe teaches that a good rival is worth two friends. There is a trail through here nobody else knows."',
     choices: [
       { label: 'Follow his trail', ok: { text: '(+25 pace.)', fx: g => g.pace(25) } },
@@ -284,7 +284,7 @@ SBR.CAMPAIGN_EVENTS = [
     text: 'Mrs. Robinson, half his face still scarred. "You spared me. So I’ll tell you: the rain in Kansas will stop falling, and it will cut you. Stay dry."',
     choices: [
       { label: 'Thank him', ok: { text: '(You know how Blackmore fights.)', fx: g => { g.flag('robinsonWarning'); g.npc('robinson', 'friend'); } } },
-      { label: 'Ask him to ride with you', ok: { text: 'He shakes his head. "I race alone." He gives you his hive pistol’s spare rounds. (+2 Gunpowder, flag: warned.)', fx: g => { g.flag('robinsonWarning'); g.mat('powder', 2); } } },
+      { label: 'Ask him to ride with you', ok: { text: 'He shakes his head. "I race alone." He gives you his hive pistol’s spare rounds. (+2 German Army Powder, flag: warned.)', fx: g => { g.flag('robinsonWarning'); g.mat('powder', 2); } } },
     ] },
   { id: 'robinson_swarm', type: 'elite', title: 'The Swarm Remembers', blurb: 'Insects, without a master.', icon: 'skull', reveals: 'Mrs. Robinson’s insects outlived him and found you.',
     text: 'Without Mrs. Robinson to guide them, his insects nest in cacti along the trail, and in anyone who comes near.',

@@ -14,15 +14,15 @@ SBR.matId = id => SBR.MAT_ALIAS[id] || id;
 (() => {
   const M = SBR.MATERIALS;
   Object.assign(M, {
-    scrap:   { name: 'Scrap Iron', rarity: 'common', group: 'generic', desc: 'Horseshoes, rail spikes, telegraph wire, a broken spur. Every smith wants it.' },
-    leather: { name: 'Leather', rarity: 'common', group: 'generic', desc: 'Tanned and tough. Smells like saddle.' },
-    cloth:   { name: 'Calico Cloth', rarity: 'common', group: 'generic', desc: 'Printed cotton from a general store.' },
-    powder:  { name: 'Gunpowder', rarity: 'common', group: 'generic', desc: 'Keep it dry. Keep it away from Oyecomova.' },
-    herb:    { name: 'Frontier Herbs', rarity: 'common', group: 'generic', desc: 'Sage, yarrow, and a little rattler venom. Medicine or poison, depending on the dose.' },
-    hide:    { name: 'Pelts & Feathers', rarity: 'common', group: 'generic', desc: 'Coyote and wolf fur, eagle feathers, horsehair. Anything that once kept an animal warm.' },
-    bone:    { name: 'Bone & Fang', rarity: 'uncommon', group: 'generic', desc: 'Cougar fangs, grizzly claws, cactus needles, dinosaur scales. Sharp things.' },
-    silver:  { name: 'Silver', rarity: 'uncommon', group: 'generic', desc: 'Nevada silver, if the seller was honest.' },
-    gold:    { name: 'Gold', rarity: 'rare', group: 'generic', desc: 'Might be from Sugar Mountain\'s spring. Might be cursed.' },
+    scrap:   { name: 'Cyborg Scrap', rarity: 'common', group: 'generic', desc: 'Rivets, gears, rail spikes and telegraph wire. Stroheim would call it German science. Every smith wants it.' },
+    leather: { name: 'SPW Saddle Leather', rarity: 'common', group: 'generic', desc: 'Speedwagon Foundation stock, stamped SPW. Tanned and tough; smells like saddle.' },
+    cloth:   { name: 'Satiporoja Silk', rarity: 'common', group: 'generic', desc: 'Woven from Satiporoja beetle hair, like Lisa Lisa\'s scarf. It carries Hamon. The cheap bolts are half cotton.' },
+    powder:  { name: 'German Army Powder', rarity: 'common', group: 'generic', desc: 'From Stroheim\'s supply crates, packed tight. Keep it dry. Keep it away from Oyecomova.' },
+    herb:    { name: 'Trussardi Herbs', rarity: 'common', group: 'generic', desc: 'Basil, oregano and a little rattler venom. Tonio Trussardi could make any of it medicine; you have to be careful with the dose.' },
+    hide:    { name: 'Pet Shop Feathers', rarity: 'common', group: 'generic', desc: 'Feathers molted by DIO\'s guard falcon, frost still on the quills, bundled with fur and horsehair. Anything that once kept an animal warm.' },
+    bone:    { name: 'Vampire Fang', rarity: 'uncommon', group: 'generic', desc: 'Fangs from DIO\'s zombies, cougar teeth, cactus needles, dinosaur scales. Sharp things.' },
+    silver:  { name: 'Chariot Silver', rarity: 'uncommon', group: 'generic', desc: 'Melted down from a rapier blade that was fired across a room and never found. Polnareff wants it back.' },
+    gold:    { name: 'Aztec Gold', rarity: 'rare', group: 'generic', desc: 'From the ruins where the Pillar Men\'s Stone Masks were found. Might be cursed.' },
     ballfrag: { name: 'Steel Ball Shard', rarity: 'uncommon', group: 'special', desc: 'A chip of Zeppeli steel. It still hums.' },
     sap:     { name: 'Golden Sap', rarity: 'rare', group: 'special', desc: 'Resin from the Sugar Mountain tree.' },
     menger:  { name: 'Menger Dust', rarity: 'rare', group: 'special', desc: 'What\'s left when two copies of a person meet.' },
@@ -75,9 +75,9 @@ Object.assign(SBR.EQUIPMENT, {
   nicholas_boots:  { slot: 'boots', name: 'Nicholas\'s Riding Boots', rarity: 'rare', stats: { ride: 5, luck: 2 }, bonus: { dodge: 0.06, init: 2 }, recipe: { leather: 2, gold: 1 }, from: 'cavalry_boots', price: 120, note: 'His brother\'s boots. Johnny never wore them, until now.' },
   tim_stetson:     { slot: 'hat', name: 'Mountain Tim\'s Stetson', rarity: 'rare', stats: { aim: 4, ride: 2 }, bonus: { res: { bullet: -0.15, phys: -0.05 } }, recipe: { leather: 1, hide: 2 }, from: 'sheriff_hat', price: 115, note: 'A cowboy\'s hat with the brim worn soft. Oh! Lonesome Me.' },
   war_bonnet:      { slot: 'charm', family: 'totem', name: 'Eagle War Bonnet', rarity: 'rare', stats: { ride: 4, res: 2 }, bonus: { dodge: 0.07, res: { sound: -0.2 } }, recipe: { hide: 3, bone: 1 }, from: 'eagle_feather', price: 105 },
-  bone_knife:      { slot: 'weapon', name: 'Bone-Hilt Bowie', rarity: 'uncommon', stats: { aim: 3, grit: 2 }, bonus: { bleedOnBasic: 0.25, crit: 0.03 }, recipe: { bone: 2 }, from: 'knife', price: 70 },
+  bone_knife:      { slot: 'weapon', name: 'Anubis Sword', rarity: 'uncommon', stats: { aim: 3, grit: 2 }, bonus: { bleedOnBasic: 0.25, crit: 0.03 }, recipe: { bone: 2 }, from: 'knife', price: 70, note: 'A Stand lives in this blade. Whatever it cuts once, it remembers.' },
   raptor_claws:    { slot: 'weapon', name: 'Scary Monsters Claws', rarity: 'rare', stats: { aim: 4, ride: 6 }, bonus: { dmg: 0.12, bleedOnBasic: 0.2 }, recipe: { fossil: 2, bone: 2 }, from: 'raptor_knuckles', price: 130 },
-  fossil_mask:     { slot: 'hat', name: 'Raptor Skull Mask', rarity: 'uncommon', stats: { grit: 2, ride: 2 }, bonus: { immune: ['fossil'], res: { phys: -0.08 } }, recipe: { fossil: 2, bone: 1 }, price: 80 },
+  fossil_mask:     { slot: 'hat', name: 'Stone Mask', rarity: 'uncommon', stats: { grit: 3, ride: 1 }, bonus: { maxHp: 6, immune: ['fossil'], res: { phys: -0.1, holy: 0.1 } }, recipe: { fossil: 2, bone: 1 }, price: 85, note: 'Carved by the Pillar Men. Keep blood off the rim, and the spikes stay folded. The sun does not like whoever wears it.' },
   amber_charm:     { slot: 'charm', family: 'totem', name: 'Amber Fossil', rarity: 'uncommon', stats: { grit: 2, res: 2 }, bonus: { maxHp: 8, res: { stand: -0.05 } }, recipe: { fossil: 1, sap: 1 }, price: 90 },
   rain_lens:       { slot: 'charm', family: 'device', name: 'Raindrop Lens', rarity: 'rare', stats: { aim: 4 }, bonus: { crit: 0.06, res: { cold: -0.15 } }, recipe: { rainvial: 1, silver: 1 }, price: 110, note: 'A frozen raindrop ground into a lens. The world through it is very still.' },
   frost_rounds:    { slot: 'charm', family: 'ammo', name: 'Frozen Rounds', rarity: 'rare', stats: { aim: 2 }, bonus: { bulletDmg: 0.12, coldDmg: 0.1 }, recipe: { rainvial: 1, powder: 2 }, from: 'powder_horn', price: 115 },
@@ -156,8 +156,8 @@ SBR.sellValue = (kind, id) => {
 /* ---------------- 3. Trinkets: loot that exists to be sold ---------------- */
 SBR.TRINKETS = {
   emerald:      { name: 'Sandman\'s Emerald', value: 150, rarity: 'rare', color: '#3ac870', desc: 'He tried to pay his way with it. The shopkeeper did not know what to do.' },
-  pocketwatch:  { name: 'Gold Pocket Watch', value: 60, rarity: 'uncommon', color: '#f2c14e', desc: 'Engraved to someone called "R." Still ticking, six seconds slow.' },
-  racer_medal:  { name: 'A Racer\'s Stage Medal', value: 45, rarity: 'uncommon', color: '#e8c070', desc: 'Pinned on at a finish line. Its owner won\'t be needing it.' },
+  pocketwatch:  { name: 'Giorno\'s Ladybug Brooch', value: 60, rarity: 'uncommon', color: '#c8323c', desc: 'A gold ladybug pin. It looks like it might crawl away.' },
+  racer_medal:  { name: 'Rohan\'s G-Pen', value: 45, rarity: 'uncommon', color: '#3a3a4a', desc: 'A manga artist\'s pen nib, still wet.' },
   conf_coin:    { name: 'Confederate Coin', value: 25, rarity: 'common', color: '#c8a070', desc: 'Worth more to collectors than to anyone who fought for it.' },
   bounty:       { name: 'Wanted Poster', value: 40, rarity: 'common', color: '#e8d8b8', desc: 'Torn from a post. The face on it matches the man you beat. Any sheriff pays.' },
   diamond:      { name: 'Diamond Stud', value: 90, rarity: 'rare', color: '#dff2ff', desc: 'From the cuff of a Presidential agent. Government issue, apparently.' },
@@ -188,10 +188,13 @@ SBR.TRINKET_DROPS = { common: ['conf_coin', 'silver_spoon', 'arrowhead', 'gold_t
   SBR.trinketIcon = id => `<svg viewBox="0 0 48 48" class="ico">${(T[id] || T.conf_coin)()}</svg>`;
   // merged materials
   const P = I.P, K = I.K;
-  I.define('mat', 'hide', () => P.pelt('#b8905a', '#8a6030') + P.feather('#8a5a30', '#f6ecd8').replace('<path', '<path transform="translate(18 -4) scale(.7)"'));
-  I.define('mat', 'bone', () => P.bone('#f6f0e0') + P.fang('#f6f0e0').replace('<path', '<path transform="translate(20 14) scale(.55)"'));
+  // Pet Shop Feathers: two falcon feathers, frost on the quills
+  I.define('mat', 'hide', () => P.feather('#4a5a7a', '#e8f0f8').replace('<path', '<path transform="translate(-6 2)"') + P.feather('#6a4a2a', '#c8d8e8').replace('<path', '<path transform="translate(10 6) scale(.8)"') + `<g stroke="#9fd0f0" stroke-width="1.6" stroke-linecap="round"><path d="M38 34v8M34 36l8 4M42 36l-8 4"/></g>`);
+  // Vampire Fang: a pair of fangs and a drop of blood
+  I.define('mat', 'bone', () => P.fang('#f6f0e0').replace('<path', '<path transform="translate(-6 0) scale(.9)"') + P.fang('#f6f0e0').replace('<path', '<path transform="translate(14 2) scale(.8)"') + P.drop('#c8323c').replace('<path', '<path transform="translate(26 26) scale(.4)"'));
   I.define('mat', 'rainvial', () => `<path d="M12 12l20-4 10 16-8 18-20-2-6-16z" fill="#dff2ff" ${st}/>` + P.drop('#9fc7e8').replace('<path', '<path transform="translate(10 8) scale(.6)"'));
-  I.define('mat', 'herb', () => P.herb('#6aa04a', '#b070ff') + P.flask('#e8f0d8', '#8adf3a').replace('<path', '<path transform="translate(24 22) scale(.45)"'));
+  // Trussardi Herbs: a basil sprig and one of Tonio's tomatoes
+  I.define('mat', 'herb', () => P.herb('#3a9a3a', null) + `<circle cx="34" cy="36" r="8" fill="#e8483a" ${st}/><path d="M30 29l4 3 4-3" stroke="#3a6a2a" stroke-width="1.8" fill="none"/>${I.shine(31, 34, 2)}`);
   const e = (id, fn) => I.define('equip', id, fn);
   e('golden_sphere', () => `<circle cx="24" cy="24" r="16" fill="#f2c14e" ${st}/><path d="M14 16h20v16H14zM24 16v16M14 24h10" stroke="#8a5a10" stroke-width="1.6" fill="none"/>${I.shine(18, 18, 4)}`);
   e('executioner_gorget', () => `<path d="M8 18q16 14 32 0l-2 12q-14 10-28 0z" fill="#c8c8d8" ${st}/><circle cx="24" cy="30" r="4" fill="#f2c14e" ${st} stroke-width="1.4"/><path d="M12 22q12 8 24 0" stroke="${K}" stroke-width="1.2" fill="none"/>`);
@@ -200,9 +203,11 @@ SBR.TRINKET_DROPS = { common: ['conf_coin', 'silver_spoon', 'arrowhead', 'gold_t
   e('nicholas_boots', () => I.BOOT('#5a3a2a', '#f2c14e') + `<path d="M16 8h8" stroke="#f2c14e" stroke-width="2"/>`);
   e('tim_stetson', () => `<path d="M4 30q20 8 40 0-6 6-20 6T4 30z" fill="#8a6a4a" ${st}/><path d="M12 30q0-20 12-20t12 20z" fill="#a07a4a" ${st}/><path d="M12 25h24" stroke="#c8323c" stroke-width="3"/>`);
   e('war_bonnet', () => [-30, -15, 0, 15, 30].map(a => `<g transform="rotate(${a} 24 40)">${P.feather('#f6ecd8', '#c8323c').replace('<path', '<path transform="translate(10 -6) scale(.6)"')}</g>`).join('') + `<path d="M10 38h28" stroke="#c8323c" stroke-width="4"/>`);
-  e('bone_knife', () => P.blade('#c8c8d8', '#f6ecd8'));
+  // Anubis: a long single-edged blade with a round guard and a purple-wrapped grip
+  e('bone_knife', () => `<path d="M15 33L41 5l2 2-26 30z" fill="#e8ecf6" ${st}/><path d="M18 32L41 7" stroke="#fff" stroke-width="1.2" opacity=".8"/><path d="M13 37l-8 8" stroke="${K}" stroke-width="7" stroke-linecap="round"/><path d="M13 37l-8 8" stroke="#6a3a8a" stroke-width="3.6" stroke-linecap="round" stroke-dasharray="2 1.5"/><ellipse cx="15" cy="35" rx="6" ry="3" fill="#c8a040" ${st} stroke-width="1.6" transform="rotate(45 15 35)"/><path d="M30 26q6 2 8 8M34 20q6 1 8 6" stroke="#b070e0" stroke-width="1.8" fill="none" stroke-linecap="round" opacity=".8"/>`);
   e('raptor_claws', () => `<g ${st} fill="#e0d0a8"><path d="M8 38q2-20 14-30-4 16-6 32z"/><path d="M18 40q2-20 14-30-4 16-6 32z"/><path d="M28 42q2-18 14-28-4 14-6 30z"/></g><path d="M6 40h36" stroke="#c8e04a" stroke-width="3"/>`);
-  e('fossil_mask', () => `<path d="M8 20q0-14 16-14t16 14l-4 14-6 6H18l-6-6z" fill="#e0d0a8" ${st}/><circle cx="17" cy="20" r="4" fill="#1a1020"/><circle cx="31" cy="20" r="4" fill="#1a1020"/><path d="M16 34l3 4 3-4 3 4 3-4 3 4" stroke="${K}" stroke-width="1.6" fill="none"/>`);
+  // the Stone Mask: grey stone face, heavy brow, bone spikes folded above
+  e('fossil_mask', () => [[14, 12, -30], [20, 9, -12], [28, 9, 12], [34, 12, 30]].map(([x, y, r]) => `<path transform="rotate(${r} ${x} ${y + 6})" d="M${x - 1.6} ${y + 6}l1.6-9 1.6 9z" fill="#efe4c8" ${st} stroke-width="1.4"/>`).join('') + `<path d="M10 16q14-10 28 0 3 16-4 25-5 4-10 4t-10-4q-7-9-4-25z" fill="#a8a090" ${st}/><path d="M12 22q6-5 11 0M25 22q6-5 11 0" stroke="${K}" stroke-width="2" fill="none"/><path d="M15 25q3-2 6 0-3 3-6 0zM27 25q3-2 6 0-3 3-6 0z" fill="${K}"/><path d="M24 26v7" stroke="${K}" stroke-width="1.4" opacity=".5"/><path d="M17 36q7 4 14 0-7 2-14 0z" fill="#8a3a3a" ${st} stroke-width="1.4"/><path d="M14 30l2 2M34 30l-2 2" stroke="${K}" stroke-width="1.2" opacity=".4"/>`);
   e('amber_charm', () => `<path d="M24 6q14 8 12 22T24 44Q10 38 12 24T24 6z" fill="#e8a020" ${st}/>` + P.bone('#8a5a10').replace('<path', '<path transform="translate(12 12) scale(.5)"'));
   e('rain_lens', () => `<circle cx="24" cy="24" r="15" fill="#dff2ff" opacity=".9" ${st}/>` + P.drop('#9fc7e8').replace('<path', '<path transform="translate(12 10) scale(.5)"') + I.shine(18, 18, 3));
   e('frost_rounds', () => [12, 20, 28, 36].map(x => `<rect x="${x - 3}" y="12" width="6" height="24" rx="3" fill="#9fd0f0" ${st} stroke-width="1.6"/>`).join('') + `<path d="M6 38h36" stroke="#dff2ff" stroke-width="3"/>`);
@@ -338,15 +343,17 @@ SBR.MAT_GROUPS = [['generic', 'GENERIC'], ['special', 'SPECIAL'], ['detour', 'DE
 /* ---------------- Trinkets are gone: loot is now real gear, materials or money ---------------- */
 Object.assign(SBR.EQUIPMENT, {
   sandman_emerald: { slot: 'charm', family: 'coin', name: 'Sandman\'s Emerald', rarity: 'rare', stats: { luck: 4, res: 3 }, bonus: { crit: 0.03 }, price: 150, note: 'He tried to pay with it. Now it pays you back.' },
-  pocket_watch:    { slot: 'charm', family: 'device', name: 'Gold Pocket Watch', rarity: 'uncommon', stats: { ride: 2 }, bonus: { init: 3, crit: 0.03 }, price: 70, note: 'Engraved to someone called "R." Six seconds slow.' },
-  stage_medal:     { slot: 'charm', family: 'trophy', name: 'A Racer\'s Stage Medal', rarity: 'uncommon', stats: { ride: 3 }, bonus: { dodge: 0.04 }, price: 60, note: 'Pinned on at a finish line.' },
+  pocket_watch:    { slot: 'charm', family: 'device', name: 'Giorno\'s Ladybug Brooch', rarity: 'uncommon', stats: { ride: 2 }, bonus: { init: 3, crit: 0.03 }, price: 70, note: 'Gold Experience can make it a living ladybug. It is always first to move.' },
+  stage_medal:     { slot: 'charm', family: 'trophy', name: 'Rohan\'s G-Pen', rarity: 'uncommon', stats: { ride: 3 }, bonus: { dodge: 0.04 }, price: 60, note: 'Kishibe Rohan inks a page faster than you can blink. So does whoever holds his pen.' },
 });
 (() => {
   const I = SBR.icons, st = I.st;
   const gem = c => `<path d="M14 16h20l8 8-18 18L6 24z" fill="${c}" ${st}/><path d="M6 24h36M14 16l10 26 10-26" stroke="#1a1020" stroke-width="1.4" fill="none" opacity=".5"/>`;
   I.define('equip', 'sandman_emerald', () => gem('#3ac870'));
-  I.define('equip', 'pocket_watch', () => `<circle cx="24" cy="28" r="14" fill="#f2c14e" ${st}/><circle cx="24" cy="28" r="10" fill="#f6ecd8" ${st} stroke-width="1.4"/><path d="M24 28V21M24 28l5 3" stroke="#1a1020" stroke-width="2"/><path d="M20 10h8v4h-8z" fill="#f2c14e" ${st}/>`);
-  I.define('equip', 'stage_medal', () => `<path d="M16 4h6l2 12-6 0zM26 4h6l-2 12h-6z" fill="#c8323c" ${st}/><circle cx="24" cy="30" r="12" fill="#e8c070" ${st}/><text x="24" y="35" text-anchor="middle" font-family="Rye,serif" font-size="13" fill="#1a1020">1</text>`);
+  // Giorno's ladybug brooch
+  I.define('equip', 'pocket_watch', () => `<ellipse cx="24" cy="27" rx="15" ry="16" fill="#f2c14e" ${st}/><ellipse cx="24" cy="29" rx="10" ry="11" fill="#c8323c" ${st}/><path d="M24 18v22" stroke="#1a1020" stroke-width="1.8"/><path d="M17 17q7-6 14 0" fill="#1a1020" ${st} stroke-width="1.6"/><g fill="#1a1020"><circle cx="19" cy="26" r="2"/><circle cx="29" cy="26" r="2"/><circle cx="20" cy="34" r="1.6"/><circle cx="28" cy="34" r="1.6"/></g><path d="M20 12l-3-6M28 12l3-6" stroke="#1a1020" stroke-width="1.6"/>${I.shine(19, 23, 2)}`);
+  // Rohan's G-pen: holder, steel nib, a fresh blot of ink
+  I.define('equip', 'stage_medal', () => `<path d="M16 32L40 8" stroke="#1a1020" stroke-width="8" stroke-linecap="round"/><path d="M16 32L40 8" stroke="#3a6a4a" stroke-width="4.6" stroke-linecap="round"/><path d="M34 14l4-4" stroke="#f2c14e" stroke-width="2"/><path d="M18 28l4 4-12 10-2-2z" fill="#c8ccd8" ${st}/><path d="M8 40l6-5" stroke="#1a1020" stroke-width="1.2"/><path d="M6 46q-2-4 2-5 4 1 3 5z" fill="#1a1020"/>`);
 })();
 /** what an old trinket id turns into */
 SBR.TRINKET_AS = {

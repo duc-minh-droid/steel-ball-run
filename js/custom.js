@@ -267,7 +267,7 @@ Object.assign(SBR.TRINKETS, {
     choices: [
       { label: 'Let them rebuild you', ok: { text: 'You wake up three days later. Something in your chest ticks. Your arm has a gun in it. "German science," the surgeon says, "is the best in the world."', fx: g => { g.takePath('cyborg'); g.healAll(1); g.pace(-10); } } },
       { label: 'Just let them patch you up ($40)', cost: { money: 40 }, ok: { text: 'Morphine, stitches, and a lecture about hygiene. (Party heals 60%.)', fx: g => g.healAll(0.6) } },
-      { label: 'Steal their supplies while they sleep (LUCK)', check: { stat: 'luck', dc: 14 }, ok: { text: 'Bandages, steel, and a strange lamp. (3 Scrap Iron, 2 Bandages.)', fx: g => { g.mat('scrap', 3); g.item('bandage'); g.item('bandage'); } }, fail: { text: 'The surgeon wakes up with a pistol. "Undankbar."', fight: { enemies: ['soldier', 'soldier'] } } },
+      { label: 'Steal their supplies while they sleep (LUCK)', check: { stat: 'luck', dc: 14 }, ok: { text: 'Bandages, steel, and a strange lamp. (3 Cyborg Scrap, 2 Tonio’s Mineral Water.)', fx: g => { g.mat('scrap', 3); g.item('bandage'); g.item('bandage'); } }, fail: { text: 'The surgeon wakes up with a pistol. "Undankbar."', fight: { enemies: ['soldier', 'soldier'] } } },
     ] }, [
     { deed: 'Was rebuilt by German field surgeons.', rep: { president: -1 }, flag: 'cyborg' },
     { deed: 'Was patched up by German field surgeons.' },
@@ -348,63 +348,154 @@ Object.values(SBR.AREAS).forEach(A => {
 
 /* ---------------- 8. Character creator ---------------- */
 SBR.customUI = (() => {
-  const OPT = {
-    skin: ['#fbe0cc', '#f6d2b0', '#f0c8a0', '#e0b088', '#c8905a', '#a0683a', '#7a4a2a', '#5a3420'],
-    hair: ['#1a1020', '#3a2a1a', '#6a3a1a', '#a0602a', '#c8a060', '#f4d35e', '#e8e8e8', '#c8323c', '#5b3a8c', '#3a8c4a'],
-    hairStyle: ['short', 'shaggy', 'long', 'swept', 'curls', 'bob', 'bobbang', 'afro', 'verylong', 'bald', 'spiky', 'bowl'],
-    hat: [null, 'cowboy', 'bowler', 'tophat', 'bandana', 'cap', 'headband', 'jockey', 'porkpie', 'kepi', 'aviator', 'goggles', 'ribbon', 'veil', 'checker', 'helm', 'pickel', 'dome', 'johnny', 'gyro'],
-    color: ['#1a1020', '#3a2a1a', '#6a4a2a', '#8a1a2a', '#c8323c', '#e8742a', '#f2c14e', '#3a8c4a', '#3fb8a9', '#3b5bb5', '#5b3a8c', '#e8508a', '#e8d8b8', '#f6f4ee'],
-    eye: ['#3a6a9a', '#4aa3df', '#3a8c4a', '#6a3a1a', '#1a1020', '#8a3ac8', '#c8323c', '#f2c14e'],
-    extra: [null, 'mustache', 'beard', 'sideburns', 'scar', 'shades', 'monocle', 'scarf', 'feather', 'goldteeth', 'grin', 'tattoo', 'cross', 'mask'],
+  const SWATCH = {
+    skin: ['#fff0e4', '#fbe0cc', '#f6d2b0', '#f0c8a0', '#e0b088', '#c8905a', '#a0683a', '#7a4a2a', '#5a3420', '#9ab88a', '#c8c0e8'],
+    hair: ['#1a1020', '#3a2a1a', '#6a3a1a', '#a0602a', '#c86a2a', '#c8a060', '#f4d35e', '#e8e8e8', '#c8323c', '#e8508a', '#5b3a8c', '#2a3a8a', '#3fb8a9', '#3a8c4a'],
+    eye: ['#3a6a9a', '#4aa3df', '#3fb8a9', '#3a8c4a', '#6a3a1a', '#1a1020', '#8a3ac8', '#e8508a', '#c8323c', '#f2c14e', '#ffffff'],
+    lip: ['#b06060', '#d9607a', '#e0407a', '#c8506a', '#a0306a', '#8a4a3a', '#5a2a3a', '#e8742a', '#5b3a8c', '#3a8c4a'],
+    color: ['#1a1020', '#3a2a1a', '#6a4a2a', '#8a1a2a', '#c8323c', '#e8742a', '#f2c14e', '#3a8c4a', '#3fb8a9', '#9fc7e8', '#3b5bb5', '#5b3a8c', '#e8508a', '#8a8aa0', '#e8d8b8', '#f6f4ee'],
   };
+  const BGS = [['#e8742a', '#3a2a6a'], ['#6b5bd6', '#e8508a'], ['#3fb8a9', '#f2c14e'], ['#2a7a8a', '#8adf6a'], ['#1f2a6a', '#c8323c'], ['#f2c14e', '#1a1020'], ['#e8508a', '#6b5bd6'], ['#c8323c', '#e8b36a'], ['#1a1a1a', '#c8323c'], ['#9fc7e8', '#e8e0c0'], ['#3a6a3a', '#c8e04a'], ['#f09ac0', '#fff3c0'], ['#5a3a2a', '#e8c070'], ['#2a2a3a', '#8a9ab0']];
+  const o = s => s.split(',').map(x => { const [v, l] = x.split(':'); return [v === '-' ? null : v, l || v.replace(/^./, c => c.toUpperCase())]; });
+  // each part: tab, key, label, options [value, label], thumbnail crop, colour rows shown with it
+  const PARTS = [
+    { tab: 'face', key: 'face', label: 'Shape', opts: o('-:Classic,square,long,round,pointed,broad:Broad Jaw'), view: '18 22 64 64', pal: ['skin'] },
+    { tab: 'face', key: 'eyes', label: 'Eyes', opts: o('-:Classic,sharp,round:Big,sleepy,lashes:JoJo Lashes,narrow:Squint,glare,closed'), view: '28 38 44 34', pal: ['eye'] },
+    { tab: 'face', key: 'brows', label: 'Brows', opts: o('-:Classic,thick,thin,angry,worried,arched,bushy,scarred'), view: '28 36 44 32' },
+    { tab: 'face', key: 'nose', label: 'Nose', opts: o('-:Classic,button,hook,broad,pointed,none:Minimal'), view: '36 48 28 28', pal: ['skin'] },
+    { tab: 'face', key: 'mouth', label: 'Mouth', opts: o('-:Lips,smirk,smile,teeth:Grin,gritted,frown,flat:Stoic,shout,tongue:Cheeky,gogo:GO! GO!'), view: '36 62 28 24', pal: ['lip'] },
+    { tab: 'face', key: 'marks', label: 'Marks', opts: o('-:None,scar:Cheek X,eyescar:Eye Scar,freckles,blush,jojolines:Ink Lines,star:Star Mark,warpaint:War Paint,facetat:Tattoo,mole:Beauty Mark,stitches,tears'), view: '20 30 60 60' },
+    { tab: 'hair', key: 'hairStyle', label: 'Style', opts: o('short,shaggy,long,swept,curls,bob,bobbang:Bangs,afro,verylong:Very Long,bald,spiky,bowl,pompadour,braids,mohawk,flowing,ponytail,slicked:Slicked,dreads,gyrostyle:Zeppeli,topknot:Top Knot'), view: '2 0 96 110', pal: ['hair'], noHat: true },
+    { tab: 'hair', key: 'facial', label: 'Facial Hair', opts: o('-:Clean,stubble,mustache,handlebar,horseshoe,goatee,beard,fullbeard:Full Beard,chops:Mutton Chops,soulpatch:Soul Patch'), view: '24 46 52 54', pal: ['hair'] },
+    { tab: 'hat', key: 'hat', label: 'Headwear', opts: o('-:Bare,cowboy,stetson,fedora,gaucho,straw,sombrero,bowler,tophat:Top Hat,porkpie:Pork Pie,newsboy,beret,cap,kepi,pickel:Pickelhaube,coonskin,cavalier,turban,hood,bandana,headband,jockey,aviator,goggles,helm,dome,bonnet,veil,ribbon,checker,johnny:Johnny,gyro:Gyro'), view: '0 0 100 96', pal: ['hatColor', 'hat2'] },
+    { tab: 'acc', key: 'acc', label: 'Accessories', multi: 3, opts: o('earring:Hoops,dangle:Gem Drops,mask:Bandana Mask,eyepatch,glasses,shades,monocle,cigar,cigarette,straw:Wheat Straw,badge:Sheriff Star,bolo:Bolo Tie,scarf,kerchief,cross:Cross,beads,pendant,goggles:Neck Goggles,bowtie:Bow Tie,bandolier,medal,starpin:Star Pin,bandage,feather,flower:Rose'), view: '12 26 76 86', pal: ['accColor'] },
+    { tab: 'outfit', key: 'style', label: 'Cut', opts: o('-:Shirt,duster,poncho,vest,jockey:Silks,priest:Clergy,military,turtleneck'), view: '8 60 84 60', pal: ['outfit', 'outfit2'] },
+  ];
+  const PAL = { skin: ['Skin', 'skin'], hair: ['Hair', 'hair'], eye: ['Eyes', 'eye'], lip: ['Lips', 'lip'], hatColor: ['Hat', 'color'], hat2: ['Hat band', 'color'], accColor: ['Accessory', 'color'], outfit: ['Outfit', 'color'], outfit2: ['Trim', 'color'] };
+  const TABS = [['face', 'Face', '顔'], ['hair', 'Hair', '髪'], ['hat', 'Headwear', '帽'], ['acc', 'Accessories', '飾'], ['outfit', 'Outfit', '服'], ['colors', 'Colours', '色'], ['name', 'Name', '名']];
+  const LOOKS = [
+    ['Outlaw', { hat: 'cowboy', hatColor: '#3a2a1a', hat2: '#c8323c', acc: ['mask', 'bandolier'], facial: 'stubble', style: 'duster', outfit: '#6a4a2a', outfit2: '#e8d8b8', accColor: '#c8323c', eyes: 'sharp', brows: 'angry' }],
+    ['Gambler', { hat: 'fedora', hatColor: '#1a1020', hat2: '#c8323c', acc: ['cigar', 'bowtie'], facial: 'mustache', style: 'vest', outfit: '#1a1020', outfit2: '#f6f4ee', accColor: '#c8323c', eyes: 'sleepy', mouth: 'smirk' }],
+    ['Lawman', { hat: 'stetson', hatColor: '#e8d8b8', hat2: '#3a2a1a', acc: ['badge', 'kerchief'], facial: 'horseshoe', style: 'vest', outfit: '#3a2a1a', outfit2: '#e8d8b8', accColor: '#3b5bb5', brows: 'thick', mouth: 'flat' }],
+    ['Padre', { hat: null, hairStyle: 'slicked', acc: ['cross', 'glasses'], style: 'priest', outfit: '#1a1020', outfit2: '#f2c14e', eyes: 'closed', mouth: 'smile' }],
+    ['Jockey', { hat: 'jockey', hatColor: '#e8508a', hat2: '#f2c14e', acc: ['goggles'], style: 'jockey', outfit: '#e8508a', outfit2: '#f2c14e', eyes: 'round', mouth: 'teeth' }],
+    ['Dandy', { hat: null, hairStyle: 'pompadour', acc: ['starpin', 'earring', 'flower'], style: 'turtleneck', outfit: '#5b3a8c', outfit2: '#f2c14e', eyes: 'lashes', marks: 'jojolines', mouth: 'smirk', lip: '#a0306a' }],
+    ['Drifter', Object.assign({}, SBR.CUSTOM_DEFAULT.portrait, { skin: undefined, hair: undefined, eye: undefined })],
+  ];
+  const TITLES = ['Nobody from Nowhere', 'The Fastest Gun in Kansas', 'Stray of the Desert', 'Ex-Jockey, Ex-Con', 'Ripple in the Dust', 'Heir to Nothing', 'The Silent Rider', 'Bounty on Their Head', 'Last of the Line', 'The Gambler'];
+  const FIRST = ['Jesse', 'Calamity', 'Doc', 'Wyatt', 'Belle', 'Django', 'Rosa', 'Hank', 'Ezra', 'Luz', 'Silas', 'Nell', 'Cash', 'Dolores'], LAST = ['Wilde', 'Vargas', 'Blackwood', 'Steele', "O'Hara", 'Moreau', 'Cassidy', 'Kane', 'Duquesne', 'Ramírez'];
+  const OLD = { mustache: ['facial', 'mustache'], beard: ['facial', 'beard'], sideburns: ['facial', 'chops'], scar: ['marks', 'eyescar'], goldteeth: ['mouth', 'gogo'], grin: ['mouth', 'teeth'], tattoo: ['marks', 'facetat'], shades: ['acc'], monocle: ['acc'], scarf: ['acc'], feather: ['acc'], cross: ['acc'], mask: ['acc'] };
+  /** old saves used a single `extra`; move it onto the new parts so the creator can edit it */
+  const migrate = p => {
+    const m = p.extra && OLD[p.extra];
+    if (m) { if (m[0] === 'acc') p.acc = (p.acc || []).concat(p.extra).slice(-3); else if (!p[m[0]]) p[m[0]] = m[1]; p.extra = null; }
+    p.acc = (p.acc || []).slice(); if (!p.bg) p.bg = SBR.CUSTOM_DEFAULT.portrait.bg.slice();
+    return p;
+  };
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  // accessories that sit in the same place: taking one drops the others
+  const CLASH = [['glasses', 'shades', 'monocle', 'eyepatch'], ['cigar', 'cigarette', 'straw', 'mask'], ['scarf', 'kerchief'], ['cross', 'beads', 'pendant'], ['bolo', 'bowtie']];
+  const addAcc = (list, v, max = 3) => { const g = CLASH.find(c => c.includes(v)) || []; return list.filter(a => a === v || !g.includes(a)).filter(a => a !== v).concat(v).slice(-max); };
+  const vals = k => PARTS.find(x => x.key === k).opts.map(x => x[0]);
+  const randomPart = (p, k) => {
+    if (k === 'acc') { const n = pick([0, 1, 1, 2, 2, 3]); p.acc = []; SBR.util.shuffle(vals('acc').slice()).forEach(a => { if (p.acc.length < n && !p.acc.some(b => CLASH.some(c => c.includes(a) && c.includes(b)))) p.acc.push(a); }); return; }
+    if (k === 'facial' && Math.random() < 0.45) { p.facial = null; return; }
+    if (k === 'marks' && Math.random() < 0.5) { p.marks = null; return; }
+    p[k] = pick(vals(k));
+  };
+  const randomColors = p => Object.assign(p, { skin: pick(SWATCH.skin.slice(0, 9)), hair: pick(SWATCH.hair), eye: pick(SWATCH.eye), lip: pick(SWATCH.lip), hatColor: pick(SWATCH.color), hat2: pick(SWATCH.color), outfit: pick(SWATCH.color), outfit2: pick(SWATCH.color), accColor: pick(SWATCH.color), bg: pick(BGS).slice() });
+  const randomPortrait = () => { const p = randomColors({}); PARTS.forEach(x => randomPart(p, x.key)); return p; };
+  const thumb = (p, view, noHat) => SBR.art.portrait('custom', { override: Object.assign({}, p, noHat ? { hat: null } : {}) }).replace('viewBox="0 0 100 120"', `viewBox="${view}" preserveAspectRatio="xMidYMid slice"`);
+
   function creator(onDone) {
     const el = SBR.util.el, ui = SBR.ui;
     const cur = SBR.customRider();
-    const p = cur.portrait;
+    const p = migrate(cur.portrait);
+    let tab = 'face', sub = 'face';
     const box = el('div', { class: 'creator' });
-    const render = () => {
-      box.innerHTML = '';
-      SBR.art.addPortrait({ custom: p });
-      const prev = el('div', { class: 'cr-prev', html: SBR.art.portrait('custom') });
-      const form = el('div', { class: 'cr-form' });
-      const name = el('input', { type: 'text', maxlength: 24, value: cur.name, placeholder: 'Name' });
-      const title = el('input', { type: 'text', maxlength: 32, value: cur.title, placeholder: 'Title' });
-      name.oninput = () => { cur.name = name.value; }; title.oninput = () => { cur.title = title.value; };
-      form.append(el('label', { class: 'cr-row' }, el('span', {}, 'NAME'), name), el('label', { class: 'cr-row' }, el('span', {}, 'TITLE'), title));
-      const swatch = (label, get, set, list) => {
-        const row = el('div', { class: 'cr-row' }, el('span', {}, label));
-        const sw = el('div', { class: 'cr-sw' });
-        list.forEach(c => { const b = el('button', { class: 'cr-dot' + (get() === c ? ' on' : ''), style: { background: c }, 'aria-label': label + ' ' + c }); b.onclick = () => { set(c); SBR.audio.play('click'); render(); }; sw.appendChild(b); });
-        row.appendChild(sw); form.appendChild(row);
-      };
-      const cycle = (label, key, list) => {
-        const i = Math.max(0, list.indexOf(p[key]));
-        const row = el('div', { class: 'cr-row' }, el('span', {}, label));
-        const mk = d => { const b = el('button', { class: 'cr-arrow' }, d < 0 ? '◂' : '▸'); b.onclick = () => { p[key] = list[(i + d + list.length) % list.length]; SBR.audio.play('click'); render(); }; return b; };
-        row.append(mk(-1), el('b', { class: 'cr-val' }, p[key] || 'none'), mk(1));
-        form.appendChild(row);
-      };
-      swatch('SKIN', () => p.skin, v => { p.skin = v; }, OPT.skin);
-      cycle('HAIR', 'hairStyle', OPT.hairStyle);
-      swatch('HAIR COLOUR', () => p.hair, v => { p.hair = v; }, OPT.hair);
-      swatch('EYES', () => p.eye, v => { p.eye = v; }, OPT.eye);
-      cycle('HAT', 'hat', OPT.hat);
-      swatch('HAT COLOUR', () => p.hatColor, v => { p.hatColor = v; }, OPT.color);
-      swatch('OUTFIT', () => p.outfit, v => { p.outfit = v; }, OPT.color);
-      swatch('TRIM', () => p.outfit2, v => { p.outfit2 = v; p.hat2 = v; }, OPT.color);
-      cycle('DETAIL', 'extra', OPT.extra);
-      swatch('BACKDROP', () => p.bg[0], v => { p.bg = [v, p.bg[1]]; }, OPT.color);
-      swatch('BACKDROP 2', () => p.bg[1], v => { p.bg = [p.bg[0], v]; }, OPT.color);
-      const pick = a => a[Math.floor(Math.random() * a.length)];
-      const foot = el('div', { class: 'cr-foot' });
-      foot.append(ui.btn('Randomise', () => { Object.assign(p, { skin: pick(OPT.skin), hair: pick(OPT.hair), hairStyle: pick(OPT.hairStyle), hat: pick(OPT.hat), hatColor: pick(OPT.color), outfit: pick(OPT.color), outfit2: pick(OPT.color), eye: pick(OPT.eye), extra: pick(OPT.extra), bg: [pick(OPT.color), pick(OPT.color)] }); p.hat2 = p.outfit2; render(); }, 'btn-ghost'),
-        ui.btn('Save rider ▸', () => { SBR.meta.custom = { name: (cur.name || '').trim() || SBR.CUSTOM_DEFAULT.name, title: (cur.title || '').trim() || SBR.CUSTOM_DEFAULT.title, portrait: p }; SBR.saveMeta(); SBR.applyCustom(); SBR.audio.play('select'); ui.closeModal(w); if (onDone) onDone(); }, 'btn-primary'));
-      box.append(el('div', { class: 'cr-main' }, prev, form), foot);
+    const stage = el('div', { class: 'cr-stage' }), side = el('div', { class: 'cr-side' });
+    const prev = el('div', { class: 'cr-prev' }), plate = el('div', { class: 'cr-plate' });
+    const click = () => SBR.audio.play('click');
+    const drawPrev = () => { SBR.art.addPortrait({ custom: p }); prev.innerHTML = SBR.art.portrait('custom'); drawPlate(); };
+    const drawPlate = () => { plate.innerHTML = ''; plate.append(el('b', {}, (cur.name || '').trim() || SBR.CUSTOM_DEFAULT.name), el('i', {}, (cur.title || '').trim() || SBR.CUSTOM_DEFAULT.title)); };
+    const update = () => { drawPrev(); drawSide(); };
+    const palRow = k => {
+      const [label, list] = PAL[k];
+      const row = el('div', { class: 'cr-pal' }, el('span', {}, label));
+      const sw = el('div', { class: 'cr-sw' });
+      SWATCH[list].forEach(c => { const b = el('button', { class: 'cr-dot' + ((p[k] || '').toLowerCase() === c ? ' on' : ''), style: { background: c }, title: label + ' ' + c, 'aria-label': label + ' ' + c }); b.onclick = () => { p[k] = c; click(); update(); }; sw.appendChild(b); });
+      row.appendChild(sw); return row;
     };
-    render();
-    const w = SBR.ui.modal(box, { title: 'Create Your Rider', size: 'wide', onClose: () => { SBR.applyCustom(); } });
+    const grid = part => {
+      const g = el('div', { class: 'cr-grid' + (part.key === 'hat' || part.key === 'hairStyle' || part.key === 'acc' ? ' big' : '') });
+      const chosen = part.multi ? p.acc : null;
+      part.opts.forEach(([v, label]) => {
+        const on = part.multi ? chosen.includes(v) : (p[part.key] || null) === v || (part.key === 'hairStyle' && !p.hairStyle && v === 'short');
+        const tp = Object.assign({}, p, part.multi ? { acc: [v] } : { [part.key]: v });
+        const t = el('button', { class: 'cr-tile' + (on ? ' on' : ''), title: label, 'aria-pressed': on ? 'true' : 'false' },
+          el('div', { class: 'cr-th', html: thumb(tp, part.view, part.tab === 'face' || part.tab === 'hair') }), el('span', {}, label));
+        if (part.multi && on) t.appendChild(el('em', {}, String(chosen.indexOf(v) + 1)));
+        t.onclick = () => {
+          if (part.multi) { p.acc = on ? chosen.filter(a => a !== v) : addAcc(chosen, v, part.multi); }
+          else p[part.key] = v;
+          click(); update();
+        };
+        g.appendChild(t);
+      });
+      return g;
+    };
+    const drawSide = () => {
+      const keep = side.querySelector('.cr-panel'), top = keep ? keep.scrollTop : 0;
+      side.innerHTML = '';
+      const tabs = el('div', { class: 'cr-tabs', role: 'tablist' });
+      TABS.forEach(([id, label, kj]) => { const b = el('button', { class: 'cr-tab' + (tab === id ? ' on' : ''), role: 'tab', 'aria-selected': tab === id ? 'true' : 'false', html: `<i>${kj}</i><span>${label}</span>` }); b.onclick = () => { if (tab === id) return; tab = id; const f = PARTS.find(x => x.tab === id); sub = f ? f.key : null; click(); drawSide(); side.querySelector('.cr-panel').scrollTop = 0; }; tabs.appendChild(b); });
+      side.appendChild(tabs);
+      const parts = PARTS.filter(x => x.tab === tab);
+      const panel = el('div', { class: 'cr-panel' });
+      if (parts.length) {
+        const part = parts.find(x => x.key === sub) || parts[0];
+        const head = el('div', { class: 'cr-head' });
+        if (parts.length > 1) { const subs = el('div', { class: 'cr-subs' }); parts.forEach(x => { const b = el('button', { class: 'cr-sub' + (x === part ? ' on' : '') }, x.label); b.onclick = () => { sub = x.key; click(); drawSide(); side.querySelector('.cr-panel').scrollTop = 0; }; subs.appendChild(b); }); head.appendChild(subs); }
+        else head.appendChild(el('div', { class: 'cr-h' }, part.label + (part.multi ? ` · pick up to ${part.multi}` : '')));
+        const dice = el('button', { class: 'cr-dice', title: 'Shuffle ' + part.label }, '⚄ Shuffle');
+        dice.onclick = () => { randomPart(p, part.key); click(); update(); };
+        head.appendChild(dice);
+        if (part.multi) { const clr = el('button', { class: 'cr-dice' }, `✕ Clear (${p.acc.length}/${part.multi})`); clr.onclick = () => { p.acc = []; click(); update(); }; head.appendChild(clr); }
+        panel.appendChild(head);
+        (part.pal || []).forEach(k => panel.appendChild(palRow(k)));
+        panel.appendChild(grid(part));
+      } else if (tab === 'colors') {
+        Object.keys(PAL).forEach(k => panel.appendChild(palRow(k)));
+        panel.appendChild(el('div', { class: 'cr-h' }, 'Backdrop'));
+        const bgs = el('div', { class: 'cr-bgs' });
+        BGS.forEach(([a, b]) => { const on = p.bg[0] === a && p.bg[1] === b; const t = el('button', { class: 'cr-bg' + (on ? ' on' : ''), style: { background: `linear-gradient(135deg, ${a} 50%, ${b} 50%)` }, 'aria-label': 'Backdrop ' + a + ' ' + b }); t.onclick = () => { p.bg = [a, b]; click(); update(); }; bgs.appendChild(t); });
+        panel.appendChild(bgs);
+        [0, 1].forEach(i => { const row = el('div', { class: 'cr-pal' }, el('span', {}, i ? 'Backdrop 2' : 'Backdrop 1')); const sw = el('div', { class: 'cr-sw' }); SWATCH.color.concat(['#6b5bd6', '#2a7a8a']).forEach(c => { const b = el('button', { class: 'cr-dot' + (p.bg[i] === c ? ' on' : ''), style: { background: c }, 'aria-label': 'Backdrop ' + c }); b.onclick = () => { p.bg = i ? [p.bg[0], c] : [c, p.bg[1]]; click(); update(); }; sw.appendChild(b); }); row.appendChild(sw); panel.appendChild(row); });
+      } else {
+        const name = el('input', { type: 'text', maxlength: 24, value: cur.name, placeholder: SBR.CUSTOM_DEFAULT.name });
+        const title = el('input', { type: 'text', maxlength: 32, value: cur.title, placeholder: SBR.CUSTOM_DEFAULT.title });
+        name.oninput = () => { cur.name = name.value; drawPlate(); }; title.oninput = () => { cur.title = title.value; drawPlate(); };
+        const dn = el('button', { class: 'cr-dice' }, '⚄ Random name'); dn.onclick = () => { cur.name = pick(FIRST) + ' ' + pick(LAST); name.value = cur.name; click(); drawPlate(); };
+        panel.append(el('label', { class: 'cr-field' }, el('span', {}, 'Name'), name), el('div', { class: 'cr-chips' }, dn),
+          el('label', { class: 'cr-field' }, el('span', {}, 'Title'), title));
+        const chips = el('div', { class: 'cr-chips' });
+        TITLES.forEach(t => { const b = el('button', { class: 'cr-chip' + (cur.title === t ? ' on' : '') }, t); b.onclick = () => { cur.title = t; title.value = t; click(); drawPlate(); chips.querySelectorAll('.cr-chip').forEach(c => c.classList.toggle('on', c === b)); }; chips.appendChild(b); });
+        panel.appendChild(chips);
+      }
+      side.appendChild(panel);
+      panel.scrollTop = top;
+    };
+    const acts = el('div', { class: 'cr-acts' },
+      ui.btn('⚄ Randomise', () => { Object.assign(p, randomPortrait()); click(); update(); }, 'btn-ghost btn-small'),
+      ui.btn('Save rider ▸', () => { SBR.meta.custom = { name: (cur.name || '').trim() || SBR.CUSTOM_DEFAULT.name, title: (cur.title || '').trim() || SBR.CUSTOM_DEFAULT.title, portrait: p }; SBR.saveMeta(); SBR.applyCustom(); SBR.audio.play('select'); ui.closeModal(w); if (onDone) onDone(); }, 'btn-primary'));
+    const looks = el('div', { class: 'cr-looks' }, el('span', {}, 'Quick looks'));
+    LOOKS.forEach(([n, L]) => { const b = el('button', { class: 'cr-chip' }, n); b.onclick = () => { PARTS.forEach(x => { p[x.key] = x.multi ? [] : x.key === 'hairStyle' ? p.hairStyle : null; }); Object.entries(L).forEach(([k, v]) => { if (v !== undefined) p[k] = Array.isArray(v) ? v.slice() : v; }); click(); update(); }; looks.appendChild(b); });
+    stage.append(el('div', { class: 'cr-frame' }, prev, plate), looks, acts);
+    box.append(stage, side);
+    drawPrev(); drawSide();
+    const w = SBR.ui.modal(box, { title: 'Create Your Rider', size: 'xl', cls: 'creator-modal', onClose: () => { SBR.applyCustom(); } });
   }
-  return { creator, OPT };
+  return { creator, PARTS, SWATCH, randomPortrait, migrate };
 })();
 
 /* ---------------- 9. Story: the custom rider's own opening ---------------- */

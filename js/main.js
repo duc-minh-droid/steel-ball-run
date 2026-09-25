@@ -54,7 +54,7 @@ SBR.game = (() => {
     if (a.unlockHorse && !SBR.meta.unlockedHorses.includes(a.unlockHorse)) { SBR.meta.unlockedHorses.push(a.unlockHorse); extra = `<br>Horse unlocked: <b>${SBR.HORSES[a.unlockHorse].name}</b>`; }
     SBR.meta.unlockedLeads = SBR.meta.unlockedLeads || ['johnny', 'gyro'];
     if (a.unlockLead && !SBR.meta.unlockedLeads.includes(a.unlockLead)) { SBR.meta.unlockedLeads.push(a.unlockLead); extra += `<br>Lead rider unlocked: <b>${SBR.CHARS[a.unlockLead].name}</b>`; }
-    if (a.unlockItem && !SBR.meta.unlockedItems.includes(a.unlockItem)) { SBR.meta.unlockedItems.push(a.unlockItem); extra = `<br>Starting item unlocked: <b>${SBR.EQUIPMENT[a.unlockItem].name}</b>`; }
+    if (a.unlockItem && !SBR.meta.unlockedItems.includes(a.unlockItem)) { SBR.meta.unlockedItems.push(a.unlockItem); extra += `<br>Starting item unlocked: <b>${SBR.EQUIPMENT[a.unlockItem].name}</b>`; }
     Object.entries(SBR.TECHNIQUES).forEach(([k, t]) => { if (t.unlock === id && !SBR.meta.unlockedTech.includes(k)) { SBR.meta.unlockedTech.push(k); extra += `<br>Technique available: <b>${t.name}</b>`; } });
     SBR.saveMeta();
     SBR.toast(`${art.icon('trophy', 22)} <div><b>Achievement: ${a.name}</b><br><small>${a.desc} · +${a.rp} RP</small>${extra}</div>`, 'achv');

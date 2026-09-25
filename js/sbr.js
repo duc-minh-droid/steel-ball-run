@@ -11,10 +11,12 @@ SBR.art.addPortrait({
   mackknife:  { skin: '#e8c8b0', hair: '#1a1020', hairStyle: 'swept', hat: 'bowler', hatColor: '#3a2a3a', hat2: '#c8323c', outfit: '#3a2a3a', outfit2: '#c8c8d8', eye: '#6a2a2a', lip: '#8a4a4a', bg: ['#3a2a3a', '#c8c8d8'], extra: 'scar' },
   dixie:      { skin: '#f6d0b8', hair: '#f2c14e', hairStyle: 'bob', hat: 'cowboy', hatColor: '#e8508a', hat2: '#fff', outfit: '#e8508a', outfit2: '#fff', eye: '#3a8ad0', lip: '#e0506a', bg: ['#f2c14e', '#e8508a'] },
   babayaga:   { skin: '#e0c8b0', hair: '#c8c8c8', hairStyle: 'verylong', hat: 'bandana', hatColor: '#6a2a4a', hat2: '#f2c14e', outfit: '#3a2a4a', outfit2: '#6a2a4a', eye: '#8a3a8a', lip: '#8a5a6a', bg: ['#1a1020', '#8a3a8a'], extra: 'grin' },
-  norisuke:   { skin: '#f0d0a8', hair: '#1a1020', hairStyle: 'short', hat: 'headband', hatColor: '#fff', hat2: '#c8323c', outfit: '#2a2a3a', outfit2: '#f6ecd8', eye: '#1a1020', lip: '#a06050', bg: ['#f6ecd8', '#c8323c'], extra: 'mustache' },
+  // Norisuke: small dark spectacles, short beard, cropped hair in patches, a jacket of chainmail-like patches
+  norisuke:   { skin: '#f0d0a8', hair: '#3a3a3a', hairStyle: 'patchy', hat: null, outfit: '#8a8a7a', outfit2: '#c8c0a0', eye: '#1a1020', lip: '#a06050', bg: ['#f6ecd8', '#c8323c'], facial: 'shortbeard', special: 'norisuke' },
   urmd:       { skin: '#8a5a3a', hair: '#1a1020', hairStyle: 'short', hat: 'bandana', hatColor: '#e8742a', hat2: '#f2c14e', outfit: '#c8323c', outfit2: '#f2c14e', eye: '#3a2a1a', lip: '#5a2a1a', bg: ['#e8742a', '#f2c14e'], extra: 'goldteeth' },
   roocatugo:  { skin: '#f0c8a8', hair: '#8a6a4a', hairStyle: 'bald', hat: 'aviator', hatColor: '#6a4a2a', hat2: '#c8c8d8', outfit: '#6a4a2a', outfit2: '#f2c14e', eye: '#3a3a3a', lip: '#a05a5a', bg: ['#8a8aa0', '#f2c14e'], extra: 'mustache' },
-  dothan:     { skin: '#f0c8a8', hair: '#6a4a2a', hairStyle: 'short', hat: 'cowboy', hatColor: '#8a6a4a', hat2: '#3a3a3a', outfit: '#6a5a4a', outfit2: '#c8a070', eye: '#3a3a3a', lip: '#a05a5a', bg: ['#c8a070', '#3a3a3a'], extra: 'shades' },
+  // Dot Han: shaved scalp with a narrow front mohawk and a ponytail, a cut-out band low on the forehead, yellow riding jacket
+  dothan:     { skin: '#d8a070', hair: '#8a7a6a', hairStyle: 'dothan', hat: 'dotband', hatColor: '#1a1020', hat2: '#e8742a', outfit: '#f2c14e', outfit2: '#d8502a', eye: '#3a2a1a', lip: '#8a4a3a', bg: ['#c8a070', '#3a3a3a'], face: 'broad', eyes: 'small', brows: 'thick', special: 'dothan' },
   scarlet:    { skin: '#fbe0cc', hair: '#c8a040', hairStyle: 'verylong', hat: 'ribbon', hatColor: '#c8323c', hat2: '#f2c14e', outfit: '#c8323c', outfit2: '#f6ecd8', eye: '#3a6a3a', lip: '#c8323c', bg: ['#c8323c', '#f6ecd8'] },
 });
 SBR.RIVALS.norisuke.name = 'Norisuke Higashikata';
@@ -60,7 +62,7 @@ Object.assign(SBR.RIVALS, {
     choices: [
       { label: 'Give an interview ($20 for the photographer)', cost: { money: 20 }, ok: { text: 'Your face is on the front page in three states. Somebody in Washington cuts it out and pins it to a wall.', fx: g => g.pace(4) } },
       { label: 'Talk to Lucy instead', ok: { text: '"Everyone says he\'s a fool," she says. "He isn\'t. He\'s just brave in a way that looks silly." She remembers your name.', fx: g => { g.npc('lucy', 'friend'); g.xp(10); } } },
-      { label: 'Pick the pockets of the crowd (LUCK)', check: { stat: 'luck', dc: 12 }, ok: { text: 'Wallets, a watch, a pencil. Nobody notices. (+$45, Gold Pocket Watch.)', fx: g => { g.money(45); g.trinket('pocketwatch'); } }, fail: { text: 'A reporter notices. So does a deputy.', fight: { enemies: ['outlaw', 'bandit'] } } },
+      { label: 'Pick the pockets of the crowd (LUCK)', check: { stat: 'luck', dc: 12 }, ok: { text: 'Wallets, a ladybug brooch, a pencil. Nobody notices. (+$45, Giorno\'s Ladybug Brooch.)', fx: g => { g.money(45); g.trinket('pocketwatch'); } }, fail: { text: 'A reporter notices. So does a deputy.', fight: { enemies: ['outlaw', 'bandit'] } } },
     ] }, [
     { deed: 'Gave an interview at Mr. Steel\'s press tent.', rep: { racers: 1 } },
     { deed: 'Spoke to Lucy Steel at the start line.', npc: { lucy: 'friend' } },
@@ -90,7 +92,7 @@ Object.assign(SBR.RIVALS, {
     text: 'Baron Roocatugo is sitting in his motor car in the middle of the desert. "There is nothing in the rules against it," he says. There is also nothing in the desert to put in the tank.',
     choices: [
       { label: 'Tow him to town (−8 pace)', ok: { text: 'He pays in gold coins and gives you his driving goggles as a souvenir. (+$70.)', fx: g => { g.pace(-8); g.money(70); } } },
-      { label: 'Strip the car for parts', ok: { text: 'He weeps as you take the brass. (4 Scrap Iron, 2 Leather.)', fx: g => { g.mat('scrap', 4); g.mat('leather', 2); } } },
+      { label: 'Strip the car for parts', ok: { text: 'He weeps as you take the brass. (4 Cyborg Scrap, 2 SPW Saddle Leather.)', fx: g => { g.mat('scrap', 4); g.mat('leather', 2); } } },
       { label: 'Sell him a packhorse', ok: { text: 'You sell him a packhorse at four times its value. He is delighted. (+$90.)', fx: g => g.money(90) } },
     ] }, [
     { deed: 'Towed Baron Roocatugo\'s car out of the desert.', rep: { racers: 1 } },

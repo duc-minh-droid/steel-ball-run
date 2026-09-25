@@ -20,14 +20,14 @@ SBR.EVENTS = [
     text: 'A saloon gambler flips cards without looking at them. A faint figure hangs over his shoulder, whispering. "My friend here reads every card in the deck. Bet your gear, cowboy — or bet your horse."',
     choices: [
       { label: 'Bet Slow Dancer\'s saddle for his silks (LUCK)', check: { stat: 'luck', dc: 14 }, ok: { text: 'Pocket aces. His Stand shrieks. He slides his racing silks across the table and storms out.', fx: g => g.gear('silks') }, fail: { text: 'He wins. You keep your saddle only by handing over supplies — and a night without sleep. (Johnny gains 1 Exhaustion, lose an item.)', fx: g => { g.exhaust('johnny', 1); g.loseItem(); } } },
-      { label: 'Spot what the Stand is doing (AIM)', check: { stat: 'aim', dc: 13 }, ok: { text: 'You shoot the mirror behind him. The Stand was reading reflections. The house hands you his lucky silver dollar to keep things quiet.', fx: g => g.gear('silver_dollar') }, fail: { text: 'You miss, and his hired guns stand up.', fight: { enemies: ['outlaw', 'outlaw'] } } },
+      { label: 'Spot what the Stand is doing (AIM)', check: { stat: 'aim', dc: 13 }, ok: { text: 'You shoot the mirror behind him. The Stand was reading reflections. The house hands you his lucky poker chip to keep things quiet.', fx: g => g.gear('silver_dollar') }, fail: { text: 'You miss, and his hired guns stand up.', fight: { enemies: ['outlaw', 'outlaw'] } } },
       { label: 'Call him a cheat and draw', ok: { text: 'Chairs scatter.', fight: { enemies: ['gunslingerboss', 'outlaw'], after: g => g.gear('colt_navy') } } },
     ] },
   { id: 'wounded', acts: [1, 2, 3, 4], type: 'event', title: 'Racer in the Ditch', blurb: 'A boy lies beside a horse with a broken leg.', icon: 'question', weight: 3, once: true, pace: -2, art: 'marco',
     text: 'He can\'t be older than fifteen. "My brother and I entered together — he rode ahead. Please... I just need to reach the next checkpoint."',
     choices: [
       { label: 'Put him on your horse and ride double (−12 pace)', ok: { text: 'You lose time, but get him to the checkpoint. "I\'ll tell my brother. We Blackwoods pay our debts."', fx: g => { g.pace(-12); g.flag('helpedRacer'); g.xp(20); } } },
-      { label: 'Give him your Canteen and a map', req: g => g.hasItem('canteen'), reqText: 'Needs a Canteen', ok: { text: 'He limps off toward the trail. Johnny watches him go, thinking about Nicholas. (Johnny +1 RESOLVE.)', fx: g => { g.useItem('canteen'); g.statUp('johnny', 'res', 1); g.flag('helpedRacer'); } } },
+      { label: 'Give him your Canteen and a map', req: g => g.hasItem('canteen'), reqText: 'Needs an SPW Canteen', ok: { text: 'He limps off toward the trail. Johnny watches him go, thinking about Nicholas. (Johnny +1 RESOLVE.)', fx: g => { g.useItem('canteen'); g.statUp('johnny', 'res', 1); g.flag('helpedRacer'); } } },
       { label: 'Take his saddlebag — this is a race', ok: { text: 'Leather, powder, a little cash. He screams a name after you: "My brother will find you!"', fx: g => { g.mat('leather', 2); g.mat('powder', 2); g.flag('robbed'); } } },
     ] },
   { id: 'spinschool', acts: [1, 2, 3, 4, 5], type: 'trainer', title: 'Zeppeli Practice', blurb: 'Gyro stops to "teach nothing" for an hour.', icon: 'train', weight: 2, pace: -6, art: 'gyro', cond: g => g.inParty('gyro'),
@@ -55,7 +55,7 @@ SBR.EVENTS = [
     choices: [
       { label: 'Read the orders inside', ok: { text: 'A list of racers to be "removed". Your name is on it. You memorise their route and avoid it. (+12 pace, and you take their spare wire.)', fx: g => { g.pace(12); g.mat('wire', 2); g.flag('agentOrders'); } } },
       { label: 'Wait in ambush for the agents', ok: { text: 'Three shapes return at dusk.', fight: { enemies: ['agent', 'agent', 'agent'], after: g => g.gear('plated_vest') } } },
-      { label: 'Burn the camp to slow them down', ok: { text: 'Smoke rises behind you. The agents won\'t be following anyone tonight — but you lost time. (−5 pace, gain Gunpowder ×2.)', fx: g => { g.pace(-5); g.mat('powder', 2); } } },
+      { label: 'Burn the camp to slow them down', ok: { text: 'Smoke rises behind you. The agents won\'t be following anyone tonight — but you lost time. (−5 pace, gain German Army Powder ×2.)', fx: g => { g.pace(-5); g.mat('powder', 2); } } },
     ] },
   { id: 'checkpoint', acts: ALL, type: 'event', title: 'The Press Tent', blurb: 'Reporters swarm the checkpoint.', icon: 'flag', weight: 2, pace: 4, art: 'steven',
     text: 'A reporter shoves a notebook at Johnny. "The wheelchair jockey! Our readers want to know — why are you still in this race?"',
@@ -69,7 +69,7 @@ SBR.EVENTS = [
     choices: [
       { label: 'Promise to find out what happened to him', ok: { text: 'She shoes Slow Dancer with steel from her father\'s forge. (+20 pace; flag: you owe her the truth.)', fx: g => { g.pace(20); g.flag('farrierPromise'); } } },
       { label: 'Buy iron-shod racing shoes ($40)', cost: { money: 40 }, ok: { text: 'Every horse in the party rides lighter. (+1 RIDING for everyone.)', fx: g => g.statUpAll('ride', 1) } },
-      { label: 'Trade her materials for a plated vest', req: g => g.hasMat('scrap', 3), reqText: 'Needs 3 Scrap Iron', ok: { text: 'She works fast. You leave with a vest that turns bullets.', fx: g => { g.spendMat('scrap', 3); g.gear('plated_vest'); } } },
+      { label: 'Trade her materials for a plated vest', req: g => g.hasMat('scrap', 3), reqText: 'Needs 3 Cyborg Scrap', ok: { text: 'She works fast. You leave with a vest that turns bullets.', fx: g => { g.spendMat('scrap', 3); g.gear('plated_vest'); } } },
     ] },
 
   /* ---------- Act I ---------- */
@@ -84,10 +84,10 @@ SBR.EVENTS = [
     text: 'A grinning farmer rides up, a tiny figure on his shoulder pointing in every direction. "A fortune teller said this is my lucky month! You look like lucky people too!"',
     choices: [
       { label: 'Invite him along', check: { stat: 'luck', dc: 11 }, ok: { text: '"Hey Ya says you\'re lucky! I\'m in!" POCOLOCO joins.', fx: g => { g.recruit('pocoloco'); g.achieve('poco'); } }, fail: { text: '"Hey Ya says... not today!" He rides off, but tosses you a lucky coin. (Gain Silver Dollar.)', fx: g => g.gear('silver_dollar') } },
-      { label: 'Share your food with him first', req: g => g.hasItem('jerky') || g.hasItem('canteen'), reqText: 'Needs Jerky or a Canteen', ok: { text: '"Food AND friends? Lucky, lucky!" POCOLOCO joins.', fx: g => { g.useItem(g.hasItem('jerky') ? 'jerky' : 'canteen'); g.recruit('pocoloco'); g.achieve('poco'); } } },
+      { label: 'Share your food with him first', req: g => g.hasItem('jerky') || g.hasItem('canteen'), reqText: 'Needs Kakyoin\'s Cherries or an SPW Canteen', ok: { text: '"Food AND friends? Lucky, lucky!" POCOLOCO joins.', fx: g => { g.useItem(g.hasItem('jerky') ? 'jerky' : 'canteen'); g.recruit('pocoloco'); g.achieve('poco'); } } },
       { label: 'Challenge him to a race for his horseshoe', check: { stat: 'ride', dc: 15 }, ok: { text: 'You beat luck itself. He hands over his lucky horseshoe, laughing.', fx: g => g.gear('horseshoe') }, fail: { text: 'His horse finds a shortcut nobody else could see. (−8 pace.)', fx: g => g.pace(-8) } },
     ] },
-  { id: 'dothan', acts: [1, 2], type: 'event', title: 'Rider from the Steppe', blurb: 'Dot Han, a race favourite, circles you on a stocky pony.', icon: 'horseshoe', weight: 2, once: true, pace: 0, art: 'gunslinger',
+  { id: 'dothan', acts: [1, 2], type: 'event', title: 'Rider from the Steppe', blurb: 'Dot Han, a race favourite, circles you on a stocky pony.', icon: 'horseshoe', weight: 2, once: true, pace: 0, art: 'dothan',
     text: '"You ride like a child with a broken toy. Race me to that rock. Lose, and you give me your horse\'s oats for a week."',
     choices: [
       { label: 'Race him (RIDING)', check: { stat: 'ride', dc: 13 }, ok: { text: 'By a nose! He grunts, impressed, and hands you his hand-drawn trail map.', fx: g => { g.gear('dotmap'); g.pace(8); } }, fail: { text: 'He\'s gone before you\'ve started. Slow Dancer is winded for days. (−10 pace, Johnny gains 1 Exhaustion.)', fx: g => { g.pace(-10); g.exhaust('johnny', 1); } } },
@@ -208,7 +208,7 @@ SBR.EVENTS = [
   { id: 'repaid', acts: [3, 4, 5], type: 'recruit', title: 'A Debt Repaid', blurb: 'Two brothers ride up beside you — one of them waving.', icon: 'recruit', weight: 4, once: true, pace: 6, art: 'marco', cond: g => g.hasFlag('helpedRacer'),
     text: 'The boy from the ditch — and his older brother, a racer with a hunter\'s scope on his rifle. "We Blackwoods pay our debts."',
     choices: [
-      { label: 'Accept the brother\'s rifle', ok: { text: 'A Winchester with a hunter\'s scope. (Gain Winchester \'73 and Hunter\'s Scope.)', fx: g => { g.gear('winchester'); g.gear('scope'); } } },
+      { label: 'Accept the brother\'s rifle', ok: { text: 'A Winchester, and a battered comic book in the case that seems to know what happens next. (Gain Winchester \'73 and Boingo\'s Prophecy Comic.)', fx: g => { g.gear('winchester'); g.gear('scope'); } } },
       { label: 'Ask them to scout ahead for you', ok: { text: 'They find a route no map shows. (+25 pace, and every later sprint starts with extra pace this act.)', fx: g => g.pace(25) } },
     ] },
   { id: 'scoutreturns', acts: [3, 4], type: 'event', title: 'The Scout Returns', blurb: 'The young scout from the spring rides out of the grass.', icon: 'recruit', weight: 4, once: true, pace: 5, art: 'sandman', cond: g => g.hasFlag('scoutFriend'),

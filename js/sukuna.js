@@ -5,7 +5,7 @@
 'use strict';
 
 /* ---------------- the character ---------------- */
-SBR.art.addPortrait({ sukuna: { skin: '#f0d6c8', hair: '#f09ab8', hairStyle: 'spiky', hat: null, outfit: '#f6f4ee', outfit2: '#1a1020', eye: '#c8323c', lip: '#8a3a4a', bg: ['#2a0610', '#c8323c'], extra: 'sukuna' } });
+SBR.art.addPortrait({ sukuna: { skin: '#f0d6c8', hair: '#f09ab8', hairStyle: 'sukuna', hat: null, outfit: '#f6f4ee', outfit2: '#1a1020', eye: '#c8323c', lip: '#8a3a4a', bg: ['#2a0610', '#c8323c'], extra: 'sukuna', eyes: 'sharp', brows: 'angry', mouth: 'smirk', special: 'sukuna' } });
 SBR.CHARS.sukuna = {
   name: 'Ryomen Sukuna', short: 'Sukuna', title: 'King of Curses', portrait: 'sukuna', color: '#c8323c',
   hp: 140, stats: { spin: 14, aim: 14, grit: 14, ride: 12, res: 14, luck: 12 }, growth: { spin: 3, aim: 3, grit: 3, res: 3, ride: 2, luck: 2 },

@@ -438,10 +438,10 @@ SBR.art.addPortrait({
   ev({ id: 'sd_emperor', acts: [1, 2], title: 'The Gambler\'s Second Gun', blurb: 'A card sharp at a canvas saloon, winning every hand.', icon: 'dice', art: 'sd_laramie',
     text: 'Laramie "Seven" Duvall is dealing faro to a table of broke racers. A man calls him a cheat and draws. Laramie\'s hand is empty. A second later it isn\'t: a gold revolver has grown out of his palm. The shot curves around a tent pole and knocks the other man\'s hat off. "Anyone else?"',
     choices: [
-      { label: 'Sit down and play him (LUCK)', check: { stat: 'luck', dc: 13 }, ok: { text: 'You beat him on the river card. He laughs, pays up, and throws in his lucky ring. "Nobody\'s done that since Laredo." (+$90, Gold Ring.)', fx: g => { g.money(90); g.gear('gold_ring'); } },
+      { label: 'Sit down and play him (LUCK)', check: { stat: 'luck', dc: 13 }, ok: { text: 'You beat him on the river card. He laughs, pays up, and throws in his lucky earrings. "Won \'em off a Frenchman. Nobody\'s beaten me since." (+$90, Polnareff\'s Earrings.)', fx: g => { g.money(90); g.gear('gold_ring'); } },
         fail: { text: 'You catch him bottom-dealing. He catches you catching him. The Emperor comes out.', fight: { enemies: ['sd_emperor', 'bandit'], elite: true, after: g => g.money(40) } } },
       { label: 'Call him out: a Stand user shouldn\'t fleece racers', ok: { text: '"Big words." He stands up and the gun grows back into his hand.', fight: { enemies: ['sd_emperor'], elite: true, after: g => { g.gear('silver_rounds'); g.money(30); } } } },
-      { label: 'Tip your hat and ask for advice', ok: { text: '"Two things. Never be Number One: Number Two lives longer. And bullets that turn corners are worth more than bullets that hit hard." He buys your coffee. (+15 XP, +2 Gunpowder.)', fx: g => { g.xp(15); g.mat('powder', 2); } } },
+      { label: 'Tip your hat and ask for advice', ok: { text: '"Two things. Never be Number One: Number Two lives longer. And bullets that turn corners are worth more than bullets that hit hard." He buys your coffee. (+15 XP, +2 German Army Powder.)', fx: g => { g.xp(15); g.mat('powder', 2); } } },
     ] }, [
     { deed: 'Beat a Stand user at faro.', rep: { racers: 1 }, fail: { deed: 'Got into a gunfight over a crooked faro game.', rep: { law: -1 } } },
     { deed: 'Stopped a Stand user from fleecing broke racers.', rep: { racers: 2, law: 1 } },
@@ -466,7 +466,7 @@ SBR.art.addPortrait({
   ev({ id: 'sd_hanged', acts: [2, 3], title: 'The Man in the Water Trough', blurb: 'A rider was stabbed. Nobody was standing near him.', icon: 'skull', art: 'sd_mirror',
     text: 'A racer lies beside a water trough with a knife wound in his back and nobody within twenty yards. In the still water, you see a bandaged figure with a blade in its wrist. It isn\'t there when you turn around. On the porch across the street, a drifter in a pork-pie hat raises his glass to you.',
     choices: [
-      { label: 'Kick over every trough and cover every window (GRIT)', check: { stat: 'grit', dc: 13 }, ok: { text: 'No reflections left. The drifter\'s Stand has nowhere to live, and he comes out swinging a plain knife. You take it off him easily. (+$60, Silver Spurs.)', fx: g => { g.money(60); g.gear('spurs'); } },
+      { label: 'Kick over every trough and cover every window (GRIT)', check: { stat: 'grit', dc: 13 }, ok: { text: 'No reflections left. The drifter\'s Stand has nowhere to live, and he comes out swinging a plain knife. You take it off him easily, and the spurs off his boots. (+$60, Hol Horse\'s Spurs.)', fx: g => { g.money(60); g.gear('spurs'); } },
         fail: { text: 'You miss a shop window. Something steps out of it.', fight: { enemies: ['sd_hanged'], elite: true, after: g => g.money(20) } } },
       { label: 'Go straight at the drifter', ok: { text: 'He smiles and looks at your eyes. At his own reflection in them.', fight: { enemies: ['sd_hanged', 'outlaw'], elite: true, after: g => { g.gear('starred_cap'); g.money(35); } } } },
       { label: 'Pay him to take the next train out ($35)', cost: { money: 35 }, ok: { text: 'He tips his hat. "Shortcut through the arroyo, since you\'re so polite. No water there, so no me." (+12 Pace.)', fx: g => g.pace(12) } },
@@ -554,7 +554,7 @@ SBR.art.addPortrait({
       { label: 'Ask him to teach you his casting (AIM)', check: { stat: 'aim', dc: 13 }, ok: { text: 'You learn to feel a heartbeat through a line. He gives you his old sheriff\'s hat to keep the snow off. (Party +1 AIM, Sheriff\'s Stetson.)', fx: g => { g.statUpAll('aim', 1); g.gear('sheriff_hat'); } },
         fail: { text: 'You hook your own ear. He laughs for a long time, then fries you a trout. (Party heals 25%.)', fx: g => g.healAll(0.25) } },
       { label: 'Stop him: that racer has a right to a trial', ok: { text: '"Then you can take his place on the hook."', fight: { enemies: ['sd_beachboy'], elite: true, after: g => { g.gear('snowshoes'); g.money(45); g.rep('law', 1); } } } },
-      { label: 'Buy a string of fish ($15)', cost: { money: 15 }, ok: { text: 'Hot trout on a frozen lake. Nothing has ever tasted better. (Party heals 40%, 2 Jerky.)', fx: g => { g.healAll(0.4); g.item('jerky'); g.item('jerky'); } } },
+      { label: 'Buy a string of fish ($15)', cost: { money: 15 }, ok: { text: 'Hot trout on a frozen lake, and a bag of cherries for later. Nothing has ever tasted better. (Party heals 40%, 2 Kakyoin\'s Cherries.)', fx: g => { g.healAll(0.4); g.item('jerky'); g.item('jerky'); } } },
     ] }, [
     { deed: 'Learned to fish through walls from an old Stand user.', npc: { sd_angler: 'friend' }, fail: { deed: 'Hooked your own ear at an ice-fishing lesson.' } },
     { deed: 'Fought a fisherman to give a thief a fair trial.', rep: { law: 2 } },
@@ -566,7 +566,7 @@ SBR.art.addPortrait({
     text: 'The trail goes over a hill, and the hill belongs to Sergeant Amos Pike, who deserted the 7th Cavalry and never stopped fighting. His army is real: two hundred riflemen the size of your thumb, a dozen tanks, three helicopters. Their bullets are small. There are a lot of them.',
     choices: [
       { label: 'Storm the hill', ok: { text: '"PLATOON! Enemy on the ridge! FIRE AT WILL!"', fight: { enemies: ['sd_badco', 'sd_toysoldier', 'sd_toysoldier'], elite: true, after: g => { g.gear('cavalry_boots'); g.money(50); } } } },
-      { label: 'Salute and report for inspection (RESOLVE)', check: { stat: 'res', dc: 14 }, ok: { text: 'You stand at attention for an hour while he inspects your kit. He drills you until sundown, then lets you pass with a real army canteen. (Party +1 AIM, 2 Canteens.)', fx: g => { g.statUpAll('aim', 1); g.item('canteen'); g.item('canteen'); } },
+      { label: 'Salute and report for inspection (RESOLVE)', check: { stat: 'res', dc: 14 }, ok: { text: 'You stand at attention for an hour while he inspects your kit. He drills you until sundown, then lets you pass with a real army canteen. (Party +1 AIM, 2 SPW Canteens.)', fx: g => { g.statUpAll('aim', 1); g.item('canteen'); g.item('canteen'); } },
         fail: { text: 'You laugh at the tiny tanks. That was a mistake.', fight: { enemies: ['sd_badco', 'sd_toysoldier', 'sd_toysoldier', 'sd_toysoldier'], elite: true, after: g => g.money(30) } } },
       { label: 'Join the soldier watching from the treeline', req: g => !g.hasAlly('wekapipo'), reqText: 'Wekapipo is already with you',
         ok: { text: 'A tall man in a Neapolitan coat has been watching the fort through a spyglass. "An army that small still has officers. Aim for him." He fights beside you, and afterwards he stays.', fight: { enemies: ['sd_badco', 'sd_toysoldier'], elite: true, after: g => { g.recruit('wekapipo'); g.money(30); } } } },
@@ -594,7 +594,7 @@ SBR.art.addPortrait({
   ev({ id: 'sd_pistols', acts: [4, 5], title: 'Six Little Bullets', blurb: 'A gunman is searching the road for something small.', icon: 'search', art: 'sd_sixgun',
     text: 'Dutch Rourke is on his knees in the road, turning over stones. "No. 5 is missing," he says. "Little fella, yellow, cries a lot." Five tiny creatures are riding on his hat brim, weeping. One of them is holding a bullet like a baby. "You seen him? And whatever you do, don\'t count past three."',
     choices: [
-      { label: 'Help find No. 5 (LUCK)', check: { stat: 'luck', dc: 13 }, ok: { text: 'You find him asleep in a spent cartridge. The Pistols cheer and pile onto your hat. Dutch presses a box of rounds on you. "Specially made." (Silver Rounds, +$40.)', fx: g => { g.gear('silver_rounds'); g.money(40); } },
+      { label: 'Help find No. 5 (LUCK)', check: { stat: 'luck', dc: 13 }, ok: { text: 'You find him asleep in a spent cartridge. The Pistols cheer and pile onto your hat. Dutch presses a box of rounds on you. "Specially made." (Sex Pistols Rounds, +$40.)', fx: g => { g.gear('silver_rounds'); g.money(40); } },
         fail: { text: 'You count them out loud. "One, two, three, four--" Every Pistol screams. Dutch draws.', fight: { enemies: ['sd_pistols'], elite: true, after: g => g.money(30) } } },
       { label: 'Challenge him to a duel', ok: { text: '"A duel? Boys, you hear that? We\'re dueling." The Pistols climb onto six bullets.', fight: { enemies: ['sd_pistols', 'outlaw'], elite: true, after: g => { g.gear('cavalry'); g.money(45); } } } },
       { label: 'Share your supper with the Pistols', ok: { text: 'They fight over the salami. No. 3 steals from No. 2. By the end they are asleep in your hat, and Dutch owes you. He teaches the whole party to shoot straighter. (Party +1 AIM, and one item is used up.)', fx: g => { g.statUpAll('aim', 1); g.loseItem(); } } },
