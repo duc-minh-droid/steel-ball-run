@@ -1,0 +1,83 @@
+/* art2: animated scene details, drawn by SBR.art.scene (js/art.js). Kept light: transforms and opacity only. */
+
+/* smoke from chimneys, trains, ships */
+.sx-puff { transform-box: fill-box; transform-origin: center; animation: sxPuff 5s linear infinite; opacity: 0; }
+@keyframes sxPuff {
+  0% { transform: translate(0, 0) scale(.35); opacity: 0; }
+  12% { opacity: .85; }
+  100% { transform: translate(38px, -110px) scale(1.9); opacity: 0; }
+}
+
+/* lighthouse beam sweep */
+.sx-beam { animation: sxBeam 5s ease-in-out infinite; }
+@keyframes sxBeam { 0%, 100% { transform: rotate(-6deg); opacity: .5; } 50% { transform: rotate(8deg); opacity: 1; } }
+
+/* stars, lamps, crystals and lit windows */
+.sx-star { transform-box: fill-box; transform-origin: center; animation: sxTwinkle 3.6s ease-in-out infinite; }
+@keyframes sxTwinkle { 0%, 100% { opacity: .25; transform: scale(.7); } 50% { opacity: 1; transform: scale(1.15); } }
+.sx-glow { animation: sxGlow 2.8s ease-in-out infinite; }
+@keyframes sxGlow { 0%, 100% { opacity: .75; } 50% { opacity: 1; } }
+.sx-win { animation: sxWin 7s steps(1) infinite; }
+@keyframes sxWin { 0%, 62%, 70%, 100% { opacity: 1; } 64%, 68% { opacity: .25; } }
+
+/* html overlays */
+.sx-over { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+
+/* a hawk or vulture circling on a thermal (seen from below: a flattened loop) */
+.sx-orbit { position: absolute; width: 0; height: 0; }
+.sx-soar { position: absolute; left: -28px; top: -11px; width: 56px; height: 22px; opacity: .8; animation: sxLoop 22s linear infinite; }
+.sx-orbit.slow .sx-soar { width: 42px; height: 17px; animation-duration: 30s; animation-direction: reverse; }
+.sx-soar svg { width: 100%; height: 100%; display: block; animation: sxBank 3s ease-in-out infinite alternate; }
+@keyframes sxLoop {
+  0% { transform: translate(140px, 0) scale(.8, .8); }
+  25% { transform: translate(0, 34px) scale(1, 1); }
+  50% { transform: translate(-140px, 0) scale(-.8, .8); }
+  75% { transform: translate(0, -34px) scale(-.6, .6); }
+  100% { transform: translate(140px, 0) scale(.8, .8); }
+}
+@keyframes sxBank { from { transform: scaleY(1) rotate(-4deg); } to { transform: scaleY(.7) rotate(4deg); } }
+
+/* seagulls over the Atlantic */
+.sx-gulls { position: absolute; inset: 0; }
+.sx-gull { position: absolute; width: 30px; height: 12px; left: -40px; animation: sxGull 20s linear infinite, sxFlap .45s ease-in-out infinite alternate; }
+.sx-gull.g0 { top: 22%; animation-delay: -3s, 0s; }
+.sx-gull.g1 { top: 30%; width: 22px; animation-delay: -11s, -.2s; animation-duration: 26s, .5s; }
+.sx-gull.g2 { top: 16%; width: 18px; animation-delay: -17s, -.1s; animation-duration: 31s, .4s; }
+@keyframes sxGull { from { transform: translate(0, 0); } 50% { transform: translate(55vw, -3vh); } to { transform: translate(115vw, 2vh); } }
+@keyframes sxFlap { from { scale: 1 1; } to { scale: 1 .55; } }
+
+/* heat shimmer over the Devil's Palm */
+.sx-haze { position: absolute; left: -10%; right: -10%; bottom: 8%; height: 26%; background: repeating-linear-gradient(0deg, rgba(255, 240, 200, 0) 0 7px, rgba(255, 240, 200, .10) 7px 9px); filter: blur(1px); animation: sxHaze 2.4s ease-in-out infinite alternate; }
+@keyframes sxHaze { from { transform: translateX(-8px) skewX(-2deg); opacity: .5; } to { transform: translateX(8px) skewX(2deg); opacity: .9; } }
+
+/* dripping water and dust in the silver mine */
+.sx-drips i { position: absolute; top: 12%; width: 3px; height: 7px; border-radius: 50% 50% 50% 50% / 30% 30% 70% 70%; background: #9fe0ff; box-shadow: 0 0 0 1px #1a1020; animation: sxDrip 3.5s ease-in infinite; }
+@keyframes sxDrip { 0% { transform: translateY(0) scale(.4); opacity: 0; } 20% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(62vh); opacity: .6; } }
+.sx-motes { position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(242, 193, 78, .5) 1px, transparent 1.6px), radial-gradient(circle, rgba(255, 255, 255, .35) 1px, transparent 1.4px); background-size: 130px 110px, 80px 70px; animation: sxMotes 18s linear infinite; opacity: .7; }
+@keyframes sxMotes { from { background-position: 0 0, 0 0; } to { background-position: 130px -110px, -80px -140px; } }
+
+/* wind-blown snow across the frozen lake */
+.sx-drift { position: absolute; left: 0; right: 0; bottom: 0; height: 30%; background-image: radial-gradient(ellipse 14px 2px, rgba(255, 255, 255, .8), transparent 70%), radial-gradient(ellipse 22px 2px, rgba(255, 255, 255, .55), transparent 70%); background-size: 160px 50px, 240px 70px; animation: sxDrift 2.6s linear infinite; }
+@keyframes sxDrift { from { background-position: 0 0, 0 20px; } to { background-position: -160px 10px, -240px 30px; } }
+
+/* encounter card illustrations (js/jojo.js cardArt) */
+.card-art .ca-anim { transform-box: fill-box; transform-origin: center; }
+.card-art .ca-spin { animation: caSpin 6s linear infinite; }
+.card-art .ca-flicker { animation: caFlicker .5s ease-in-out infinite alternate; }
+.card-art .ca-blink { animation: caBlink 3s steps(1) infinite; }
+.card-art .ca-pulse { animation: caPulse 2.4s ease-in-out infinite; }
+@keyframes caSpin { to { transform: rotate(360deg); } }
+@keyframes caFlicker { from { transform: scale(1, 1); } to { transform: scale(.92, 1.08); } }
+@keyframes caBlink { 0%, 90% { opacity: 1; } 92%, 96% { opacity: .1; } }
+@keyframes caPulse { 0%, 100% { transform: scale(.94); opacity: .45; } 50% { transform: scale(1.06); opacity: .8; } }
+
+/* battle backgrounds and reduced motion keep still */
+.scene.still .sx-soar, .scene.still .sx-gull { animation-play-state: paused; }
+body.reduced .sx-puff, body.reduced .sx-beam, body.reduced .sx-star, body.reduced .sx-glow, body.reduced .sx-win,
+body.reduced .sx-soar, body.reduced .sx-soar svg, body.reduced .sx-gull, body.reduced .sx-haze, body.reduced .sx-drips i,
+body.reduced .sx-motes, body.reduced .sx-drift, body.reduced .card-art .ca-anim { animation: none; }
+body.reduced .sx-puff { opacity: .5; }
+@media (prefers-reduced-motion: reduce) {
+  .sx-puff, .sx-beam, .sx-star, .sx-glow, .sx-win, .sx-soar, .sx-soar svg, .sx-gull, .sx-haze, .sx-drips i, .sx-motes, .sx-drift, .card-art .ca-anim { animation: none; }
+  .sx-puff { opacity: .5; }
+}

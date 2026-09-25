@@ -6,7 +6,87 @@ SBR.battle = (() => {
   let c = null, root = null, cards = {}, actionBox = null, orderBox = null, logBox = null, roundBox = null;
   let inputResolve = null, targeting = null, activeUid = null, keyHandler = null;
 
-  const SFX_WORDS = { ora: ['オラオラ', 'ORA ORA'], muda: ['無駄無駄', 'MUDA MUDA'], dora: ['ドラララ', 'DORARARA'], ari: ['アリアリ', 'ARI ARI'], nail: ['ズキュン', 'ZUKYUN'], ball: ['ギャルギャル', 'GYARU'], gun: ['BANG!', 'ドン'], claw: ['ザシュ', 'SLASH'], hit: ['ドゴォ', 'WHAM'], boom: ['ドグォン', 'KA-BOOM'], aoe: ['ドドド', 'DODODO'], golden: ['黄金', 'GOLDEN'], act4: ['ドララ', 'ORA ORA'], ballbreaker: ['ボール', 'BREAK'], spray: ['ブシュ', 'SPLRT'], rope: ['シュル', 'SNAP'] };
+  const SFX_WORDS = { ora: ['オラオラ', 'ORA ORA'], muda: ['無駄無駄', 'MUDA MUDA'], dora: ['ドラララ', 'DORARARA'], ari: ['アリアリ', 'ARI ARI'], nail: ['ズキュン', 'ZUKYUN'], ball: ['ギャルギャル', 'GYARU'], gun: ['BANG!', 'ドン'], claw: ['ザシュ', 'SLASH'], hit: ['ドゴォ', 'WHAM'], boom: ['ドグォン', 'KA-BOOM'], aoe: ['ドドド', 'DODODO'], golden: ['黄金', 'GOLDEN'], act4: ['ドララ', 'ORA ORA'], ballbreaker: ['ボール', 'BREAK'], spray: ['ブシュ', 'SPLRT'], rope: ['シュル', 'SNAP'],
+    fire: ['ゴオッ', 'FWOOSH'], firebind: ['ジュウ', 'SIZZLE'], ripple: ['コォォ', 'RIPPLE'], uv: ['コォォ', 'SHINE'], beam: ['ビシュ', 'ZHOOM'], timestop: ['ドォーン', 'THE WORLD'], timeskip: ['ドォン', 'SKIP'], rewind: ['カチッ', 'CLICK'],
+    zipper: ['ジィッ', 'ZZIP'], erase: ['ガオン', 'GAOON'], bomb: ['ドグォン', 'KA-BOOM'], prime: ['カチッ', 'CLICK'], emerald: ['バシバシ', 'SPLASH'], rapier: ['シュバ', 'SHING'], string: ['シュルル', 'THWIP'],
+    lasso: ['ヒュン', 'WHIP'], disc: ['ズズッ', 'SHLUK'], blood: ['ズギュン', 'SLURP'], ice: ['ピキッ', 'KRAK'], gatling: ['ダダダ', 'RAT-TAT'], restore: ['ドララ', 'FIXED'] };
+
+  /* ---------- VFX look & power tier for an 'act' event ---------- */
+  // a named look for abilities whose engine fx is shared with many others
+  const LOOKS = {
+    crossfire: 'fire', red_bind: 'firebind', hamon_overdrive: 'ripple', sunlight_yellow: 'ripple', aja_beam: 'uv', uv_lamp: 'uv', space_ripper: 'beam',
+    blood_drain: 'blood', flesh_blades: 'blood', vamp_freeze: 'ice', chest_gun: 'gatling', sp_the_world: 'timestop', time_erase: 'timeskip',
+    emerald_splash: 'emerald', emerald_barrier: 'emerald', rapier_flurry: 'rapier', afterimages: 'rapier', cd_restore: 'restore',
+    kq_bomb: 'prime', kq_sha: 'bomb', kq_btd: 'rewind', hand_erase: 'erase', hand_pull: 'erase', life_giver: 'life',
+    arrivederci: 'zipper', zipper_escape: 'zipper', string_net: 'string', unravel: 'string', mobius: 'string', disc_steal: 'disc', command_disc: 'disc',
+  };
+  // name keywords → look, only applied over the generic engine fx listed
+  const LOOK_WORDS = [
+    [/fire|flame|burn|gasoline|blaze|ignite/i, 'fire', ['hit', 'claw', 'aoe', 'boom', 'spray', 'debuff']],
+    [/ripple|hamon|sunlight|overdrive/i, 'ripple', ['hit', 'golden', 'claw']],
+    [/frost|frozen|ice\b|icicle|snow|freez/i, 'ice', ['hit', 'claw', 'aoe', 'gun', 'spray']],
+    [/lariat|lasso|hogtie|lasso/i, 'lasso', ['rope', 'hit']],
+    [/bomb|blasting|dynamite|detonat/i, 'bomb', ['boom', 'hit']],
+    [/gatling|machine gun|fan the hammer|volley|barrage/i, 'gatling', ['gun']],
+    [/blade|knife|sabre|saber|scalpel|rapier|bayonet|needle/i, 'rapier', ['hit', 'claw', 'aoe']],
+    [/blood|drain|vampir/i, 'blood', ['claw', 'hit']],
+    [/eyes|beam|laser/i, 'beam', ['gun', 'hit']],
+    [/disc/i, 'disc', ['debuff', 'hit']],
+  ];
+  const hash = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
+  let pathLvl = null;
+  const pathLevelOf = id => {
+    if (!pathLvl) { pathLvl = {}; Object.values(SBR.PATHS || {}).forEach(p => (p.abilities || []).forEach(a => { pathLvl[a.id] = Math.max(pathLvl[a.id] || 0, a.level || 0); })); }
+    return pathLvl[id] || 0;
+  };
+  function enemyAbility(u, e) {
+    const list = (u && (u.xAbilities || (u.def && u.def.abilities))) || [];
+    return list.find(a => a.name === e.name) || null;
+  }
+  function lookOf(e) {
+    if (e.abId && LOOKS[e.abId]) return LOOKS[e.abId];
+    const fx = e.fx || 'hit';
+    if (e.item || e.name === 'Brace') return fx;
+    for (const [re, look, over] of LOOK_WORDS) if (over.includes(fx) && re.test(e.name || '')) return look;
+    return fx;
+  }
+  /** 0 subtle (free basics) · 1 normal · 2 strong · 3 ultimate/cinematic */
+  function powerTier(u, e) {
+    if (!u || e.item || e.name === 'Brace') return 0;
+    const a = e.abId ? SBR.ABILITIES[e.abId] : null;
+    const cost = (e.cost != null ? e.cost : a && a.cost) || 0;
+    if (e.enemy) {
+      let t = cost >= 2 ? 2 : cost >= 1 ? 1 : 0;
+      if (u.tier === 'boss') t = cost >= 2 ? 3 : t + 1;
+      else if (u.tier === 'elite' && cost >= 1) t = Math.min(2, t + 1);
+      return Math.min(3, t);
+    }
+    const cd = (a && a.cd) || 0;
+    if (cost >= 3 || cd >= 4 || (e.abId && pathLevelOf(e.abId) >= 5)) return 3;
+    let t = cost >= 2 ? 2 : cost >= 1 ? 1 : 0;
+    if (e.abId && u.upgrades && u.upgrades[e.abId] > 1) t++;
+    if (a && (a.tags || []).includes('stand')) t = Math.max(t, 1);
+    if (e.pierce) t++;
+    return Math.min(2, t);
+  }
+  function dtypeOfAct(u, e) {
+    try {
+      if (e.item || e.name === 'Brace') return null;
+      const noDmg = ['buff', 'heal', 'debuff', 'scan', 'item'];
+      if (e.enemy) { const a = enemyAbility(u, e); if (!a || noDmg.includes(a.fx) || a.target === 'self' || a.target === 'ally') return null; return c.dtypeOf(u, a, {}, a.tags || []); }
+      const a = e.abId ? SBR.ABILITIES[e.abId] : null;
+      if (!a || !SBR.abilityDtype(a)) return null;
+      if (a.target === 'self' || a.target === 'ally' || a.target === 'allAllies' || a.target === 'allyDead') return null;
+      return c.dtypeOf(u, a, {}, a.tags || []);
+    } catch (err) { return null; }
+  }
+  function vfxQuake(strong) {
+    if (!SBR.settings.shake || SBR.settings.reducedMotion) return;
+    const n = document.getElementById('app'); if (!n) return;
+    n.classList.remove('vfx-quake'); void n.offsetWidth; n.classList.add('vfx-quake');
+    n.style.setProperty('--d', Math.round((strong ? 560 : 400) / (SBR.settings.speed || 1)) + 'ms');
+    setTimeout(() => n.classList.remove('vfx-quake'), 600 / (SBR.settings.speed || 1));
+  }
 
   /* ---------- render ---------- */
   function render(container, opts) {
@@ -180,10 +260,10 @@ SBR.battle = (() => {
     document.getElementById('fx-layer').appendChild(b);
     setTimeout(() => b.remove(), 900);
   }
-  function sfxWord(uid, kind) {
+  function sfxWord(uid, kind, tier = 1) {
     const w = SFX_WORDS[kind]; if (!w) return;
     const pt = center(uid);
-    ui.sfxText(Math.random() < 0.6 ? w[0] : w[1], pt.x + (Math.random() * 60 - 30), pt.y - 70, 'k-' + kind);
+    ui.sfxText(Math.random() < 0.6 ? w[0] : w[1], pt.x + (Math.random() * 60 - 30), pt.y - 70, 'k-' + kind + ' vfx-t' + tier);
   }
   function actBanner(u, name, enemy) {
     const b = el('div', { class: 'act-banner ' + (enemy ? 'enemy' : 'party') }, el('span', {}, name));
@@ -236,17 +316,29 @@ SBR.battle = (() => {
           await SBR.cutin({ portrait: ui.artFor(u.art), name: e.name, sub: sk ? `「${SBR.stands.name(sk)}」` : (u.fullName || u.name), color: e.enemy ? '#c8323c' : (u.def && u.def.color) || '#f2c14e', enemy: !!e.enemy, kanaText: e.enemy ? 'ゴゴゴゴ' : 'ドドドド' });
         }
         if (e.special && u) { const sk = SBR.stands.keyFor(u, e.abId); if (sk) await standFlash(e.uid, sk); }
-        const fx = e.fx;
+        const fx = lookOf(e);
+        const tier = powerTier(u, e);
+        const dtype = dtypeOfAct(u, e);
         if (['act4', 'ballbreaker'].includes(fx)) { SBR.audio.play('spin'); await bigFx(fx); }
-        const snd = { gun: 'gun', nail: 'gun', ball: 'spin', golden: 'spin', act4: 'spin', ballbreaker: 'spin', heal: 'heal', buff: 'buff', item: 'buff', debuff: 'debuff', boom: 'boom', claw: 'hit', hit: 'hit', aoe: 'hit', rope: 'whistle', sound: 'boom', rain: 'miss', magnet: 'block', grid: 'block', pin: 'click', spray: 'miss', scan: 'spin', wormhole: 'rewind' }[fx];
+        const snd = { gun: 'gun', nail: 'gun', ball: 'spin', golden: 'spin', act4: 'spin', ballbreaker: 'spin', heal: 'heal', buff: 'buff', item: 'buff', debuff: 'debuff', boom: 'boom', claw: 'hit', hit: 'hit', aoe: 'hit', rope: 'whistle', sound: 'boom', rain: 'miss', magnet: 'block', grid: 'block', pin: 'click', spray: 'miss', scan: 'spin', wormhole: 'rewind',
+          fire: 'boom', firebind: 'whistle', ripple: 'spin', uv: 'spin', beam: 'gun', timestop: 'timestop', timeskip: 'rewind', rewind: 'rewind', zipper: 'click', erase: 'rewind', bomb: 'click', prime: 'click', emerald: 'gun', rapier: 'hit', string: 'whistle', lasso: 'whistle', disc: 'debuff', blood: 'hit', ice: 'miss', gatling: 'gun', life: 'heal', restore: 'heal' }[fx];
         if (snd) SBR.audio.play(snd);
-        if (fx === 'wormhole' && card) { card.classList.add('warp'); setTimeout(() => card.classList.remove('warp'), 700); }
+        if ((fx === 'wormhole' || fx === 'erase') && card) { card.classList.add('warp'); setTimeout(() => card.classList.remove('warp'), 700); }
+        if (card && tier >= 2) { card.classList.remove('vfx-charge', 'vfx-charge3'); void card.offsetWidth; card.classList.add(tier >= 3 ? 'vfx-charge3' : 'vfx-charge'); card.style.setProperty('--vc', (dtype && SBR.DMG[dtype] ? SBR.DMG[dtype].color : (u && u.def && u.def.color) || '#f2c14e')); setTimeout(() => card.classList.remove('vfx-charge', 'vfx-charge3'), 1000 / SBR.settings.speed); }
         const tpts = e.targets.filter(t => cards[t]).slice(0, 5).map(center);
         const selfOnly = e.targets.length === 1 && e.targets[0] === e.uid;
-        await SBR.fx.play(fx || 'hit', center(e.uid), tpts.length ? tpts : [center(e.uid)], { enemy: e.enemy, self: selfOnly });
-        if (fx === 'boom' || fx === 'act4' || fx === 'ballbreaker') ui.shake(undefined, true);
-        if (e.targets[0] && e.targets[0] !== e.uid) sfxWord(e.targets[0], fx);
-        await sleep(120);
+        await SBR.fx.play(fx || 'hit', center(e.uid), tpts.length ? tpts : [center(e.uid)], {
+          enemy: e.enemy, self: selfOnly, tier, dtype, abId: e.abId,
+          lvl: (u && u.upgrades && e.abId && u.upgrades[e.abId]) || 1,
+          variant: hash(e.abId || e.name || fx), ucolor: u && u.def && u.def.color,
+          scanColor: e.abId === 'life_detector' ? '#e8742a' : e.abId === 'epitaph' ? '#c8323c' : undefined,
+          command: e.abId === 'command_disc',
+        });
+        if (tier >= 3) vfxQuake(true);
+        else if (fx === 'boom' || fx === 'bomb' || fx === 'act4' || fx === 'ballbreaker') ui.shake(undefined, true);
+        else if (tier === 2 && !selfOnly) ui.shake();
+        if (tier < 3 && e.targets[0] && e.targets[0] !== e.uid) sfxWord(e.targets[0], fx, tier);
+        await sleep(tier >= 3 ? 160 : 120);
         break;
       }
       case 'dmg': {
@@ -257,7 +349,7 @@ SBR.battle = (() => {
           if (dcol && card) card.style.setProperty('--dmgc', dcol);
           if (e.eff !== undefined && e.eff !== null && e.eff !== 1 && e.dtype !== 'true') floatText(e.uid, e.eff >= 1.2 ? 'WEAK!' : e.eff > 1 ? 'weak' : e.eff <= 0.6 ? 'RESIST' : 'resist', 'eff ' + (e.eff > 1 ? 'weak' : 'resist') + (e.eff >= 1.2 || e.eff <= 0.6 ? ' big' : ''));
           if (card) { card.classList.remove('hit'); void card.offsetWidth; card.classList.add('hit'); }
-          if (e.label) SBR.fx.dot(e.label, center(e.uid)); else SBR.fx.impact(center(e.uid), e.crit, e.blocked);
+          if (e.label) SBR.fx.dot(e.label, center(e.uid)); else SBR.fx.impact(center(e.uid), e.crit, e.blocked, e.dtype);
           if (e.crit) { floatText(e.uid, e.amount, 'dmg crit' + (e.dtype ? ' dt' : '')); floatText(e.uid, 'CRITICAL!', 'critword'); SBR.audio.play('crit'); ui.shake(undefined, true); }
           else if (e.blocked) { floatText(e.uid, e.amount, 'dmg blocked'); floatText(e.uid, 'BLOCK', 'block'); SBR.audio.play('block'); }
           else { floatText(e.uid, e.amount, 'dmg' + (e.label ? ' dot' : '') + (e.dtype ? ' dt' : '')); SBR.audio.play(e.dtype ? 'hit_' + e.dtype : 'hit'); if (u && u.side === 'party') ui.shake(); }

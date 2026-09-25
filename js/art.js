@@ -120,7 +120,52 @@ SBR.art = (() => {
     checker: (c, c2) => `<path d="M26 44 Q24 14 50 12 Q76 14 74 44 Z" fill="${c2}"/>${[0,1,2,3].map(r=>[0,1,2,3].map(k=>(r+k)%2?`<rect x="${30+k*10}" y="${16+r*7}" width="10" height="7" fill="${c}"/>`:'').join('')).join('')}`,
     bowler: (c) => `<path d="M30 36 Q30 14 50 14 Q70 14 70 36 Z" fill="${c}"/><path d="M20 38 Q50 30 80 38 Q50 44 20 38Z" fill="${c}"/>`,
     kepi: (c, c2) => `<path d="M30 38 L32 16 L68 20 L70 38 Z" fill="${c}"/><path d="M40 38 L60 38 L68 44 L36 44Z" fill="#1a1020"/><rect x="31" y="30" width="38" height="3" fill="${c2}"/>`,
+    // wider-brimmed and town hats
+    stetson: (c, c2) => `<path d="M31 38 Q28 8 42 8 Q50 14 58 8 Q72 8 69 38 Z" fill="${c}"/><path d="M44 12 Q50 20 56 12" fill="none" stroke="${INK}" stroke-width="1.6"/><path d="M4 38 Q16 26 30 34 Q50 42 70 34 Q84 26 96 38 Q74 52 50 47 Q26 52 4 38Z" fill="${c}"/><path d="M31 33 Q50 38 69 33 L69 37 Q50 42 31 37Z" fill="${c2}"/><circle cx="36" cy="35" r="2" fill="#d0d4e0" stroke="${INK}" stroke-width=".8"/>`,
+    sombrero: (c, c2) => `<path d="M36 36 Q36 6 50 6 Q64 6 64 36 Z" fill="${c}"/><path d="M0 40 Q10 28 30 34 Q50 40 70 34 Q90 28 100 40 Q80 54 50 50 Q20 54 0 40Z" fill="${c}"/><path d="M36 30 Q50 34 64 30 L64 35 Q50 39 36 35Z" fill="${c2}"/><path d="M8 42 Q50 56 92 42" fill="none" stroke="${c2}" stroke-width="2" stroke-dasharray="3 3"/>`,
+    newsboy: (c, c2) => `<path d="M26 42 Q20 18 50 16 Q82 18 76 40 Q66 34 50 36 Q34 36 26 42Z" fill="${c}"/><path d="M50 16 L46 38 M50 16 L62 36 M50 16 L34 38" stroke="${INK}" stroke-width="1" opacity=".5"/><path d="M34 40 Q50 34 66 40 L64 46 Q50 42 36 46Z" fill="${c2}"/><circle cx="50" cy="16" r="2.4" fill="${c}" stroke="${INK}" stroke-width="1"/>`,
+    beret: (c, c2) => `<path d="M24 40 Q18 22 48 18 Q80 16 78 34 Q70 42 50 38 Q34 38 24 40Z" fill="${c}"/><path d="M28 38 Q50 32 72 36" fill="none" stroke="${c2}" stroke-width="2.4"/><path d="M50 18 l2 -6" stroke="${INK}" stroke-width="2"/>`,
+    bonnet: (c, c2) => `<path d="M22 60 Q16 22 50 16 Q84 22 78 60 L70 58 Q72 32 50 30 Q28 32 30 58Z" fill="${c}"/><path d="M28 34 Q50 24 72 34" fill="none" stroke="${c2}" stroke-width="2"/><path d="M30 58 Q34 76 42 84 M70 58 Q66 76 58 84" fill="none" stroke="${c2}" stroke-width="2.4"/><path d="M58 84 l8 6 -6 2Z M42 84 l-8 6 6 2Z" fill="${c2}"/>`,
   };
+  /* accessories: a list on each config (`deco: ['bib:7', 'collar']`), drawn in three layers.
+     body = over the clothes, face = over the face, behind = behind the head. Unknown names are ignored. */
+  const decoParts = {
+    bib: (p, n = '') => ({ body: `<g><path d="M33 94 L28 88 M67 94 L72 88" stroke="${INK}" stroke-width="1.2"/><path d="M33 94 L67 94 L66 118 L34 118Z" fill="#f6f2e4" stroke="${INK}" stroke-width="1.8"/><path d="M34 99 H66" stroke="#c8323c" stroke-width="2.4"/><text x="50" y="98" text-anchor="middle" font-family="Oswald,sans-serif" font-weight="700" font-size="3" fill="${INK}">STEEL BALL RUN</text><text x="50" y="114" text-anchor="middle" font-family="Oswald,'Arial Narrow',sans-serif" font-weight="700" font-size="${String(n).length > 2 ? 11 : 14}" fill="${INK}">${n}</text><circle cx="36" cy="97" r="1" fill="#c8c8d8" stroke="${INK}" stroke-width=".5"/><circle cx="64" cy="97" r="1" fill="#c8c8d8" stroke="${INK}" stroke-width=".5"/><path d="M40 104 q-2 6 0 12 M60 104 q2 6 0 12" stroke="${INK}" stroke-width=".5" opacity=".35" fill="none"/></g>` }),
+    collar: (p, c) => ({ body: `<path d="M41 84 L37 96 L48 92 Z M59 84 L63 96 L52 92 Z" fill="${c || '#f6f2e4'}" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>` }),
+    necklace: (p, kind = 'cross') => {
+      const chain = `<path d="M42 82 Q44 94 50 97 Q56 94 58 82" fill="none" stroke="#c0a040" stroke-width="1" stroke-dasharray="1.2 .8"/>`;
+      const pend = kind === 'cross' ? `<path d="M50 96 V108 M45.5 100 H54.5" stroke="${INK}" stroke-width="3.6" stroke-linecap="round"/><path d="M50 96 V108 M45.5 100 H54.5" stroke="#f2c14e" stroke-width="1.8" stroke-linecap="round"/>`
+        : kind === 'beads' ? [[43, 88], [45, 92], [48, 95], [52, 95], [55, 92], [57, 88]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="1.6" fill="${['#3fb8a9', '#c8323c', '#f2c14e'][i % 3]}" stroke="${INK}" stroke-width=".6"/>`).join('') + `<path d="M50 97 l-3 8 3 3 3-3z" fill="#f6ecd8" stroke="${INK}" stroke-width="1"/>`
+        : `<circle cx="50" cy="100" r="3.4" fill="#3fb8a9" stroke="${INK}" stroke-width="1.2"/><circle cx="49" cy="99" r="1" fill="#fff" opacity=".8"/>`;
+      return { body: chain + pend };
+    },
+    badge: () => ({ body: `<g transform="translate(29 104)"><path d="M0 -7 l2 4.4 4.8.6 -3.5 3.3 .9 4.8 -4.2-2.4 -4.2 2.4 .9-4.8 -3.5-3.3 4.8-.6z" fill="#f2c14e" stroke="${INK}" stroke-width="1.2" stroke-linejoin="round"/><circle r="1.6" fill="none" stroke="${INK}" stroke-width=".6"/><ellipse cx="-1.6" cy="-3" rx=".9" ry="1.5" fill="#fff" opacity=".7"/></g>` }),
+    medal: () => ({ body: `<g transform="translate(30 100)"><path d="M-3 -4 h6 l-1 6 h-4z" fill="#c8323c" stroke="${INK}" stroke-width=".8"/><path d="M-1 -4 v6" stroke="#f6ecd8" stroke-width=".8"/><circle cy="5" r="3.2" fill="#c0a040" stroke="${INK}" stroke-width="1"/></g>` }),
+    bolo: () => ({ body: `<path d="M44 84 Q48 92 50 94 Q52 92 56 84" fill="none" stroke="${INK}" stroke-width="1.2"/><path d="M49 95 V110 M51 95 V110" stroke="${INK}" stroke-width="1"/><circle cx="49" cy="111" r="1.2" fill="#c0a040"/><circle cx="51" cy="111" r="1.2" fill="#c0a040"/><ellipse cx="50" cy="95" rx="3.6" ry="3" fill="#3fb8a9" stroke="${INK}" stroke-width="1.2"/><ellipse cx="50" cy="95" rx="3.6" ry="3" fill="none" stroke="#d0d4e0" stroke-width=".6"/>` }),
+    bowtie: (p, c) => ({ body: `<path d="M50 90 L42 86 L42 95Z M50 90 L58 86 L58 95Z" fill="${c || '#c8323c'}" stroke="${INK}" stroke-width="1.2" stroke-linejoin="round"/><rect x="48" y="88" width="4" height="4" rx="1" fill="${c || '#c8323c'}" stroke="${INK}" stroke-width="1"/>` }),
+    bandolier: () => ({ body: `<path d="M20 98 L74 120 L66 120 L16 102Z" fill="#6a4a2a" stroke="${INK}" stroke-width="1.6"/>${[0, 1, 2, 3, 4, 5].map(i => `<rect x="${24 + i * 8}" y="${96 + i * 3.3}" width="3" height="6" rx="1" fill="#f2c14e" stroke="${INK}" stroke-width=".7" transform="rotate(22 ${25 + i * 8} ${99 + i * 3.3})"/>`).join('')}` }),
+    freckles: () => ({ face: `<g fill="#a0603a" opacity=".6">${[[37, 61], [39.5, 63], [36, 64], [41, 60.5], [63, 61], [60.5, 63], [64, 64], [59, 60.5]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".7"/>`).join('')}</g>` }),
+    blush: () => ({ face: `<ellipse cx="38" cy="63" rx="4" ry="2" fill="#e8508a" opacity=".3"/><ellipse cx="62" cy="63" rx="4" ry="2" fill="#e8508a" opacity=".3"/><path d="M36 62.5 l1 -1.4 M38.4 62.8 l1 -1.4 M60.6 62.8 l1 -1.4 M63 62.5 l1 -1.4" stroke="#c8406a" stroke-width=".6" opacity=".7"/>` }),
+    earring: (p, c) => ({ face: `<circle cx="31.5" cy="64" r="2.2" fill="none" stroke="${INK}" stroke-width="1.8"/><circle cx="31.5" cy="64" r="2.2" fill="none" stroke="${c || '#f2c14e'}" stroke-width="1"/><circle cx="68.5" cy="64" r="2.2" fill="none" stroke="${INK}" stroke-width="1.8"/><circle cx="68.5" cy="64" r="2.2" fill="none" stroke="${c || '#f2c14e'}" stroke-width="1"/>` }),
+    bandage: () => ({ face: `<g transform="rotate(-20 61 64)"><rect x="55" y="62" width="12" height="5" rx="1.5" fill="#f6ecd8" stroke="${INK}" stroke-width="1"/><path d="M58 62v5M64 62v5" stroke="${INK}" stroke-width=".5" opacity=".5"/><rect x="59.5" y="63" width="3" height="3" fill="#e8c8b0"/></g>` }),
+    eyepatch: () => ({ face: `<path d="M30 46 L70 60" stroke="${INK}" stroke-width="1.6"/><path d="M35 52 Q41 48 47 52 L46 58 Q41 61 36 58Z" fill="${INK}"/><path d="M37 53 Q41 51 44 53" stroke="#fff" stroke-width=".7" opacity=".5" fill="none"/>` }),
+    stubble: p => ({ face: `<g fill="${p.hair === '#e8e8e8' ? '#8a8a8a' : INK}" opacity=".35">${[[40, 74], [43, 77], [46, 79], [50, 80], [54, 79], [57, 77], [60, 74], [42, 71], [58, 71], [48, 77], [52, 77], [38, 70], [62, 70]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".55"/>`).join('')}</g>` }),
+    cheekscar: () => ({ face: `<path d="M36 58 L42 66 M42 58 L37 65" stroke="#8a2a2a" stroke-width="1.2" stroke-linecap="round"/>` }),
+  };
+  const applyDeco = (p, layer) => (p.deco || []).map(d => { const [nm, arg] = String(d).split(':'); const f = decoParts[nm]; const r = f ? f(p, arg) : null; return r && r[layer] || ''; }).join('');
+  // which characters wear what (numbers on the bibs are decorative)
+  const DECO = {
+    johnny: ['bib:3', 'collar:#e8508a'], gyro: ['bib:7'], diego: ['bib:11', 'collar:#3fb8a9'], diegoworld: ['collar:#ffd84a'],
+    hotpants: ['necklace:cross'], pocoloco: ['bib:4'], sandman: ['bib:13'], mountaintim: ['bib:5', 'stubble'], whisperer: ['necklace:beads'],
+    oyecomova: ['bib:21'], laboomboom: ['bib:37'], wekapipo: ['collar:#c8c8d8', 'medal'], ringo: ['collar'], valentine: ['collar'],
+    lucy: ['blush', 'earring:#e8508a'], sugar: ['blush', 'freckles'], marshal: ['badge'], gunslinger: ['bandolier', 'stubble'], bandit: ['bandolier'],
+    thug: ['bandage', 'stubble'], bounty: ['eyepatch', 'stubble'], rodeo: ['freckles', 'bib:66'], trapper: ['stubble'], baron: ['bolo'],
+    steven: ['bowtie'], doctor: ['collar', 'bowtie:#1a1020'], agent: ['collar'], soldier: ['medal'], axl: ['collar'], coach: ['collar'],
+    nicholas: ['collar'], magent: ['stubble'], miner: ['cheekscar'], marco: ['freckles'], andre: ['cheekscar'], blackmore: ['collar:#6a8ad0'],
+  };
+  Object.entries(DECO).forEach(([k, d]) => { if (P[k] && !P[k].deco) P[k].deco = d; });
+  if (P.marco) Object.assign(P.marco, { hat: 'newsboy', hatColor: '#6a5a4a', hat2: '#3a2a1a' });
+  if (P.marshal) P.marshal.hat = 'stetson';
   const extras = {
     goldteeth: p => `<path d="M42 72 Q50 78 58 72 L57 75 Q50 79 43 75Z" fill="#f2c14e" stroke="${INK}" stroke-width="1"/><text x="50" y="76.2" font-size="3.2" text-anchor="middle" font-family="Oswald" font-weight="700" fill="${INK}">GO!GO!</text>`,
     dmark: () => '',
@@ -199,13 +244,13 @@ SBR.art = (() => {
         <path d="M38 88 L50 104 L62 88" fill="${p.outfit2}"/>
         <path d="M42 76 L42 90 L58 90 L58 76 Z" fill="${p.skin}"/>
       </g>
-      ${folds}${neckShade}
+      ${folds}${neckShade}${applyDeco(p, 'body')}
       <g stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round">
         <path d="${face}" fill="${p.skin}"/>
         <path d="M33 52 Q28 56 32 62" fill="${p.skin}"/><path d="M67 52 Q72 56 68 62" fill="${p.skin}"/>
       </g>
       ${hairStrands}${hatch}${eyes}${brows}${nose}${lips}
-      ${exFace ? ex : ''}
+      ${exFace ? ex : ''}${applyDeco(p, 'face')}
       <g stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round">
         ${hairFront[hs] ? hairFront[hs](p.hair) : ''}
       </g>
@@ -246,29 +291,61 @@ SBR.art = (() => {
     const coat = opts.coat || '#7a4a2a', mane = opts.mane || '#2a1a1a', wrap = opts.wrap || '#8a5ad0';
     const spots = opts.spots;
     const rider = opts.rider;
-    const leg = (x, y, cls, back) => `<g class="leg ${cls}" style="transform-origin:${x}px ${y}px"><path d="M${x-6} ${y} L${x+6} ${y} L${x+4} ${y+26} L${x+3} ${y+38} L${x-3} ${y+38} L${x-2} ${y+26}Z" fill="${back ? shade(coat) : coat}" stroke="${INK}" stroke-width="${SW}"/><rect x="${x-3.5}" y="${y+26}" width="7" height="8" fill="${wrap}" stroke="${INK}" stroke-width="1.4"/><path d="M${x-4} ${y+38} L${x+4} ${y+38} L${x+5} ${y+43} L${x-5} ${y+43}Z" fill="${INK}"/></g>`;
+    const leg = (x, y, cls, back) => `<g class="leg ${cls}" style="transform-origin:${x}px ${y}px"><path d="M${x-6} ${y} L${x+6} ${y} L${x+4} ${y+26} L${x+3} ${y+38} L${x-3} ${y+38} L${x-2} ${y+26}Z" fill="${back ? shade(coat) : coat}" stroke="${INK}" stroke-width="${SW}"/><path d="M${x+2} ${y+4} Q${x+4} ${y+14} ${x+2} ${y+22}" stroke="${INK}" stroke-width=".9" opacity=".4" fill="none"/><rect x="${x-3.5}" y="${y+26}" width="7" height="8" fill="${wrap}" stroke="${INK}" stroke-width="1.4"/><path d="M${x-3.5} ${y+29} h7 M${x-3.5} ${y+32} h7" stroke="${INK}" stroke-width=".6" opacity=".45"/><path d="M${x-4} ${y+38} L${x+4} ${y+38} L${x+5} ${y+43} L${x-5} ${y+43}Z" fill="${INK}"/><path d="M${x-3} ${y+40} h4" stroke="#8a8a9a" stroke-width="1"/></g>`;
+    const num = opts.num != null ? opts.num : ([...(coat + mane + wrap)].reduce((a, ch) => a + ch.charCodeAt(0), 0) % 89) + 1;
+    const light = (() => { const v = parseInt(coat.slice(1), 16); return ((v >> 16) + ((v >> 8) & 255) + (v & 255)) / 3 > 150; })();
+    const blanket = `<path d="M78 52 L114 50 L116 73 Q96 78 76 73Z" fill="${wrap}" stroke="${INK}" stroke-width="${SW}"/>
+        <path d="M78 55 L114 53 M77 70 Q96 74 115 70" stroke="#f6ecd8" stroke-width="1.6" fill="none"/>
+        <path d="M77 66 ${Array.from({ length: 9 }, (_, i) => `L${80 + i * 4} ${i % 2 ? 62 : 66}`).join(' ')} L115 66" stroke="#f6ecd8" stroke-width="1.4" fill="none" opacity=".85"/>
+        ${[0, 1, 2, 3, 4, 5, 6, 7].map(i => `<path d="M${79 + i * 4.8} ${74 + (i % 2)} v3" stroke="${INK}" stroke-width="1"/>`).join('')}
+        <rect x="77" y="61" width="14" height="11" rx="1.5" fill="#f6f2e4" stroke="${INK}" stroke-width="1.4"/><text x="84" y="70" font-size="8" text-anchor="middle" font-family="Oswald,'Arial Narrow',sans-serif" font-weight="700" fill="${INK}">${num}</text>`;
+    const tack = `<path d="M158 13 L167 37" stroke="${INK}" stroke-width="3.2" fill="none"/><path d="M158 13 L167 37" stroke="#6a3a1a" stroke-width="1.6" fill="none"/>
+        <path d="M155 17 L165 13" stroke="#6a3a1a" stroke-width="2.4"/><path d="M178 31 L173 43" stroke="${INK}" stroke-width="3.2"/><path d="M178 31 L173 43" stroke="#6a3a1a" stroke-width="1.6"/>
+        <path d="M167 37 L176 36" stroke="#6a3a1a" stroke-width="1.8"/><circle cx="176" cy="41" r="2.4" fill="#d0d4e0" stroke="${INK}" stroke-width="1.2"/><circle cx="165.5" cy="13.4" r="1.4" fill="#f2c14e" stroke="${INK}" stroke-width=".6"/>`;
+    const face = `<path d="M164 22 Q168 19 172 22" stroke="${INK}" stroke-width="1.4" fill="none"/><circle cx="168" cy="24" r="2.2" fill="${INK}"/><circle cx="167.3" cy="23.2" r=".8" fill="#fff"/>
+        <path d="M183 38 q2 -2 3 1" stroke="${INK}" stroke-width="1.4" fill="none"/><path d="M178 44 L186 43" stroke="${INK}" stroke-width="1" opacity=".6"/>
+        <path d="M156 30 Q162 34 172 32" stroke="${INK}" stroke-width=".9" opacity=".35" fill="none"/>`;
+    const muscle = `<g stroke="${INK}" stroke-width="1" opacity=".35" fill="none"><path d="M128 60 Q136 70 132 82"/><path d="M62 62 Q56 72 64 84"/><path d="M84 84 Q100 90 118 84"/></g>
+        <path d="M60 80 Q100 94 138 82 Q110 90 70 88Z" fill="${INK}" opacity=".14"/><path d="M60 58 Q90 48 124 52" stroke="#fff" stroke-width="2" opacity="${light ? '.35' : '.2'}" fill="none"/>`;
+    const maneStrands = `<g stroke="${INK}" stroke-width=".8" opacity=".45" fill="none"><path d="M148 22 Q142 32 138 42"/><path d="M144 26 Q138 38 132 50"/></g>`;
+    const tailStrands = `<g stroke="${INK}" stroke-width=".8" opacity=".45" fill="none"><path d="M48 64 Q30 70 26 92"/><path d="M44 68 Q34 76 32 88"/></g>`;
     const spotSvg = spots ? [[80,62],[96,70],[70,74],[110,58],[118,72],[88,78]].map(([x,y])=>`<ellipse cx="${x}" cy="${y}" rx="4" ry="3" fill="${spots}"/>`).join('') : '';
+    const saddleC = opts.saddle || '#c8a040';
     const riderSvg = rider ? `<g class="rider">
         <path class="cape" d="M100 30 Q70 20 50 30 Q60 36 56 44 Q76 40 98 44Z" fill="${rider.cape || '#3a8c4a'}" stroke="${INK}" stroke-width="${SW}"/>
+        <path d="M99 50 L95 70 L102 71 L107 53Z" fill="${rider.legs || '#3a2a3a'}" stroke="${INK}" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M93 67 L103 67 L106 74 L91 74Z" fill="#5a3a20" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/><circle cx="91" cy="72" r="2" fill="none" stroke="#d0d4e0" stroke-width="1.2"/>
         <path d="M94 50 Q92 34 102 28 Q112 30 112 44 L110 56 Z" fill="${rider.body || '#3b5bb5'}" stroke="${INK}" stroke-width="${SW}"/>
+        <path d="M102 30 L104 44 M97 46 L111 47" stroke="${INK}" stroke-width=".9" opacity=".45" fill="none"/>
         <circle cx="106" cy="22" r="7" fill="${rider.skin || '#f6d2b0'}" stroke="${INK}" stroke-width="${SW}"/>
-        <path d="M96 20 Q106 8 116 20 Z M92 20 L120 19" fill="${rider.hat || '#5b3a8c'}" stroke="${INK}" stroke-width="${SW}"/>
-        <path d="M104 40 L120 36 L134 42" stroke="${INK}" stroke-width="2" fill="none"/>
+        <path d="M110 22 l1.6 .4" stroke="${INK}" stroke-width="1.4" stroke-linecap="round"/>
+        <path d="M96 20 Q106 8 116 20 Z M92 20 L120 19" fill="${rider.hat || '#5b3a8c'}" stroke="${INK}" stroke-width="${SW}"/><path d="M97.5 18.4 Q106 16 114.5 18.2" stroke="${rider.band || '#f2c14e'}" stroke-width="1.6" fill="none"/>
+        <path d="M104 40 L120 36 L134 42" stroke="${INK}" stroke-width="2" fill="none"/><circle cx="134" cy="42" r="2.4" fill="${rider.skin || '#f6d2b0'}" stroke="${INK}" stroke-width="1.2"/>
       </g>` : '';
+    const reinPath = rider ? 'M176 41 Q156 58 134 42' : 'M176 41 Q150 62 110 50';
+    const reins = `<path d="${reinPath}" stroke="${INK}" stroke-width="2.6" fill="none"/><path d="${reinPath}" stroke="#8a5a30" stroke-width="1.2" fill="none"/>` +
+      (rider ? '' : `<path d="M104 62 V73" stroke="${INK}" stroke-width="2"/><path d="M99 78 h10 M100 78 q4 -8 8 0" stroke="${INK}" stroke-width="2.6" fill="none"/><path d="M100 78 q4 -8 8 0" stroke="#9aa0b0" stroke-width="1.1" fill="none"/>`);
     return `<svg class="horse-svg" viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <g class="horse-body">
         ${leg(68, 80, 'bl', true)}${leg(134, 80, 'fl', true)}
         <path class="tail" d="M52 60 Q34 56 22 70 Q14 88 24 104 Q28 86 38 78 Q46 70 56 68Z" fill="${mane}" stroke="${INK}" stroke-width="${SW}"/>
+        ${tailStrands}
         <path d="M50 62 Q56 46 100 48 Q130 46 142 54 Q152 70 140 84 Q110 92 70 88 Q46 84 50 62Z" fill="${coat}" stroke="${INK}" stroke-width="${SW}"/>
-        ${spotSvg}
+        ${spotSvg}${muscle}
         <path d="M128 58 Q136 30 150 20 L166 28 Q158 46 148 70Z" fill="${coat}" stroke="${INK}" stroke-width="${SW}"/>
         <path d="M150 18 Q160 10 170 14 L188 36 Q190 43 183 45 L168 41 Q160 37 157 32Z" fill="${coat}" stroke="${INK}" stroke-width="${SW}"/>
-        <path d="M155 15 L157 3 L163 13Z" fill="${coat}" stroke="${INK}" stroke-width="${SW}"/>
-        <circle cx="168" cy="24" r="2" fill="${INK}"/>
+        <path d="M155 15 L157 3 L163 13Z" fill="${coat}" stroke="${INK}" stroke-width="${SW}"/><path d="M157.6 7 L159 12" stroke="${INK}" stroke-width="1" opacity=".5"/>
+        ${face}
         <path d="M150 20 Q140 28 134 42 Q130 52 124 58 Q132 46 136 36 Q142 24 152 16Z" fill="${mane}" stroke="${INK}" stroke-width="${SW}"/>
-        <path d="M170 34 L182 40 M160 30 L176 44" stroke="${wrap}" stroke-width="2"/>
-        <path d="M84 50 Q96 44 108 50 L110 62 Q96 66 82 62Z" fill="${opts.saddle || '#c8a040'}" stroke="${INK}" stroke-width="${SW}"/>
+        <path d="M152 16 Q158 11 161 17 Q156 18 152 16Z" fill="${mane}" stroke="${INK}" stroke-width="1.4"/>
+        ${maneStrands}${tack}
+        ${blanket}
+        <path d="M100 73 Q102 82 100 90" stroke="${INK}" stroke-width="3.6" fill="none"/><path d="M100 73 Q102 82 100 90" stroke="#6a3a1a" stroke-width="2" fill="none"/>
+        <path d="M84 50 Q96 44 108 50 L110 62 Q96 66 82 62Z" fill="${saddleC}" stroke="${INK}" stroke-width="${SW}"/>
+        <path d="M82 51 Q79 43 86 44 L88 50Z M106 49 L109 41 Q113 40 112 44 L109 50Z" fill="${shade(saddleC)}" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M86 56 Q96 53 106 56" stroke="${INK}" stroke-width="1" stroke-dasharray="2 2" opacity=".55" fill="none"/>
         ${leg(60, 80, 'br')}${leg(126, 80, 'fr')}
+        ${reins}
         ${riderSvg}
       </g>
     </svg>`;
@@ -464,12 +541,110 @@ SBR.art = (() => {
     }
     return s;
   }
+  /* ---------- per-act scene extras: landmarks, props and small animated details (css/art2.css) ---------- */
+  const puffs = (x, y, n = 3, c = '#e8e0e0', dur = 5) => `<g class="sx-smoke">${Array.from({ length: n }, (_, i) => `<circle class="sx-puff" cx="${x}" cy="${y}" r="${9 + i * 2}" fill="${c}" stroke="${INK}" stroke-width="1.6" style="animation-duration:${dur}s;animation-delay:${(-i * dur / n).toFixed(2)}s"/>`).join('')}</g>`;
+  const saguaro = (x, base, h, c = '#4a8a3a') => `<g stroke="${INK}" stroke-width="3" stroke-linejoin="round"><path d="M${x - 10} ${base} V${base - h + 10} Q${x} ${base - h - 6} ${x + 10} ${base - h + 10} V${base}Z M${x - 10} ${base - h * 0.45} H${x - 30} Q${x - 38} ${base - h * 0.45} ${x - 38} ${base - h * 0.55} V${base - h * 0.78} Q${x - 31} ${base - h * 0.88} ${x - 24} ${base - h * 0.78} V${base - h * 0.58} H${x - 10}Z M${x + 10} ${base - h * 0.6} H${x + 26} Q${x + 34} ${base - h * 0.6} ${x + 34} ${base - h * 0.7} V${base - h * 0.9} Q${x + 27} ${base - h} ${x + 20} ${base - h * 0.9} V${base - h * 0.72} H${x + 10}Z" fill="${c}"/></g>
+    <g stroke="${INK}" stroke-width="1.2" opacity=".45"><path d="M${x - 4} ${base - 6} V${base - h + 14} M${x + 4} ${base - 6} V${base - h + 14} M${x - 31} ${base - h * 0.5} V${base - h * 0.76} M${x + 27} ${base - h * 0.65} V${base - h * 0.88}"/></g>
+    <path d="M${x - 6} ${base - h + 16} V${base - 10}" stroke="#fff" stroke-width="2" opacity=".3"/><circle cx="${x}" cy="${base - h + 2}" r="4" fill="#f09ac0" stroke="${INK}" stroke-width="1.4"/>`;
+  const pineTree = (x, base, h, c, snow) => `<g stroke="${INK}" stroke-width="2.2" stroke-linejoin="round"><rect x="${x - 4}" y="${base - h * 0.18}" width="8" height="${h * 0.18}" fill="#5a3a20"/>${[0, 1, 2, 3].map(i => { const ty = base - h * 0.15 - i * h * 0.22, bw = h * (0.42 - i * 0.08); return `<path d="M${x - bw} ${ty} L${x} ${ty - h * 0.34} L${x + bw} ${ty} Q${x} ${ty - h * 0.06} ${x - bw} ${ty}Z" fill="${c}"/>${snow ? `<path d="M${x - bw * 0.7} ${ty - h * 0.08} Q${x} ${ty - h * 0.2} ${x + bw * 0.5} ${ty - h * 0.1} L${x} ${ty - h * 0.3}Z" fill="#fff" stroke-width="1.4"/>` : ''}`; }).join('')}</g>`;
+  const soarBird = (c = INK) => `<svg viewBox="0 0 60 24"><path d="M2 14 Q14 2 28 12 L30 10 L32 12 Q46 2 58 14 Q46 9 34 16 L30 20 L26 16 Q14 9 2 14Z" fill="${c}"/><path d="M28 12 L30 6 L32 12" fill="${c}"/></svg>`;
+  function sceneExtras(act, W, H, id) {
+    const r = seeded(act * 131 + 17);
+    const X = { sky: '', far: '', mid: '', ground: '', over: '' };
+    if (act === 1) {
+      for (let i = 0; i < 4; i++) { const x = 150 + i * 380 + r() * 120, y = 540 + r() * 30; X.ground += `<g stroke="${INK}" stroke-width="1.8">${[[-14, 0, 12, 16, -20], [8, -4, 10, 14, 15], [-2, -18, 9, 12, 0]].map(([dx, dy, rx, ry, rot]) => `<ellipse cx="${x + dx}" cy="${y + dy}" rx="${rx}" ry="${ry}" fill="#6aa04a" transform="rotate(${rot} ${x + dx} ${y + dy})"/>`).join('')}<circle cx="${x - 2}" cy="${y - 32}" r="3.4" fill="#f2c14e"/><circle cx="${x + 12}" cy="${y - 18}" r="3" fill="#e8508a"/></g>`; }
+      X.ground += saguaro(1480, 596, 190) + saguaro(90, 600, 120, '#3a7a30');
+      X.ground += `<g transform="translate(1180 560)" stroke="${INK}" stroke-width="2.4"><path d="M-5 30 L-3 -70 H5 L5 30Z" fill="#8a6a4a"/><path d="M-4 -64 H62 L74 -54 L62 -44 H-4Z" fill="#e8c890"/><path d="M4 -34 H-58 L-70 -24 L-58 -14 H4Z" fill="#e8c890"/><text x="30" y="-49" text-anchor="middle" font-family="Rye,serif" font-size="12" fill="${INK}" stroke="none">ARIZONA</text><text x="-30" y="-19" text-anchor="middle" font-family="Rye,serif" font-size="10" fill="${INK}" stroke="none">SAN DIEGO</text></g>`;
+      X.over = `<div class="sx-orbit" style="left:30%;top:16%"><div class="sx-soar">${soarBird()}</div></div>`;
+    } else if (act === 2) {
+      // the Mittens and Merrick Butte
+      [[520, 150, 1], [860, 130, -1]].forEach(([x, h, s]) => { X.far += `<g stroke="${INK}" stroke-width="2.4"><path d="M${x - 70} 470 L${x - 60} ${470 - h * 0.55} L${x - 50} ${470 - h * 0.62} L${x + 40} ${470 - h * 0.62} L${x + 52} ${470 - h * 0.5} L${x + 70} 470Z" fill="${shade(c2(act).far)}"/><path d="M${x + s * 12} ${470 - h * 0.62} L${x + s * 14} ${470 - h} Q${x + s * 20} ${470 - h - 6} ${x + s * 26} ${470 - h} L${x + s * 30} ${470 - h * 0.62}Z" fill="${shade(c2(act).far)}"/></g><path d="M${x - 60} ${470 - h * 0.4} H${x + 56} M${x - 64} ${470 - h * 0.25} H${x + 60}" stroke="${INK}" stroke-width="1.2" opacity=".35"/>`; });
+      for (let i = 0; i < 18; i++) { const x = r() * W, y = 525 + r() * 60, s = 8 + r() * 10; X.ground += `<g stroke="${INK}" stroke-width="1.4"><circle cx="${x}" cy="${y}" r="${s}" fill="#8a9a6a"/><circle cx="${x + s * 0.8}" cy="${y + 2}" r="${s * 0.7}" fill="#9aaa7a"/><path d="M${x - 2} ${y + s} l2 ${-s * 0.6} M${x + 4} ${y + s} l-1 ${-s * 0.7}" fill="none" opacity=".5"/></g>`; }
+      for (let i = 0; i < 8; i++) { const x = r() * W, y = 560 + r() * 30; X.ground += `<path d="M${x} ${y} l18 -4 l10 8 l20 -2 M${x + 18} ${y - 4} l4 -10 M${x + 28} ${y + 4} l6 10" stroke="${shade(c2(act).ground)}" stroke-width="1.6" fill="none" opacity=".7"/>`; }
+      X.ground += `<g transform="translate(1320 548)" stroke="${INK}" stroke-width="2">${[[0, 0, 22], [-4, -18, 16], [2, -32, 12], [-1, -42, 8]].map(([dx, dy, w]) => `<ellipse cx="${dx}" cy="${dy}" rx="${w}" ry="${w * 0.45}" fill="${['#c8844a', '#d09060', '#b87840', '#d8a070'][Math.abs(dy) % 4]}"/>`).join('')}</g>`;
+      X.over = `<div class="sx-orbit" style="left:62%;top:12%"><div class="sx-soar">${soarBird('#2a1030')}</div></div>`;
+    } else if (act === 3) {
+      // steam train crossing the plains, red barn and hay
+      const ty = 462;
+      X.mid += `<path d="M0 ${ty + 6} H${W}" stroke="${INK}" stroke-width="3"/><path d="M0 ${ty + 10} H${W}" stroke="#6a5a4a" stroke-width="2" stroke-dasharray="4 8"/>`;
+      const tx = 380;
+      X.mid += `<g stroke="${INK}" stroke-width="2.2" stroke-linejoin="round">${[0, 1, 2].map(i => `<rect x="${tx - 250 + i * 80}" y="${ty - 38}" width="72" height="36" fill="${['#8a3a2a', '#6a5a3a', '#3a4a5a'][i]}"/><path d="M${tx - 244 + i * 80} ${ty - 30} h60" stroke="#f6ecd8" stroke-width="1.2" opacity=".5"/><circle cx="${tx - 234 + i * 80}" cy="${ty}" r="6" fill="#2a2a2a"/><circle cx="${tx - 190 + i * 80}" cy="${ty}" r="6" fill="#2a2a2a"/>`).join('')}
+        <rect x="${tx - 16}" y="${ty - 54}" width="34" height="52" fill="#3a3a4a"/><rect x="${tx - 10}" y="${ty - 48}" width="12" height="12" fill="#ffd84a"/><path d="M${tx - 20} ${ty - 56} h42" stroke-width="4"/>
+        <rect x="${tx + 18}" y="${ty - 34}" width="62" height="28" rx="6" fill="#2a2a3a"/><path d="M${tx + 30} ${ty - 34} v28 M${tx + 50} ${ty - 34} v28" stroke="#c0a040" stroke-width="2"/>
+        <path d="M${tx + 58} ${ty - 34} L${tx + 54} ${ty - 56} H${tx + 74} L${tx + 70} ${ty - 34}Z" fill="#2a2a3a"/><circle cx="${tx + 84}" cy="${ty - 22}" r="5" fill="#ffd84a"/>
+        <path d="M${tx + 80} ${ty - 6} L${tx + 100} ${ty} H${tx + 80}Z" fill="#8a3a2a"/>${[0, 24, 48].map(dx => `<circle cx="${tx + dx}" cy="${ty - 2}" r="${dx ? 9 : 7}" fill="#8a3a2a"/><circle cx="${tx + dx}" cy="${ty - 2}" r="2" fill="${INK}"/>`).join('')}</g>` + puffs(tx + 64, ty - 62, 4, '#e8e8e8', 4);
+      const bx = 1180;
+      X.mid += `<g stroke="${INK}" stroke-width="2.2" stroke-linejoin="round"><path d="M${bx} 470 V${420} L${bx + 40} ${392} L${bx + 80} 420 V470Z" fill="#b83a2a"/><path d="M${bx - 6} 422 L${bx + 40} 388 L${bx + 86} 422" fill="none" stroke="#f6ecd8" stroke-width="3"/><rect x="${bx + 24}" y="436" width="32" height="34" fill="#8a2a1a"/><path d="M${bx + 24} 436 l32 34 M${bx + 56} 436 l-32 34" stroke="#f6ecd8" stroke-width="2.4"/><rect x="${bx + 34}" y="404" width="12" height="10" fill="#f6ecd8"/></g>`;
+      for (let i = 0; i < 6; i++) { const x = 200 + i * 240 + r() * 80, y = 548 + r() * 30; X.ground += `<g stroke="${INK}" stroke-width="2"><path d="M${x - 22} ${y} Q${x - 24} ${y - 26} ${x} ${y - 28} Q${x + 24} ${y - 26} ${x + 22} ${y}Z" fill="#e8c860"/><path d="M${x - 14} ${y - 4} q2 -16 14 -18 M${x + 4} ${y - 2} q2 -14 10 -18" stroke="#b89830" stroke-width="1.4" fill="none"/></g>`; }
+      for (let x = 20; x < W; x += 26) X.ground += `<path d="M${x} 600 l-2 -18 M${x + 6} 600 l1 -14" stroke="#5a7a2a" stroke-width="2"/>`;
+    } else if (act === 4) {
+      for (let x = 0; x < W; x += 22 + r() * 16) { const h = 22 + r() * 22; X.far += `<path d="M${x} 472 L${x + h * 0.3} ${472 - h} L${x + h * 0.6} 472Z" fill="#3a5a6a" stroke="${INK}" stroke-width="1.2"/>`; }
+      const cx = 1060;
+      X.mid += `<g stroke="${INK}" stroke-width="2.2" stroke-linejoin="round"><rect x="${cx}" y="424" width="96" height="46" fill="#7a4a2a"/>${[432, 442, 452, 462].map(y => `<path d="M${cx} ${y} H${cx + 96}" stroke-width="1.2"/>`).join('')}<path d="M${cx - 12} 426 L${cx + 48} 390 L${cx + 108} 426Z" fill="#fff"/><rect x="${cx + 70}" y="388" width="12" height="24" fill="#6a5a5a"/><rect x="${cx + 18}" y="438" width="18" height="14" fill="#ffd84a" class="sx-win"/><rect x="${cx + 52}" y="440" width="16" height="30" fill="#4a2a1a"/></g>` + puffs(cx + 76, 380, 3, '#e8eef8', 6);
+      // a frozen river winding through the snow
+      X.ground += `<path d="M0 530 Q200 505 400 540 T800 548 T1200 528 T1600 530 L1600 562 Q1400 560 1200 556 T800 578 T400 572 T0 560Z" fill="#bfe0f4" stroke="${INK}" stroke-width="2.4"/><path d="M60 540 q60 -8 120 0 M520 556 q60 -6 110 2 M980 548 q50 -8 100 0 M1380 542 q50 -6 90 0" stroke="#fff" stroke-width="3" fill="none" opacity=".9"/><path d="M300 548 l30 6 l14 -8 M900 560 l20 -6 l24 8" stroke="#6a9ac8" stroke-width="1.4" fill="none"/>`;
+      X.ground += pineTree(60, 600, 230, '#1f4a4a', true) + pineTree(1540, 604, 260, '#1f4a4a', true) + pineTree(1440, 596, 150, '#2a5a5a', true);
+    } else if (act === 5) {
+      const lx = 1360;
+      X.mid += `<g stroke="${INK}" stroke-width="2.4" stroke-linejoin="round"><path d="M${lx - 60} 480 Q${lx} 440 ${lx + 70} 480Z" fill="#4a3a3a"/><path d="M${lx - 14} 456 L${lx - 9} 356 H${lx + 9} L${lx + 14} 456Z" fill="#f6ecd8"/><path d="M${lx - 12} 430 H${lx + 12} M${lx - 11} 400 H${lx + 11}" stroke="#c8323c" stroke-width="8"/><rect x="${lx - 11}" y="336" width="22" height="20" fill="#ffe080"/><path d="M${lx - 14} 336 L${lx} 322 L${lx + 14} 336Z" fill="#c8323c"/><path d="M${lx - 16} 356 H${lx + 16}" stroke-width="3"/></g>`;
+      X.mid += `<g class="sx-beam" style="transform-origin:${lx}px 346px"><path d="M${lx} 346 L${lx - 420} 300 L${lx - 420} 380Z" fill="#ffe080" opacity=".28"/></g>`;
+      const sx = 420, sy = 528;
+      X.ground += `<g stroke="${INK}" stroke-width="2.2" stroke-linejoin="round"><path d="M${sx - 70} ${sy} H${sx + 80} L${sx + 60} ${sy + 22} H${sx - 56}Z" fill="#5a3a2a"/><path d="M${sx - 60} ${sy + 8} H${sx + 72}" stroke="#f2c14e" stroke-width="2"/><path d="M${sx} ${sy} V${sy - 120} M${sx + 44} ${sy} V${sy - 90}" stroke-width="3"/><path d="M${sx + 4} ${sy - 116} Q${sx + 40} ${sy - 80} ${sx + 4} ${sy - 20}Z M${sx - 4} ${sy - 108} Q${sx - 44} ${sy - 70} ${sx - 4} ${sy - 24}Z M${sx + 48} ${sy - 86} Q${sx + 78} ${sy - 56} ${sx + 48} ${sy - 16}Z" fill="#f6ecd8"/><path d="M${sx} ${sy - 120} l14 4 -14 4" fill="#c8323c"/></g>`;
+      const px = 980;
+      X.ground += `<g stroke="${INK}" stroke-width="2.2" stroke-linejoin="round"><path d="M${px - 90} ${sy - 6} H${px + 90} L${px + 72} ${sy + 18} H${px - 80}Z" fill="#2a2a3a"/><rect x="${px - 60}" y="${sy - 30}" width="100" height="24" fill="#f6ecd8"/>${[0, 1, 2, 3, 4].map(i => `<circle cx="${px - 48 + i * 20}" cy="${sy - 18}" r="3.6" fill="#ffd84a"/>`).join('')}<rect x="${px - 10}" y="${sy - 66}" width="18" height="36" fill="#c8323c"/><path d="M${px - 10} ${sy - 58} h18" stroke-width="3"/><path d="M${px - 82} ${sy + 4} H${px + 80}" stroke="#c8323c" stroke-width="2"/></g>` + puffs(px, sy - 76, 4, '#d8d0d0', 5);
+      for (let i = 0; i < 7; i++) X.ground += `<rect x="${1180 + i * 34}" y="${520 + (i % 2) * 4}" width="7" height="44" fill="#6a4a2a" stroke="${INK}" stroke-width="1.6"/>`;
+      X.ground += `<path d="M1176 524 H1420" stroke="#8a6a4a" stroke-width="6"/><path d="M1176 524 H1420" stroke="${INK}" stroke-width="1.2" fill="none"/>`;
+      X.over = `<div class="sx-gulls">${[0, 1, 2].map(i => `<svg class="sx-gull g${i}" viewBox="0 0 40 16"><path d="M2 10 Q10 2 20 9 Q30 2 38 10" fill="none" stroke="#f6ecd8" stroke-width="3" stroke-linecap="round"/><path d="M2 10 Q10 2 20 9 Q30 2 38 10" fill="none" stroke="${INK}" stroke-width="1" stroke-linecap="round"/></svg>`).join('')}</div>`;
+    } else if (act === 6) {
+      for (let i = 0; i < 40; i++) { const x = r() * W, y = r() * 260, s = 1 + r() * 2.2; X.sky += `<circle class="sx-star" cx="${x}" cy="${y}" r="${s}" fill="#fff" style="animation-delay:${(-r() * 4).toFixed(2)}s"/>`; }
+      // Liberty in the harbour
+      const lx = 1420;
+      X.far += `<g transform="translate(${lx} 470) scale(1.9) translate(${-lx} -470)"><g fill="${shade(c2(act).far)}" stroke="${INK}" stroke-width="2"><path d="M${lx - 34} 470 L${lx - 26} 420 H${lx + 26} L${lx + 34} 470Z"/><path d="M${lx - 16} 420 L${lx - 12} 380 H${lx + 12} L${lx + 16} 420Z"/><path d="M${lx - 10} 380 Q${lx - 12} 340 ${lx - 6} 326 Q${lx} 318 ${lx + 6} 326 Q${lx + 12} 340 ${lx + 10} 380Z"/><circle cx="${lx}" cy="318" r="7"/><path d="M${lx + 6} 330 L${lx + 16} 290" stroke-width="5"/><path d="M${lx + 12} 290 h9 l-2 -6 h-5z"/><path d="M${lx - 6} 312 l-4 -8 M${lx} 310 v-9 M${lx + 6} 312 l4 -8" fill="none"/></g><circle cx="${lx + 16}" cy="282" r="6" fill="#ffe080" class="sx-glow"/></g>`;
+      for (let i = 0; i < 9; i++) { const x = 90 + i * 180; X.ground += `<g stroke="${INK}" stroke-width="2.2"><path d="M${x} 600 V${520}" stroke-width="4"/><path d="M${x - 10} 520 h20 l-4 -20 h-12z" fill="#2a2a3a"/><rect x="${x - 6}" y="503" width="12" height="15" fill="#ffe8a0"/></g><circle cx="${x}" cy="510" r="26" fill="#ffe8a0" opacity=".22" class="sx-glow"/>`; }
+      for (let i = 0; i < 40; i++) { const x = r() * W, y = 540 + r() * 56; X.ground += `<path d="M${x} ${y} h12" stroke="#5a5070" stroke-width="3" stroke-linecap="round" opacity=".6"/>`; }
+    } else if (act === 7) {
+      const bx = 820, by = 560;
+      X.ground += `<g stroke="${INK}" stroke-width="2.2" stroke-linejoin="round"><path d="M${bx - 90} ${by} Q${bx} ${by - 12} ${bx + 90} ${by}" stroke-width="6" fill="none"/><path d="M${bx - 90} ${by} Q${bx} ${by - 12} ${bx + 90} ${by}" stroke="#f6ecd8" stroke-width="3" fill="none"/>${[-70, -46, -22, 2, 26, 50].map((dx, i) => `<path d="M${bx + dx} ${by - 6} Q${bx + dx - 12} ${by - 50 - i % 2 * 8} ${bx + dx + 10} ${by - 64 + i * 2}" stroke-width="6" fill="none"/><path d="M${bx + dx} ${by - 6} Q${bx + dx - 12} ${by - 50 - i % 2 * 8} ${bx + dx + 10} ${by - 64 + i * 2}" stroke="#f6ecd8" stroke-width="3" fill="none"/>`).join('')}<path d="M${bx + 96} ${by - 4} q14 -22 34 -14 q10 8 2 20 q-18 8 -36 -6z" fill="#f6ecd8"/><circle cx="${bx + 116}" cy="${by - 8}" r="4" fill="${INK}"/></g>`;
+      X.over = `<div class="sx-orbit" style="left:40%;top:14%"><div class="sx-soar">${soarBird('#3a1010')}</div></div><div class="sx-orbit slow" style="left:58%;top:20%"><div class="sx-soar">${soarBird('#3a1010')}</div></div><div class="sx-haze"></div>`;
+    } else if (act === 8) {
+      const cx = 700, cy = 545;
+      X.ground += `<g transform="translate(${cx} ${cy + 12}) scale(1.5) translate(${-cx} ${-cy - 12})"><g stroke="${INK}" stroke-width="2.4" stroke-linejoin="round"><path d="M${cx - 46} ${cy - 44} H${cx + 46} L${cx + 36} ${cy - 4} H${cx - 36}Z" fill="#6a5a50"/><path d="M${cx - 40} ${cy - 30} H${cx + 40}" stroke="#9a8a7a" stroke-width="2"/>${[[-26, -52], [-8, -58], [10, -54], [28, -50], [0, -46]].map(([dx, dy]) => `<path d="M${cx + dx - 9} ${cy + dy + 8} l6 -10 9 2 4 8z" fill="#c8d0e0"/>`).join('')}<circle cx="${cx - 24}" cy="${cy}" r="9" fill="#2a2a2a"/><circle cx="${cx + 24}" cy="${cy}" r="9" fill="#2a2a2a"/></g></g>`;
+      X.ground += `<g transform="translate(980 560) rotate(-30)" stroke="${INK}" stroke-width="2.2"><path d="M0 0 V-60" stroke-width="6"/><path d="M0 0 V-60" stroke="#8a5a30" stroke-width="3"/><path d="M-24 -54 Q0 -72 24 -54 L20 -58 Q0 -66 -20 -58Z" fill="#9aa0b0"/></g>`;
+      for (let i = 0; i < 7; i++) { const x = 100 + i * 230 + r() * 60, y = 590 - r() * 20; X.ground += `<g transform="translate(${x} ${y}) scale(1.7) translate(${-x} ${-y})"><g class="sx-glow" stroke="${INK}" stroke-width="1.6">${[[-8, 0, -14], [0, 0, 0], [8, 0, 14]].map(([dx, , rot]) => `<path transform="rotate(${rot} ${x + dx} ${y})" d="M${x + dx - 4} ${y} L${x + dx} ${y - 22 - Math.abs(dx)} L${x + dx + 4} ${y}Z" fill="#b8e8ff"/>`).join('')}</g><ellipse cx="${x}" cy="${y - 10}" rx="26" ry="18" fill="#9fe0ff" opacity=".18"/></g>`; }
+      X.over = `<div class="sx-drips">${[12, 31, 47, 66, 83].map((l, i) => `<i style="left:${l}%;animation-delay:${-i * 0.7}s"></i>`).join('')}</div><div class="sx-motes"></div>`;
+    } else if (act === 9) {
+      const hx = 1150, hy = 522;
+      X.ground += `<g transform="translate(${hx} ${hy}) scale(1.5) translate(${-hx} ${-hy})"><g stroke="${INK}" stroke-width="2.2" stroke-linejoin="round"><rect x="${hx}" y="${hy - 40}" width="54" height="40" fill="#8a3a2a"/><path d="M${hx - 6} ${hy - 38} L${hx + 27} ${hy - 58} L${hx + 60} ${hy - 38}Z" fill="#fff"/><rect x="${hx + 36}" y="${hy - 70}" width="8" height="18" fill="#5a5a6a"/><rect x="${hx + 10}" y="${hy - 28}" width="12" height="10" fill="#ffd84a" class="sx-win"/><ellipse cx="${hx - 30}" cy="${hy + 6}" rx="12" ry="4" fill="#2a4a6a"/><path d="M${hx - 30} ${hy + 4} V${hy - 30} L${hx - 10} ${hy - 48}" stroke-width="1.4" fill="none"/></g>` + puffs(hx + 40, hy - 78, 3, '#eef4ff', 6) + '</g>';
+      [[380, 514, 1], [430, 518, -1], [470, 512, 1]].forEach(([x, y, s]) => { X.ground += `<g transform="translate(${x} ${y}) scale(${s * 1.1} 1.1)" fill="#3a4a5a" stroke="${INK}" stroke-width="1.2"><path d="M-20 0 Q-22 -12 -8 -14 L10 -14 L16 -24 L20 -14 L26 -10 L20 -6 L14 -6 L12 4 L8 4 L8 -4 L-10 -4 L-12 4 L-16 4 L-16 -2 Q-26 -2 -30 -10 Q-24 -4 -20 -6Z"/></g>`; });
+      for (let i = 0; i < 6; i++) X.ground += `<rect x="${40 + i * 30}" y="${500 + i * 6}" width="8" height="${40 - i * 3}" fill="#5a4a3a" stroke="${INK}" stroke-width="1.6"/><path d="M${38 + i * 30} ${500 + i * 6} h12" stroke="#fff" stroke-width="3"/>`;
+      X.over = `<div class="sx-drift"></div>`;
+    } else if (act === 10) {
+      // Philadelphia rowhouses in front of the skyline, with Independence Hall's steeple beyond
+      const tx = 980;
+      X.far += `<g fill="${shade(c2(act).far)}" stroke="${INK}" stroke-width="2"><rect x="${tx - 30}" y="380" width="60" height="90"/><rect x="${tx - 20}" y="330" width="40" height="50"/><circle cx="${tx}" cy="352" r="10" fill="#f6ecd8"/><path d="M${tx} 352 v-6 M${tx} 352 l4 3" stroke-width="1.4"/><path d="M${tx - 16} 330 L${tx - 12} 300 H${tx + 12} L${tx + 16} 330Z"/><path d="M${tx - 8} 300 L${tx} 250 L${tx + 8} 300Z"/><path d="M${tx - 120} 470 V410 H${tx - 30} M${tx + 30} 410 H${tx + 120} V470"/></g>`;
+      let x = -10; const bricks = ['#8a3a2a', '#9a4632', '#7a3226', '#a0503a'];
+      while (x < W) {
+        const w = 90 + r() * 40, h = 100 + r() * 60, top = 470 - h, bc = bricks[Math.floor(r() * 4)];
+        X.mid += `<g stroke="${INK}" stroke-width="2"><rect x="${x}" y="${top}" width="${w}" height="${h}" fill="${bc}"/><rect x="${x - 4}" y="${top - 8}" width="${w + 8}" height="9" fill="#e8dcc8"/>`;
+        for (let yy = top + 8; yy < 468; yy += 7) X.mid += `<path d="M${x + 2} ${yy} H${x + w - 2}" stroke="${shade(bc)}" stroke-width="1" stroke-dasharray="7 2" opacity=".8"/>`;
+        for (let row = 0; row < 3; row++) for (let k = 0; k < 2; k++) { const wx = x + 14 + k * (w - 44), wy = top + 16 + row * 34; if (wy > 440) continue; X.mid += `<rect x="${wx}" y="${wy}" width="16" height="22" fill="${r() > 0.5 ? '#ffd84a' : '#2a2030'}" ${r() > 0.8 ? 'class="sx-win"' : ''}/><path d="M${wx - 3} ${wy - 3} h22 M${wx - 2} ${wy + 24} h20" stroke="#f6ecd8" stroke-width="2.4"/>`; }
+        X.mid += `<rect x="${x + w / 2 - 8}" y="440" width="16" height="30" fill="#2a1a10"/><path d="M${x + w / 2 - 12} 470 h24" stroke="#e8dcc8" stroke-width="3"/>`;
+        if (r() > 0.4) { const chx = x + w - 26; X.mid += `<rect x="${chx}" y="${top - 26}" width="12" height="20" fill="${bc}"/><path d="M${chx - 2} ${top - 26} h16" stroke-width="3"/></g>` + puffs(chx + 6, top - 34, 3, '#a89898', 6); } else X.mid += '</g>';
+        x += w + 4;
+      }
+      X.ground += `<g stroke="${INK}" stroke-width="2.4"><path d="M1480 600 V470" stroke-width="5"/><rect x="1468" y="452" width="24" height="44" rx="4" fill="#2a2a2a"/><circle cx="1480" cy="464" r="6" fill="#c8323c" class="sx-glow"/><circle cx="1480" cy="484" r="6" fill="#3a4a3a"/></g>`;
+    }
+    return X;
+  }
+  const c2 = act => SCENES[act] || SCENES[1];
+
   /** Parallax scene: returns HTML string with layered, seamlessly scrolling SVGs. */
   function scene(act, opts = {}) {
     const c = SCENES[act] || SCENES[1];
     const W = 1600, H = 600;
     const rng = seeded(act * 977 + 13);
     const id = nid('sc');
+    const X = sceneExtras(act, W, H, id);
     const layer = (content, speed, extraCls = '') =>
       `<div class="px-layer ${extraCls}" style="--spd:${speed}s"><svg viewBox="0 0 ${W * 2} ${H}" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg"><g>${content}</g><g transform="translate(${W} 0)">${content}</g></svg></div>`;
     const sky = `<svg class="px-sky" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
@@ -482,30 +657,32 @@ SBR.art = (() => {
       ${act === 8 ? '' : `<circle cx="${W * 0.72}" cy="${H * 0.34}" r="46" fill="${c.sun}" opacity=".9" stroke="${INK}" stroke-width="3"/>`}
       <circle cx="${W * 0.72}" cy="${H * 0.34}" r="58" fill="none" stroke="${c.sun}" stroke-width="3" opacity=".5" stroke-dasharray="6 10"/>
       <rect y="${H * 0.62}" width="${W}" height="${H * 0.38}" fill="${c.sun}" opacity=".12"/>
-      <rect width="${W}" height="${H}" fill="url(#${id}ht)"/>
+      <rect width="${W}" height="${H}" fill="url(#${id}ht)"/>${X.sky}
       <pattern id="${id}ht2" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="7" cy="7" r="3" fill="#fff" opacity=".12"/></pattern>
       <rect y="${H * 0.5}" width="${W}" height="${H * 0.2}" fill="url(#${id}ht2)"/></svg>`;
     let clouds = '';
     const cr = seeded(act * 31 + 7);
     for (let i = 0; i < 5; i++) clouds += cloud(120 + i * 320 + cr() * 80, 70 + cr() * 150, 0.6 + cr() * 0.7, c.cloud, c.cloudShade);
     const farPts = ridge(rng, W, H, 400, 130, 14, true);
-    const far = `<path d="M0 ${H} L${farPts.join(' L')} L${W} ${H}Z" fill="${c.far}" stroke="${INK}" stroke-width="2.4" opacity=".85"/>` + farDeco(act, seeded(act * 57 + 3), W, 470, c);
+    const far = `<path d="M0 ${H} L${farPts.join(' L')} L${W} ${H}Z" fill="${c.far}" stroke="${INK}" stroke-width="2.4" opacity=".85"/>` + farDeco(act, seeded(act * 57 + 3), W, 470, c) + X.far;
     let mid;
     if (act === 1 || act === 2 || act === 7) mid = mesas(rng, W, 470, c.mid, c.midShade);
     else if (act === 10) mid = decoLayer('city', rng, W, 470, c);
     else if (act === 5) mid = `<path d="M0 470 ${ridge(rng, W, H, 470, 60, 10).map(p => 'L' + p).join(' ')} L${W} ${H} L0 ${H}Z" fill="${c.mid}" stroke="${INK}" stroke-width="2.4"/>` + decoLayer('city', seeded(99), W, 440, c).replace(/opacity=".85"/g, 'opacity=".4"');
     else if (act === 6) mid = decoLayer('city', rng, W, 500, c);
     else { const mp = ridge(rng, W, H, 470, 80, 10); mid = `<path d="M0 ${H} L${mp.join(' L')} L${W} ${H}Z" fill="${c.mid}" stroke="${INK}" stroke-width="2.4"/>`; }
+    if (act === 6) { let k = 0; mid = mid.replace(/fill="#ffd84a" opacity=".85"/g, m => (++k % 7 ? m : m + ' class="sx-win"')); }
+    mid += X.mid;
     const groundPts = ridge(rng, W, H, 500, 16, 8);
     const ground = `<path d="M0 ${H} L${groundPts.join(' L')} L${W} ${H}Z" fill="${c.ground}" stroke="${INK}" stroke-width="2.4"/>` +
       `<g stroke="${c.groundShade}" stroke-width="3" opacity=".7">${[0, 1, 2, 3, 4, 5, 6, 7].map(i => `<path d="M${i * 210 + 40} ${540 + (i % 3) * 18} l120 0"/>`).join('')}</g>` +
-      decoLayer(act === 5 ? 'waves' : c.deco, rng, W, 505, c) + props(act, seeded(act * 71 + 9), W, 505, c);
+      decoLayer(act === 5 ? 'waves' : c.deco, rng, W, 505, c) + props(act, seeded(act * 71 + 9), W, 505, c) + X.ground;
     const weather = c.rain ? '<div class="weather rain"></div>' : c.snow ? '<div class="weather snow"></div>' : '<div class="weather dust"></div>';
     const still = opts.still ? ' still' : '';
     const birds = [1, 2, 3, 7].includes(act) ? `<div class="scene-birds">${[0, 1, 2].map(i => `<svg class="bird b${i}" viewBox="0 0 40 16"><path d="M2 12 Q10 0 20 10 Q30 0 38 12 Q30 6 20 14 Q10 6 2 12Z" fill="${INK}"/></svg>`).join('')}</div>` : '';
     const tumble = [1, 2, 7].includes(act) ? `<div class="tumbleweed"><svg viewBox="0 0 60 60"><g fill="none" stroke="#8a6a3a" stroke-width="2.4"><circle cx="30" cy="30" r="24"/><path d="M8 24 Q30 40 52 22 M10 40 Q30 18 50 42 M22 8 Q34 30 20 52 M38 8 Q26 30 42 52"/></g><circle cx="30" cy="30" r="25" fill="none" stroke="${INK}" stroke-width="1.4"/></svg></div>` : '';
     return `<div class="scene act${act}${still}">${sky}
-      ${layer(clouds, 160, 'clouds')}${birds}${layer(far, 120)}${layer(mid, 60)}${layer(ground, 22, 'ground')}${tumble}${weather}<div class="scene-vignette"></div></div>`;
+      ${layer(clouds, 160, 'clouds')}${birds}${layer(far, 120)}${layer(mid, 60)}${layer(ground, 22, 'ground')}${tumble}${X.over ? `<div class="sx-over">${X.over}</div>` : ''}${weather}<div class="scene-vignette"></div></div>`;
   }
 
   /* ---------------- Icons ---------------- */

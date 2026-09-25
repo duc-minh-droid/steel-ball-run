@@ -1,0 +1,132 @@
+/* Stage-finish race: rival Stand skills — projectiles, cut-ins, kana SFX and runner looks (js/sprint.js) */
+.sprint-fx { position: absolute; inset: 0; z-index: 22; pointer-events: none; overflow: hidden; }
+.sprint-fx > * { position: absolute; left: 0; top: 0; will-change: transform; }
+
+/* ---- the attacker glows in their colour ---- */
+.sprint .runner.sk-glow .horse-svg { filter: drop-shadow(0 0 9px var(--skc, #c8323c)) drop-shadow(0 0 3px var(--skc, #c8323c)); }
+.sprint .runner.sk-glow .runner-tag { background: var(--skc, #c8323c); color: var(--ink); box-shadow: 0 0 10px var(--skc, #c8323c); }
+.sprint .runner.sk-glow::after { content: ''; position: absolute; left: 10%; right: 10%; bottom: 0; height: 18px; border-radius: 50%; background: radial-gradient(closest-side, var(--skc, #c8323c), transparent); opacity: .75; animation: skAura .35s ease-in-out infinite alternate; pointer-events: none; }
+@keyframes skAura { to { transform: scale(1.25, 1.4); opacity: .4; } }
+
+/* ---- a Stand manifests beside its user ---- */
+.sk-fig { position: absolute; left: -54px; top: -70px; width: 86px; height: 115px; z-index: 3; pointer-events: none; animation: skFigIn .25s cubic-bezier(.2, 1.5, .4, 1) both, skFigBob .6s .25s ease-in-out infinite alternate; filter: drop-shadow(0 0 6px var(--skc, #fff)); opacity: .95; }
+.sk-fig svg { width: 100%; height: 100%; display: block; }
+@keyframes skFigIn { from { transform: translate(30px, 20px) scale(.2); opacity: 0; } }
+@keyframes skFigBob { to { transform: translateY(-6px); } }
+.sk-heyya { left: -40px; top: -60px; width: 66px; height: 88px; }
+.sk-bubble { position: absolute; left: 50%; top: -24px; transform: translateX(-30%); background: #fff; color: var(--ink); border: 2px solid var(--ink); border-radius: 12px; padding: 1px 8px; font: 700 12px var(--f-ui); white-space: nowrap; box-shadow: 2px 2px 0 var(--ink); }
+.sk-bubble::after { content: ''; position: absolute; left: 10px; bottom: -8px; border: 5px solid transparent; border-top-color: var(--ink); }
+
+/* ---- timed looks on a runner ---- */
+.sk-skin { position: absolute; pointer-events: none; z-index: 2; }
+.sk-skin svg { width: 100%; height: 100%; display: block; }
+/* Scary Monsters: Diego turns into a raptor */
+.sprint .runner.sk-raptor .horse-svg { filter: hue-rotate(60deg) saturate(1.7) drop-shadow(0 0 8px #4aa84a); }
+.runner.sk-raptor .sk-skin { left: 36px; top: -16px; width: 104px; height: 70px; animation: skRaptor .18s ease-in-out infinite alternate; filter: drop-shadow(0 0 6px #7adf5a); }
+@keyframes skRaptor { from { transform: rotate(-3deg) translateY(0); } to { transform: rotate(3deg) translateY(-4px); } }
+.runner.sk-raptor .runner-tag::after { content: ' 恐竜'; color: #2a6a2a; }
+/* Sandman runs on foot */
+.sprint .runner.sk-onfoot .horse-svg { opacity: .18; filter: grayscale(1); }
+.runner.sk-onfoot .sk-skin { left: 52px; top: 18px; width: 64px; height: 86px; animation: skFoot .16s ease-in-out infinite alternate; }
+@keyframes skFoot { to { transform: translateY(-7px) skewX(-6deg); } }
+/* the Spin (Gyro, Johnny): a golden rotation under the hooves */
+.runner.sk-spin .sk-skin { left: 14px; right: 14px; bottom: -10px; height: 40px; transform: scaleY(.32); }
+.runner.sk-spin .sk-skin i { position: absolute; inset: 0; border: 6px dashed #f2c14e; border-radius: 50%; box-shadow: 0 0 14px #f2c14e; animation: skRot .35s linear infinite; }
+.sprint .runner.sk-spin .horse-svg { filter: drop-shadow(0 0 8px #f2c14e); }
+/* Cream Starter heals, Hey Ya! luck, 20th Century BOY armour */
+.sprint .runner.sk-heal .horse-svg { filter: drop-shadow(0 0 10px #f09ac0) brightness(1.1); }
+.sprint .runner.sk-lucky .horse-svg { filter: drop-shadow(0 0 10px #f2c14e) brightness(1.15); }
+.runner.sk-lucky .sk-skin { inset: 0; }
+.runner.sk-lucky .sk-skin i { position: absolute; font-style: normal; color: #f2c14e; font-size: 20px; -webkit-text-stroke: 1px var(--ink); animation: skStar .8s ease-out infinite; }
+.runner.sk-lucky .sk-skin i:nth-child(1) { left: 10%; top: 20%; } .runner.sk-lucky .sk-skin i:nth-child(2) { left: 50%; top: 0; animation-delay: .25s; } .runner.sk-lucky .sk-skin i:nth-child(3) { left: 80%; top: 30%; animation-delay: .5s; }
+@keyframes skStar { from { transform: scale(.3) rotate(0); opacity: 1; } to { transform: scale(1.3) rotate(90deg) translate(-20px, -10px); opacity: 0; } }
+.sprint .runner.sk-armour .horse-svg { filter: grayscale(1) brightness(1.25) contrast(1.3) drop-shadow(0 0 8px #c8c8d8); }
+.runner.sk-armour .runner-tag::after { content: ' 無敵'; }
+/* Mountain Tim's rope shooting ahead */
+.sk-ropeout { position: absolute; left: 80%; top: 30%; height: 4px; width: 0; background: repeating-linear-gradient(90deg, #c89a5a 0 6px, #8a6a3a 6px 12px); border: 1px solid var(--ink); transform-origin: 0 50%; animation: skRopeOut .8s ease-out forwards; }
+@keyframes skRopeOut { 40% { width: 240px; } 100% { width: 20px; opacity: 0; } }
+/* hits on you */
+.sk-holes i { position: absolute; width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(circle, #1a1020 30%, #6b5bd6 45%, transparent 70%); animation: skRot .4s linear infinite; }
+.sk-holes i:nth-child(1) { left: 40%; top: 30%; } .sk-holes i:nth-child(2) { left: 55%; top: 44%; } .sk-holes i:nth-child(3) { left: 32%; top: 50%; }
+.sk-tied { position: absolute; left: 25%; right: 30%; bottom: 8%; height: 16px; border: 4px solid #c89a5a; border-radius: 50%; box-shadow: 0 0 0 2px var(--ink); animation: skTied .3s ease-in-out infinite alternate; }
+@keyframes skTied { to { transform: scale(.9, 1.2); } }
+
+/* ---- manga cut-in when a Stand skill fires ---- */
+.sk-cutin { position: absolute; right: 0; top: 146px; z-index: 26; display: flex; align-items: center; gap: 10px; padding: 6px 70px 6px 10px; min-width: 300px; pointer-events: none;
+  background: repeating-linear-gradient(100deg, rgba(255, 255, 255, .08) 0 2px, transparent 2px 12px), linear-gradient(100deg, transparent 0 8%, var(--ink) 8%);
+  border-top: 4px solid var(--skc, #f2c14e); border-bottom: 4px solid var(--skc, #f2c14e); animation: skCut 1.5s cubic-bezier(.2, 1, .3, 1) forwards; }
+@keyframes skCut { 0% { transform: translateX(110%) skewX(-12deg); } 14% { transform: translateX(0) skewX(-12deg); } 80% { transform: translateX(0) skewX(-12deg); opacity: 1; } 100% { transform: translateX(-30px) skewX(-12deg); opacity: 0; } }
+.sk-cport { width: 70px; height: 70px; flex: none; border: 3px solid var(--skc, #f2c14e); background: #fff; overflow: hidden; box-shadow: 4px 4px 0 #000; margin-left: 26px; }
+.sk-cport svg { width: 100%; height: 100%; display: block; }
+.sk-ctxt { color: var(--paper); line-height: 1.05; transform: skewX(6deg); }
+.sk-ctxt small { display: block; font: 700 11px var(--f-ui); letter-spacing: .18em; text-transform: uppercase; opacity: .85; }
+.sk-ctxt b { display: block; font-family: var(--f-title); font-size: 26px; color: var(--skc, #f2c14e); text-shadow: 3px 3px 0 #000; white-space: nowrap; }
+.sk-ctxt i { display: inline-block; margin-top: 2px; background: #c8323c; color: #fff; font: 700 12px var(--f-sfx); letter-spacing: .1em; padding: 0 6px; font-style: normal; }
+.sk-cutin em { position: absolute; right: 8px; top: -18px; font: 900 34px var(--f-jp); font-style: normal; color: var(--skc, #f2c14e); -webkit-text-stroke: 2px var(--ink); text-shadow: 3px 3px 0 var(--ink); writing-mode: vertical-rl; animation: skKanaShake .08s linear infinite alternate; }
+@keyframes skKanaShake { to { transform: translate(2px, -1px); } }
+
+/* ---- a Stand warning is framed in the Stand's colour ---- */
+.sprint-warn.sk-standwarn { background: linear-gradient(135deg, #1a1020, #3a1a3a); border-color: var(--skc, #f2c14e); box-shadow: 6px 6px 0 var(--ink), 0 0 20px var(--skc, #f2c14e); }
+.sprint-warn.sk-standwarn b { color: var(--skc, #f2c14e); }
+
+/* ---- short-lived spots: kana, bursts, flashes ---- */
+.sk-fx > div { transform: translate(-50%, -50%); }
+.sk-kana > div { font: 900 32px var(--f-jp); color: var(--skc, #f2c14e); -webkit-text-stroke: 2px var(--ink); text-shadow: 3px 3px 0 var(--ink); white-space: nowrap; animation: skKana .9s cubic-bezier(.2, 1.5, .4, 1) forwards; }
+@keyframes skKana { 0% { transform: translate(-50%, -50%) scale(.2) rotate(-14deg); opacity: 0; } 20% { transform: translate(-50%, -50%) scale(1.2) rotate(-6deg); opacity: 1; } 75% { opacity: 1; } 100% { transform: translate(-50%, -110%) scale(1) rotate(-6deg); opacity: 0; } }
+.sk-burst > div { width: 90px; height: 90px; background: var(--skc, #fff3a0); clip-path: polygon(50% 0, 60% 35%, 98% 20%, 68% 50%, 100% 80%, 60% 64%, 50% 100%, 40% 64%, 0 80%, 32% 50%, 2% 20%, 40% 35%); animation: skBurst .5s ease-out forwards; }
+@keyframes skBurst { from { transform: translate(-50%, -50%) scale(.2) rotate(0); opacity: 1; } to { transform: translate(-50%, -50%) scale(1.6) rotate(40deg); opacity: 0; } }
+.sk-b-flash > div { width: 46px; height: 46px; background: #fff3a0; }
+.sk-b-shield > div { clip-path: none; border-radius: 50%; background: radial-gradient(circle, transparent 45%, #fff3a0 50%, transparent 70%); }
+.sk-b-ash > div { width: 150px; height: 110px; clip-path: none; border-radius: 50%; background: radial-gradient(circle at 30% 40%, #8a8080 0 20%, transparent 21%), radial-gradient(circle at 60% 35%, #9a9090 0 24%, transparent 25%), radial-gradient(circle at 50% 65%, #6a6060 0 26%, transparent 27%); animation-duration: .6s; }
+.sk-b-flesh > div { clip-path: none; border-radius: 45% 55% 40% 60%; background: radial-gradient(circle at 40% 40%, #ffc0d8, #f09ac0 50%, #c8407a); }
+.sk-b-rope > div { clip-path: none; border-radius: 50%; background: none; border: 6px solid #c89a5a; box-shadow: 0 0 0 2px var(--ink), inset 0 0 0 2px var(--ink); }
+.sk-b-bite > div { background: #fff; }
+.sk-b-word > div { width: auto; height: auto; clip-path: none; background: none; font: 400 54px var(--f-sfx); color: #f6ecd8; -webkit-text-stroke: 3px var(--ink); text-shadow: 5px 5px 0 #c8a040; letter-spacing: .02em; }
+
+/* ---- projectiles (the outer node is moved by JS; .sk-body holds the look) ---- */
+.sk-proj .sk-body { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); }
+.sk-proj .sk-body svg { display: block; }
+.sk-proj.sk-miss .sk-body, .sk-proj.sk-deflect .sk-body { animation: skFade .45s linear forwards; }
+@keyframes skFade { to { opacity: 0; transform: translate(-50%, -50%) scale(.6); } }
+@keyframes skRot { to { transform: rotate(360deg); } }
+.sk-p-ball .sk-body i { display: block; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--ink); background: radial-gradient(circle at 35% 30%, #fff 0 14%, transparent 15%), repeating-conic-gradient(#3fb8a9 0 30deg, #dffcf6 30deg 60deg); box-shadow: 0 0 12px #3fb8a9; animation: skRot .18s linear infinite; }
+.sk-p-wball .sk-body i { display: block; width: 30px; height: 30px; border-radius: 50%; border: 3px solid var(--ink); background: radial-gradient(circle at 35% 30%, #fff 0 12%, #b8b8c8 30%, #6a6a7a 80%); box-shadow: 0 0 0 3px #c8c8d8, 0 0 14px #9aa0b8; animation: skRot .3s linear infinite; }
+.sk-p-word .sk-body b { display: block; font: 400 34px var(--f-sfx); color: #f6ecd8; -webkit-text-stroke: 2px var(--ink); text-shadow: 4px 4px 0 #c8a040; letter-spacing: .03em; white-space: nowrap; animation: skWord .2s ease-in-out infinite alternate; }
+@keyframes skWord { to { transform: scale(1.12) rotate(-3deg); } }
+.sk-p-bullet .sk-body { transform: translate(-100%, -50%); }
+.sk-p-bullet .sk-body i { display: block; width: 80px; height: 5px; border-radius: 3px; background: linear-gradient(90deg, transparent, rgba(255, 243, 160, .8) 60%, #fff); box-shadow: 0 0 8px #fff3a0; }
+.sk-p-cut .sk-body i { display: block; width: 110px; height: 34px; border-top: 6px solid #fff; border-radius: 50%; filter: drop-shadow(0 0 6px var(--skc, #fff)); transform: rotate(-12deg); }
+.sk-p-knife .sk-body svg { width: 40px; height: 12px; }
+.sk-spinning .sk-body svg { animation: skRot .22s linear infinite; }
+.sk-p-nail .sk-body svg { width: 30px; height: 10px; filter: drop-shadow(0 0 4px #6b5bd6); }
+.sk-p-nail .sk-body u { position: absolute; left: -18px; top: -4px; width: 18px; height: 18px; border-radius: 50%; border: 2px dashed #b8a8ff; animation: skRot .25s linear infinite; }
+.sk-p-bolas .sk-body svg { width: 38px; height: 38px; animation: skRot .2s linear infinite; }
+.sk-p-rope .sk-body svg { width: 40px; height: 30px; animation: skRot .4s linear infinite; }
+.sk-p-ash .sk-body svg { width: 24px; height: 24px; animation: skRot .5s linear infinite; }
+.sk-p-shoe .sk-body svg { width: 28px; height: 28px; animation: skRot .25s linear infinite; }
+.sk-p-flesh .sk-body i { display: block; width: 18px; height: 16px; border-radius: 50% 40% 60% 45%; border: 2px solid var(--ink); background: radial-gradient(circle at 35% 35%, #ffd0e0, #f09ac0 55%, #c8407a); animation: skRot .5s linear infinite; }
+.sk-p-bite .sk-body svg { width: 70px; height: 44px; overflow: visible; filter: drop-shadow(0 0 6px #7adf5a); }
+.sk-p-bite .jup { transform-origin: 8px 22px; animation: skJawUp .14s ease-in-out infinite alternate; }
+.sk-p-bite .jlo { transform-origin: 8px 24px; animation: skJawLo .14s ease-in-out infinite alternate; }
+@keyframes skJawUp { from { transform: rotate(-18deg); } to { transform: rotate(0); } }
+@keyframes skJawLo { from { transform: rotate(16deg); } to { transform: rotate(0); } }
+/* tethers: a rope back to the thrower, or a gun's red aim line */
+.sk-tether { height: 4px; transform-origin: 0 50%; transition: opacity .1s; }
+.sk-t-rope { background: repeating-linear-gradient(90deg, #c89a5a 0 6px, #8a6a3a 6px 12px); box-shadow: 0 0 0 1px var(--ink); }
+.sk-t-aim { height: 2px; margin-top: -1px; background: repeating-linear-gradient(90deg, rgba(255, 60, 60, .95) 0 10px, transparent 10px 16px); animation: skAim .12s steps(2) infinite; }
+@keyframes skAim { to { opacity: .4; } }
+
+/* ---- the ring: ash greys it out, a stamped sound word waits on it ---- */
+.sprint-ring.sk-ash::after { background: radial-gradient(circle, #9a9090 30%, #5a5050 70%) !important; }
+.sprint-ring.sk-sound::before { content: 'ドゴォン'; position: absolute; left: 50%; top: -22px; transform: translateX(-50%) rotate(-6deg); z-index: 2; background: #f6ecd8; color: var(--ink); border: 3px solid var(--ink); padding: 0 8px; font: 900 16px var(--f-jp); box-shadow: 3px 3px 0 #c8a040; white-space: nowrap; animation: skKanaShake .1s linear infinite alternate; }
+
+/* ---- time stop freezes the rivals' Stands and everything they threw ---- */
+.sprint.timestop .sprint-fx, .sprint.timestop .sprint-fx *, .sprint.timestop .runner:not(.me) *, .sprint.timestop .runner:not(.me)::after { animation-play-state: paused !important; }
+.sprint.timestop .sprint-fx { filter: grayscale(1) hue-rotate(200deg) brightness(.9); }
+
+@media (max-width: 640px) {
+  .sk-cutin { top: 136px; min-width: 0; padding-right: 44px; }
+  .sk-cport { width: 52px; height: 52px; margin-left: 18px; }
+  .sk-ctxt b { font-size: 19px; }
+  .sk-cutin em { font-size: 24px; }
+}
