@@ -1,0 +1,49 @@
+/* Stand rushes and weapons in battle (js/strike.js) */
+.stk-stand, .stk-ghost { position: absolute; width: var(--size, 160px); height: calc(var(--size, 160px) * 1.3); margin: calc(var(--size, 160px) * -0.75) 0 0 calc(var(--size, 160px) * -0.5); pointer-events: none; z-index: 86; }
+.stk-stand svg, .stk-ghost svg { width: 100%; height: 100%; display: block; }
+.stk-stand { opacity: 0; filter: drop-shadow(0 0 14px var(--sc)) drop-shadow(4px 4px 0 #1a1020); transition: opacity .12s; }
+.stk-stand.go { opacity: .96; }
+.stk-stand.back { opacity: 0; transition: left .2s, top .2s, transform .2s, opacity .25s .05s; }
+.stk-stand.punching svg { animation: stkShake .07s linear infinite; }
+@keyframes stkShake { 0% { transform: translate(0, 0); } 25% { transform: translate(-4px, 2px); } 50% { transform: translate(4px, -2px); } 75% { transform: translate(-2px, -3px); } }
+.stk-ghost { opacity: 0; filter: grayscale(.3) drop-shadow(0 0 8px var(--sc)); mix-blend-mode: screen; animation: stkGhost .45s ease-out forwards; }
+@keyframes stkGhost { 15% { opacity: .5; } 100% { opacity: 0; transform: scale(1.1); } }
+.stk-fist { position: absolute; width: 46px; height: 46px; margin: -23px 0 0 -23px; z-index: 87; pointer-events: none; animation: stkFist .38s ease-out forwards; }
+.stk-fist.heavy { width: 62px; height: 62px; margin: -31px 0 0 -31px; }
+.stk-fist svg { width: 100%; height: 100%; overflow: visible; }
+@keyframes stkFist { 0% { transform: translateX(var(--dx)) rotate(var(--r)) scale(.4); opacity: 0; } 25% { transform: translateX(0) rotate(var(--r)) scale(1.15); opacity: 1; } 100% { transform: translateX(calc(var(--dx) * -.4)) rotate(var(--r)) scale(.9); opacity: 0; } }
+.stk-cry { position: absolute; z-index: 88; pointer-events: none; transform: translate(-50%, -50%); text-align: center; white-space: nowrap; animation: stkCry .5s cubic-bezier(.2, 1.8, .4, 1) both; }
+.stk-cry b { display: block; font-family: Anton, Impact, sans-serif; font-size: 34px; color: var(--sc); -webkit-text-stroke: 2px #1a1020; text-shadow: 4px 4px 0 #1a1020; letter-spacing: .02em; font-style: italic; }
+.stk-cry i { display: block; font-style: normal; font: 900 22px var(--f-jp); color: #fff; -webkit-text-stroke: 1.5px #1a1020; }
+.stk-cry.big b { font-size: 52px; } .stk-cry.big i { font-size: 30px; }
+@keyframes stkCry { from { transform: translate(-50%, -50%) scale(2.4) rotate(-8deg); opacity: 0; } to { transform: translate(-50%, -50%) scale(1) rotate(-4deg); opacity: 1; } }
+.stk-finish { position: absolute; width: 10px; height: 10px; z-index: 86; pointer-events: none; }
+.stk-finish::before { content: ''; position: absolute; left: -80px; top: -80px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, #fff 0, var(--sc) 35%, transparent 70%); animation: stkBoom .5s ease-out forwards; }
+.stk-finish::after { content: ''; position: absolute; left: -110px; top: -110px; width: 220px; height: 220px; background: repeating-conic-gradient(var(--sc) 0 5deg, transparent 5deg 20deg); border-radius: 50%; mask: radial-gradient(circle, transparent 30%, #000 32%, transparent 70%); -webkit-mask: radial-gradient(circle, transparent 30%, #000 32%, transparent 70%); animation: stkBoom .55s ease-out forwards; }
+@keyframes stkBoom { from { transform: scale(.2); opacity: 1; } to { transform: scale(1.4); opacity: 0; } }
+.stk-lines { position: absolute; width: 10px; height: 10px; z-index: 85; pointer-events: none; }
+.stk-lines::before { content: ''; position: absolute; left: -900px; top: -900px; width: 1800px; height: 1800px; background: repeating-conic-gradient(#1a102066 0 1.5deg, transparent 1.5deg 7deg); mask: radial-gradient(circle, transparent 18%, #000 40%); -webkit-mask: radial-gradient(circle, transparent 18%, #000 40%); animation: stkLines .3s linear infinite; }
+.stk-lines.max::before { background: repeating-conic-gradient(var(--sc) 0 1deg, #1a102088 1deg 2.5deg, transparent 2.5deg 7deg); }
+@keyframes stkLines { to { transform: rotate(7deg); } }
+
+.stk-weapon { position: absolute; width: var(--size, 60px); height: var(--size, 60px); margin: calc(var(--size, 60px) * -0.5) 0 0 calc(var(--size, 60px) * -0.5); z-index: 86; pointer-events: none; transform: scaleX(var(--flip, 1)) rotate(var(--rot, 0deg)); animation: stkDraw .22s cubic-bezier(.2, 1.8, .4, 1) both; filter: drop-shadow(3px 3px 0 #1a1020); }
+.stk-weapon svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.stk-weapon.power { filter: drop-shadow(0 0 12px #ffd84a) drop-shadow(3px 3px 0 #1a1020); }
+.stk-weapon.kick svg { animation: stkKick .12s ease-out; }
+@keyframes stkKick { 40% { transform: translateX(-10px) rotate(-14deg); } }
+.stk-weapon.ball svg { animation: stkSpin .3s linear infinite; }
+.stk-weapon.ball.gold svg { animation-duration: .18s; }
+@keyframes stkSpin { to { transform: rotate(360deg); } }
+.stk-weapon.rope svg { animation: stkTwirl .35s linear infinite; transform-origin: 50% 45%; }
+@keyframes stkTwirl { 50% { transform: scaleX(.6) rotate(8deg); } }
+.stk-weapon.bomb svg circle { animation: stkFuse .15s infinite alternate; }
+@keyframes stkFuse { to { r: 7; fill: #ff6a2a; } }
+.stk-weapon.out { animation: stkPut .25s ease-in forwards; }
+@keyframes stkDraw { from { opacity: 0; transform: scaleX(var(--flip, 1)) rotate(calc(var(--rot, 0deg) - 60deg)) scale(.3); } }
+@keyframes stkPut { to { opacity: 0; transform: scaleX(var(--flip, 1)) rotate(var(--rot, 0deg)) scale(.6); } }
+.stk-flash { position: absolute; width: 10px; height: 10px; z-index: 87; pointer-events: none; }
+.stk-flash::before { content: ''; position: absolute; left: -22px; top: -22px; width: 44px; height: 44px; background: radial-gradient(circle, #fff 0, #ffd84a 40%, transparent 70%); clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); animation: stkBoom .18s ease-out forwards; }
+.stk-flash.big::before { left: -40px; top: -40px; width: 80px; height: 80px; }
+.stk-wkana { position: absolute; z-index: 88; pointer-events: none; transform: translate(-50%, -50%) rotate(-8deg); font: 900 22px var(--f-jp); color: #fff; -webkit-text-stroke: 1.6px #1a1020; text-shadow: 2px 2px 0 #1a1020; white-space: nowrap; animation: stkCry .3s cubic-bezier(.2, 1.8, .4, 1) both; }
+.stk-wkana.out { opacity: 0; transition: opacity .2s; }
+@media (prefers-reduced-motion: reduce) { .stk-lines, .stk-ghost { display: none; } .stk-stand.punching svg { animation: none; } }

@@ -336,10 +336,21 @@ SBR.battle = (() => {
           const sk = SBR.stands.keyFor(u, e.abId);
           await SBR.cutin({ portrait: ui.artFor(u.art), name: e.name, sub: sk ? `「${SBR.stands.name(sk)}」` : (u.fullName || u.name), color: e.enemy ? '#c8323c' : (u.def && u.def.color) || '#f2c14e', enemy: !!e.enemy, kanaText: e.enemy ? 'ゴゴゴゴ' : 'ドドドド' });
         }
-        if (e.special && u) { const sk = SBR.stands.keyFor(u, e.abId); if (sk) await standFlash(e.uid, sk); }
         const fx = lookOf(e);
         const tier = powerTier(u, e);
         const dtype = dtypeOfAct(u, e);
+        const slvl = (u && u.upgrades && e.abId && u.upgrades[e.abId]) || 1;
+        // close-range Stands fly over and pummel; the rest flash behind their user. Weapons show in the attacker's hand.
+        let rushed = false;
+        const skKey = e.special && u ? SBR.stands.keyFor(u, e.abId) : null;
+        const foeT = u ? e.targets.filter(t => t !== e.uid && cards[t] && c.unit(t) && c.unit(t).side !== u.side) : [];
+        if (skKey && SBR.strike && SBR.strike.isClose(skKey) && foeT.length && dtype) {
+          rushed = true;
+          await SBR.strike.rush({ key: skKey, from: center(e.uid), to: foeT.slice(0, 4).map(center), tier, lvl: slvl, enemy: !!e.enemy, color: (dtype && SBR.DMG[dtype] ? SBR.DMG[dtype].color : (u.def && u.def.color)) || '#f2c14e' });
+        } else if (skKey) await standFlash(e.uid, skKey);
+        if (!rushed && u && SBR.strike && SBR.strike.hasWeapon(fx) && e.targets.length && !(e.targets.length === 1 && e.targets[0] === e.uid)) {
+          await SBR.strike.weapon({ look: fx, from: center(e.uid), to: center(e.targets.find(t => t !== e.uid) || e.targets[0]), tier, lvl: slvl, enemy: !!e.enemy });
+        }
         if (['act4', 'ballbreaker'].includes(fx)) { SBR.audio.play('spin'); await bigFx(fx); }
         const snd = { gun: 'gun', nail: 'gun', ball: 'spin', golden: 'spin', act4: 'spin', ballbreaker: 'spin', heal: 'heal', buff: 'buff', item: 'buff', debuff: 'debuff', boom: 'boom', claw: 'hit', hit: 'hit', aoe: 'hit', rope: 'whistle', sound: 'boom', rain: 'miss', magnet: 'block', grid: 'block', pin: 'click', spray: 'miss', scan: 'spin', wormhole: 'rewind',
           fire: 'boom', firebind: 'whistle', ripple: 'spin', uv: 'spin', beam: 'gun', timestop: 'timestop', timeskip: 'rewind', rewind: 'rewind', zipper: 'click', erase: 'rewind', bomb: 'click', prime: 'click', emerald: 'gun', rapier: 'hit', string: 'whistle', lasso: 'whistle', disc: 'debuff', blood: 'hit', ice: 'miss', gatling: 'gun', life: 'heal', restore: 'heal' }[fx];
@@ -348,7 +359,7 @@ SBR.battle = (() => {
         if (card && tier >= 2) { card.classList.remove('vfx-charge', 'vfx-charge3'); void card.offsetWidth; card.classList.add(tier >= 3 ? 'vfx-charge3' : 'vfx-charge'); card.style.setProperty('--vc', (dtype && SBR.DMG[dtype] ? SBR.DMG[dtype].color : (u && u.def && u.def.color) || '#f2c14e')); setTimeout(() => card.classList.remove('vfx-charge', 'vfx-charge3'), 1000 / SBR.settings.speed); }
         const tpts = e.targets.filter(t => cards[t]).slice(0, 5).map(center);
         const selfOnly = e.targets.length === 1 && e.targets[0] === e.uid;
-        await SBR.fx.play(fx || 'hit', center(e.uid), tpts.length ? tpts : [center(e.uid)], {
+        if (!rushed) await SBR.fx.play(fx || 'hit', center(e.uid), tpts.length ? tpts : [center(e.uid)], {
           enemy: e.enemy, self: selfOnly, tier, dtype, abId: e.abId,
           lvl: (u && u.upgrades && e.abId && u.upgrades[e.abId]) || 1,
           variant: hash(e.abId || e.name || fx), ucolor: u && u.def && u.def.color,
