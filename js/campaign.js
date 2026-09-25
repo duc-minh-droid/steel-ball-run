@@ -445,7 +445,7 @@ SBR.CAMPAIGN_EVENTS.forEach(e => e.choices.forEach((c, i) => { SBR.CONSEQ[e.id +
   const farewell = S.gyro_farewell.fx;
   S.gyro_farewell.fx = g => {
     const P = SBR.run.party.find(m => m.id === 'gyro');
-    const lives = SBR.run.lead === 'gyro' || (SBR.campaign.repOf('naples') >= 3 && (SBR.run.flags.rectangleSnow || SBR.run.flags.marcoAlive || (P && P.path === 'goldenrider')));
+    const lives = SBR.run.lead === 'gyro' || (SBR.campaign.repOf('naples') >= 3 && (SBR.run.flags.rectangleSnow || SBR.run.flags.rectangleLeaf || SBR.run.flags.horseGait || SBR.run.flags.marcoAlive || (P && P.path === 'goldenrider')));
     if (lives) { g.scene('gyro_lives'); return; }
     farewell(g);
     SBR.campaign.deed('gyro_dies', 'Gyro Zeppeli died on the shore.');
@@ -461,7 +461,7 @@ SBR.CAMPAIGN_EVENTS.forEach(e => e.choices.forEach((c, i) => { SBR.CONSEQ[e.id +
 SBR.campaign.preBoss = async (B, ui, G) => {
   const r = SBR.run, C = SBR.campaign;
   // Sandman can be talked to if his people trust you
-  if (B.enemies.includes('sandman') && (C.repOf('natives') >= 2 || C.npcIs('scout', 'friend'))) {
+  if (B.enemies.includes('sandman') && C.repOf('natives') > -3 && !r.flags.sandmanGrudge && (C.repOf('natives') >= 2 || C.npcIs('scout', 'friend') || C.npcIs('sandman', 'friend'))) {
     const ch = await ui.eventPanel({ title: 'Sandman Waits', art: 'sandman', text: 'Sandman stands in the river, spear lowered. "My brother says you shared the water. Speak, then."', choices: [
       { label: 'Offer him the land-deed money from the race', ok: {} }, { label: 'Fight', ok: {} }] });
     if (ch && ch.label.startsWith('Offer')) {
@@ -510,16 +510,37 @@ SBR.STORY.napkin_offer = { bg: 5, lines: [
   { who: 'valentine', text: 'At a dinner table, whoever takes the first napkin decides the rules for everyone else. I am offering it to you.' },
 ] };
 
-/* ================= Endings ================= */
-SBR.ENDINGS = {
-  knight:   { name: 'The President’s Knight', scene: 'ending_knight', test: w => SBR.run.flags.knight },
-  saint:    { name: 'The Saint’s Return', scene: 'ending_saint', test: w => w.rep.vatican >= 3 && SBR.run.flags.hpLoyal },
-  zeppeli:  { name: 'Zeppeli’s Promise', scene: 'ending_zeppeli', test: w => SBR.run.flags.gyroLives && w.rep.naples >= 2 },
-  lone:     { name: 'Lone Rider', scene: 'ending_lone', test: w => SBR.run.party.length <= 1 && Object.values(w.rep).filter(v => v <= -2).length >= 3 },
-  champion: { name: 'Walking Again — Champion', scene: 'epilogue_champion', test: () => SBR.game.playerRank() === 1 },
-  canon:    { name: 'Walking Again', scene: 'epilogue_canon', test: () => true },
-};
-SBR.campaign.pickEnding = () => { const w = SBR.campaign.world(); const f = SBR.run.forceEnding; if (f && SBR.ENDINGS[f]) return f; return Object.keys(SBR.ENDINGS).find(k => SBR.ENDINGS[k].test(w)); };
+/* ================= Endings =================
+   Picked in order: the first whose test passes. Driven by faction standing, who lived and who rode with you,
+   flags from story choices and skipped beats, the Corpse Parts you still carry, and your lead rider. */
+(() => {
+  const f = () => SBR.run.flags;
+  const has = id => SBR.run.party.concat(SBR.run.reserve || []).some(m => m.id === id);
+  const npc = (id, ...st) => st.some(s => SBR.campaign.npcIs(id, s));
+  const holy = () => Object.keys(SBR.run.mats || {}).filter(k => SBR.MATERIALS[k] && SBR.MATERIALS[k].holy && SBR.run.mats[k] > 0).length;
+  const tier = () => (SBR.threatTier ? SBR.threatTier() : 0);
+  SBR.ENDINGS = {
+    knight:   { name: 'The President’s Knight', scene: 'ending_knight', test: w => f().knight },
+    lone:     { name: 'Lone Rider', scene: 'ending_lone', test: w => SBR.run.party.length <= 1 && Object.values(w.rep).filter(v => v <= -2).length >= 3 },
+    sold:     { name: 'Thirty Pieces of Silver', scene: 'ending_sold', test: w => f().soldCorpse },
+    vessel:   { name: 'The Saint’s Vessel', scene: 'ending_vessel', test: w => f().lucyCaptured && !has('lucy') },
+    outlaw:   { name: 'Wanted Across America', scene: 'ending_outlaw', test: w => w.rep.law <= -3 && tier() >= 2 },
+    saint:    { name: 'The Saint’s Return', scene: 'ending_saint', test: w => w.rep.vatican >= 3 && f().hpLoyal },
+    zeppeli:  { name: 'Zeppeli’s Promise', scene: 'ending_zeppeli', test: w => f().gyroLives && w.rep.naples >= 2 },
+    homeland: { name: 'Sandman’s Land', scene: 'ending_homeland', test: w => w.rep.natives >= 4 && (f().sandParley || npc('sandman', 'friend')) },
+    sister:   { name: 'Wekapipo’s Sister', scene: 'ending_sister', test: w => has('wekapipo') && (f().wekaPromise || f().wekaTruth) },
+    marshal:  { name: 'The Marshal of the West', scene: 'ending_marshal', test: w => (f().timLives || has('mountaintim')) && w.rep.law >= 3 },
+    steels:   { name: 'The Steels of New York', scene: 'ending_steels', test: w => npc('steven', 'friend') && (npc('lucy', 'friend', 'safe') || has('lucy')) },
+    keeper:   { name: 'Keeper of the Corpse', scene: 'ending_keeper', test: w => holy() >= 5 },
+    rivals:   { name: 'Two Riders at the Line', scene: 'ending_rivals', test: w => npc('diego', 'ally', 'respect', 'deal') || f().diegoTruce },
+    absolved: { name: 'Cream Starter’s Absolution', scene: 'ending_absolved', test: w => SBR.run.lead === 'hotpants' },
+    cowboy:   { name: 'Oh! Lonesome Me', scene: 'ending_cowboy', test: w => SBR.run.lead === 'mountaintim' },
+    pardon:   { name: 'The Executioner’s Pardon', scene: 'ending_pardon', test: w => SBR.run.lead === 'gyro' },
+    champion: { name: 'Walking Again — Champion', scene: 'epilogue_champion', test: () => SBR.game.playerRank() === 1 },
+    canon:    { name: 'Walking Again', scene: 'epilogue_canon', test: () => true },
+  };
+})();
+SBR.campaign.pickEnding = () => { const w = SBR.campaign.world(); const f = SBR.run.forceEnding; if (f && SBR.ENDINGS[f]) return f; return Object.keys(SBR.ENDINGS).find(k => { try { return SBR.ENDINGS[k].test(w); } catch (e) { return false; } }); };
 Object.assign(SBR.STORY, {
   ending_knight: { bg: 6, lines: [
     { narr: 'The Corpse rests in a vault beneath the White House. America prospers. Every misfortune in the world flows somewhere else.' },
@@ -540,6 +561,63 @@ Object.assign(SBR.STORY, {
     { narr: 'Johnny Joestar crosses the finish line alone. There is no one waiting.' },
     { narr: 'Everyone he left behind on the trail is somewhere else now. Some of them are cursing his name.' },
     { who: 'johnny', text: 'I walked all the way here. For what?' },
+  ] },
+  ending_sold: { bg: 6, lines: [
+    { narr: 'The President’s briefcase paid for a house on the Hudson, a stable of thoroughbreds, and a very good lawyer.' },
+    { narr: 'Johnny walks, a little. Some mornings his legs forget how. The newspapers say the President is blessed. Every war goes well for America now.' },
+    { who: 'johnny', text: 'Gyro would have spat on this money. I keep it in a drawer I never open.' },
+  ] },
+  ending_vessel: { bg: 5, lines: [
+    { narr: 'Nobody ever got Lucy Steel off the President’s train.' },
+    { narr: 'In a white room in Washington, a girl of fourteen sleeps with a Saint growing inside her. Doctors take notes. Steven Steel writes a letter every day. None are delivered.' },
+    { who: 'johnny', text: 'I told her I’d look out for her. I told a lot of people a lot of things.' },
+  ] },
+  ending_outlaw: { bg: 6, lines: [
+    { narr: 'Johnny crosses the finish line with a sheriff’s posse fifty yards behind him and his face on every post in New York.' },
+    { narr: 'He doesn’t stop at Trinity Church. He rides straight through Manhattan and onto a coal barge heading south.' },
+    { who: 'johnny', text: 'They can call me whatever they like. I’m walking, and I’m free, and I had neither in San Diego.' },
+  ] },
+  ending_homeland: { bg: 3, lines: [
+    { narr: 'The prize money arrives in Arizona in a locked strongbox. Sandman’s sister counts it on a kitchen table.' },
+    { who: 'sandman', text: 'Enough for the river, and the hills where my grandfather is buried. The land is ours on their paper now. That is the only kind they respect.' },
+    { narr: 'Johnny walks along the river with him. Sandman does not run. For once, there is nowhere he has to be.' },
+  ] },
+  ending_sister: { bg: 4, lines: [
+    { narr: 'A farmhouse in the Italian countryside. A woman opens the door and drops the basket she is carrying.' },
+    { who: 'wekapipo', text: '...I was told you were dead. I believed it for eight years.' },
+    { narr: 'Johnny waits by the gate and lets them have the afternoon. Later, over dinner, Wekapipo laughs. Nobody at the table has heard him do it before.' },
+  ] },
+  ending_marshal: { bg: 1, lines: [
+    { narr: 'Mountain Tim takes the marshal’s star in Arizona the week after the race. The first thing he does is arrest every agent still wearing the President’s pin.' },
+    { who: 'mountaintim', text: 'Out here we don’t have a Saint. We have a rope and a promise. That’ll do.' },
+    { narr: 'Johnny visits every spring. They ride the old trail, slowly, and argue about horses.' },
+  ] },
+  ending_steels: { bg: 6, lines: [
+    { narr: 'Steven Steel announces the second Steel Ball Run from the steps of Trinity Church, with his wife beside him holding his hat.' },
+    { who: 'lucy', text: 'Everyone said he was a fool. He’s just brave in a way that looks silly. So am I, now.' },
+    { who: 'steven', text: 'And the first entrant, ladies and gentlemen: a young man who walked here from San Diego!' },
+  ] },
+  ending_keeper: { bg: 5, lines: [
+    { narr: 'Johnny Joestar keeps the Corpse. Nobody else would carry it the way it should be carried, so he does.' },
+    { narr: 'He buries it piece by piece in places nobody will look: a desert, a lake bed, a church in Philadelphia. He tells no one, not even his children.' },
+    { who: 'johnny', text: 'It isn’t mine. It isn’t anyone’s. That’s exactly why it has to be me.' },
+  ] },
+  ending_rivals: { bg: 6, lines: [
+    { narr: 'Two riders at the line, neck and neck: Johnny Joestar and Diego Brando.' },
+    { who: 'diego', text: 'Don’t think this makes us anything, Joestar.' },
+    { narr: 'The judges can’t separate them. The newspapers print both names, and neither man ever agrees whose should have come first.' },
+  ] },
+  ending_absolved: { bg: 5, lines: [
+    { narr: 'Hot Pants finishes the race and does not go to Rome. She goes back to the woods where the bear found them, and builds a small chapel there.' },
+    { who: 'hotpants', text: 'I wanted the Saint to forgive me. I think I had to do it myself.' },
+  ] },
+  ending_cowboy: { bg: 1, lines: [
+    { narr: 'Mountain Tim rides the last mile slowly, his rope coiled on the saddle, and tips his hat to the crowd.' },
+    { who: 'mountaintim', text: 'Folks ask what I’ll do with the prize. Buy a ranch. Sit on a porch. Maybe learn to be lonesome properly.' },
+  ] },
+  ending_pardon: { bg: 5, lines: [
+    { narr: 'The King of Naples keeps his word, because everyone is watching. Marco walks out of the prison into the sun.' },
+    { who: 'gyro', text: 'Nyo-ho-ho! I told you, Johnny. Rotation. Everything comes back around, if you throw it right.' },
   ] },
 });
 

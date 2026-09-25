@@ -205,52 +205,84 @@ SBR.rollCondition = act => {
   return SBR.util.pick(keys.filter(k => k !== prev));
 };
 
-/* ================= Lineups: act variants and floating story beats ================= */
+/* ================= Lineups: act variants and floating story beats =================
+   Each act has several variants (SBR.LINEUPS[act]): a different act boss and a different set of core beats.
+   On top of the core beats, a random handful of optional manga beats is drawn from SBR.BEAT_POOL[act].
+   Variants can have cond(g) / weight(g) (earlier decisions pick the road), tags (the run's omen favours some),
+   and foe tags (a Stand user you already met in an earlier act is not met again).
+   The full data lives in manga.js; these two variants are the fallback. */
 SBR.LINEUPS = {
-  1: [
-    { id: 'canon', beats: [['st_robinson', 2, 4], ['st_tim', 3, 5]] },
-    { id: 'robinson', beats: [['st_tim', 2, 3], ['st_boom', 3, 5]], boss: { enemies: ['robinson_boss'], name: 'The Insect Queen', pre: 'rob_pre', post: 'rob_post', midRound: { 2: 'tusk_awaken' } } },
-  ],
-  2: [
-    { id: 'canon', beats: [['st_oyecomova', 2, 3], ['st_zombiehorse', 2, 4], ['st_leftarm', 3, 5], ['st_porkpie', 4, 6]] },
-    { id: 'oyecomova', beats: [['st_zombiehorse', 2, 3], ['st_leftarm', 2, 4], ['st_ferdinand', 3, 5], ['st_porkpie', 4, 6]], boss: { enemies: ['oyecomova_boss'], name: 'The Rhythm of Naples', pre: 'oye_pre', post: 'oye_post' } },
-  ],
-  3: [
-    { id: 'canon', beats: [['st_hotpants', 2, 3], ['st_ringo', 3, 5], ['st_blackmore', 4, 6]] },
-    { id: 'ringo', beats: [['st_hotpants', 2, 3], ['st_blackmore', 3, 4], ['st_sandman', 5, 6]], boss: { enemies: ['ringo'], name: 'The Man\'s World', pre: 'ringo_pre', post: 'ringo_post', midRound: { 2: 'tusk2_awaken' } } },
-  ],
-  4: [
-    { id: 'canon', beats: [['st_sugar', 2, 3], ['st_tattoo', 3, 4], ['st_wekapipo', 4, 6]] },
-    { id: 'wekapipo', beats: [['st_tattoo', 2, 3], ['st_axl', 3, 4], ['st_sugar', 5, 6]], boss: { enemies: ['wekapipo_foe', 'magent'], name: 'The Frozen Strait', pre: 'weka_pre', post: 'weka_post' } },
-  ],
-  5: [
-    { id: 'canon', beats: [['st_disco', 2, 3], ['st_mikeo', 3, 4], ['st_valentine', 5, 6]] },
-    { id: 'mansion', beats: [['st_mikeo', 2, 3], ['st_disco', 3, 4], ['st_valentine', 5, 6]] },
-  ],
+  1: [{ id: 'canon', beats: [['st_robinson', 2, 4], ['st_tim', 3, 5]] }],
+  5: [{ id: 'canon', beats: [['st_disco', 2, 3], ['st_valentine', 5, 6]] }],
 };
-/** place beats on stages: in order, each within its window, never on the boss stage */
-function placeBeats(beats, stages) {
-  const story = {}; let prev = 1;
-  beats.forEach(([id, lo, hi], i) => {
-    const remaining = beats.length - i - 1;
-    const min = Math.max(lo, prev + 1), max = Math.min(hi, stages - 1 - remaining);
-    const st = min >= max ? min : SBR.util.randInt(min, max);
-    story[st] = id; prev = st;
-  });
-  return story;
-}
-SBR.rollLineup = act => {
-  const A = SBR.ACTS[act], L = SBR.LINEUPS[act];
-  if (!L) return { id: 'canon', story: Object.assign({}, A.story) };
-  const v = SBR.util.pick(L);
-  return { id: v.id, story: placeBeats(v.beats, A.stages), boss: v.boss || null };
-};
-/** the act as this run sees it */
-SBR.actPlan = act => {
-  const A = SBR.ACTS[act], r = SBR.run;
-  const L = r && r.lineup && r.lineup[act];
-  return { story: (L && L.story) || A.story, boss: (L && L.boss) || A.boss, variant: (L && L.id) || 'canon' };
-};
+SBR.BEAT_POOL = SBR.BEAT_POOL || {};
+SBR.BOSS_TWISTS = SBR.BOSS_TWISTS || {};
+(() => {
+  const HIST = 'sbr.lineupHist';
+  const hist = () => { try { return JSON.parse(localStorage.getItem(HIST) || '{}') || {}; } catch (e) { return {}; } };
+  const remember = (act, id) => { try { const h = hist(); h[act] = [id].concat((h[act] || []).filter(x => x !== id)).slice(0, 2); localStorage.setItem(HIST, JSON.stringify(h)); } catch (e) { /* private mode */ } };
+  const gApi = () => (SBR.game && SBR.game._debug && SBR.game._debug.G) || null;
+  const safe = (fn, dflt) => { try { return fn(); } catch (e) { console.warn('[lineup]', e); return dflt; } };
+  const foesOf = id => { const s = SBR.STORY[id]; return s && s.foe ? [].concat(s.foe) : []; };
+  SBR.lineupSafe = safe;
+  /** place beats on stages: sorted by window, one per stage, never on stage 1 or the boss stage; beats that don't fit are dropped */
+  function placeBeats(beats, stages) {
+    const story = {}; let prev = 1;
+    const list = beats.slice().sort((a, b) => a[1] - b[1]);
+    list.forEach(([id, lo, hi], i) => {
+      const remaining = list.length - i - 1;
+      const min = Math.max(lo, prev + 1), max = Math.min(hi, stages - 1 - remaining);
+      const st = min <= max ? SBR.util.randInt(min, max) : Math.min(prev + 1, stages - 1);
+      if (st <= prev || st > stages - 1 || story[st]) return;
+      story[st] = id; prev = st;
+    });
+    return story;
+  }
+  SBR.placeBeats = placeBeats;
+  SBR.rollLineup = act => {
+    const A = SBR.ACTS[act], L = SBR.LINEUPS[act], r = SBR.run, g = gApi();
+    if (!L || !L.length) return { id: 'canon', story: Object.assign({}, A.story) };
+    if (r && SBR.rollOmen && !r.omen) safe(() => SBR.rollOmen(), null);
+    const met = (r && r.metFoes) || [], seen = (r && r.seenBeats) || [];
+    const H = hist()[act] || [];
+    const omen = r && r.omen && SBR.OMENS && SBR.OMENS[r.omen];
+    const metFoe = f => [].concat(f || []).some(x => met.includes(x));
+    const ok = L.filter(v => (!v.cond || safe(() => v.cond(g), false)) && !metFoe(v.foe));
+    const cands = ok.length ? ok : L.filter(v => !v.cond || safe(() => v.cond(g), false));
+    const v = SBR.util.weighted(cands.length ? cands : L, x => {
+      let w = typeof x.weight === 'function' ? safe(() => x.weight(g), 1) : (x.weight == null ? 1 : x.weight);
+      (x.tags || []).forEach(t => { if (omen && omen.bias && omen.bias[t]) w *= omen.bias[t]; });
+      if (H[0] === x.id) w *= 0.25; else if (H.includes(x.id)) w *= 0.55;
+      return Math.max(0.02, w);
+    });
+    const core = v.beats.filter(([id]) => SBR.STORY[id] && !metFoe(foesOf(id)));
+    const coreIds = core.map(b => b[0]);
+    const cap = act === 6 ? 1 : A.stages - 3;
+    const pool = SBR.util.shuffle ? SBR.util.shuffle((SBR.BEAT_POOL[act] || []).slice()) : (SBR.BEAT_POOL[act] || []).slice().sort(() => Math.random() - 0.5);
+    const extrasOk = pool.filter(([id]) => { const s = SBR.STORY[id]; return s && !coreIds.includes(id) && !seen.includes(id) && !(v.noPool || []).includes(id) && !metFoe(foesOf(id)) && (!s.when || safe(() => s.when(g), false)); });
+    const n = Math.max(0, Math.min(cap - core.length, v.extras != null ? v.extras : SBR.util.randInt(1, 2)));
+    const beats = core.concat(extrasOk.slice(0, n));
+    const story = placeBeats(beats, A.stages);
+    if (r) {
+      r.metFoes = met.concat([].concat(v.foe || []), ...Object.values(story).map(foesOf)).filter((x, i, a) => a.indexOf(x) === i);
+      r.seenBeats = seen.concat(Object.values(story));
+    }
+    remember(act, v.id);
+    return { id: v.id, name: v.name || null, rumor: v.rumor || null, story, boss: v.boss || null, core: coreIds };
+  };
+  /** the act as this run sees it: beats whose scene has when(g) are hidden while it fails; boss twists apply from what you did */
+  SBR.actPlan = act => {
+    const A = SBR.ACTS[act], r = SBR.run, g = gApi();
+    const L = r && r.lineup && r.lineup[act];
+    const raw = (L && L.story) || A.story;
+    const story = {};
+    Object.entries(raw || {}).forEach(([st, id]) => { const s = SBR.STORY[id]; if (s && (!s.when || !g || safe(() => s.when(g), true))) story[st] = id; });
+    let boss = (L && L.boss) || A.boss;
+    const tw = g && (SBR.BOSS_TWISTS[act] || []).find(t => safe(() => t.when(g, boss), false));
+    if (tw) boss = Object.assign({}, boss, { enemies: boss.enemies.concat(tw.add || []), name: tw.name ? tw.name(boss) : boss.name, twist: tw.id });
+    return { story, boss, variant: (L && L.id) || 'canon', twist: tw ? tw.id : null, name: L && L.name };
+  };
+})();
 
 /* ================= Variant bosses and scenes ================= */
 (() => {

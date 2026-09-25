@@ -66,6 +66,15 @@ Then open <http://localhost:5178>. Progress saves in your browser's local storag
    - Diego's THE WORLD stops time more often as he gets desperate.
 9. **Build up across runs.** Race Points buy permanent Techniques. Achievements unlock lead riders, horses, starting items and Techniques.
 
+## Risk, choices and variety
+
+- **Danger stars.** Every encounter card shows 1–5 stars. Higher stars mean bigger fights and harder checks, and much better pay: more money, XP and materials, and a chance of rare gear. What kind of card it is (fight, shop, trainer, event…) stays hidden until you pick it.
+- **Optional story.** Story beats are offered next to two other cards. Skip one and the world moves on without you: villains ambush you later, allies never join, or people die off-screen. Most beats have 2–4 choices, and each choice can change the fight that follows.
+- **Different every run.** Each act has four lineups with different bosses and beat orders, and each run starts with an omen that twists the race. There are 18 endings, chosen by faction standing, who lived and who rode with you, the story choices you made, and the Corpse Parts you still carry.
+- **Manga-panel scenes.** Bosses, elites, trainers and side encounters talk before, during and after their fights on drawn comic pages, with speech bubbles, speed lines and Stands.
+- **Side encounters.** Stand users from earlier parts (Emperor, Hanged Man, Yellow Temperance, Death 13, Bad Company, Sex Pistols, Aerosmith, Kraft Work, Moody Blues…), vampire nests, zombie horses, a Hamon monk and a Pillar Man.
+- **The Saint's Corpse matters to everyone.** Every part you carry gives your lead a battle ability. Holding 3, 5 or 7 parts blesses the party and adds a race power, but the President hunts you harder. Parts can also be offered to the Vatican, sold for a pardon, buried, or fused.
+
 ## Your own rider
 
 The fifth lead is one you make yourself. Pick them on the registration screen, then press **Edit your rider** to choose their name, title, skin, hair, eyes, hat, outfit, a detail such as a scar or a monocle, and backdrop.
@@ -75,11 +84,7 @@ They start with nothing but an old six-shooter and a punch, and can earn **one**
 - **Hamon.** An old man balanced on a pole teaches the Ripple. It deals Holy damage, and double damage to the undead.
 - **Vampire.** Put on a Stone Mask. You get lifesteal and regeneration, but you are weak to Holy and Spin damage and you burn in scorching sun.
 - **German Cyborg.** Only badly hurt riders meet the field surgeons. You get armour, a chest machine gun and a UV lamp.
-- **A Stand**, from the Stand Arrow. Getting the Arrow takes a chain of encounters:
-  1. Hear the rumour.
-  2. Take the Arrow from the Arrow Collector, or find it at the heart of a detour.
-  3. Survive a DC 15 check when you cut yourself with it.
-  4. Choose one of three Stands: Star Platinum, Magician's Red, Hierophant Green, Silver Chariot, Crazy Diamond, Killer Queen, The Hand, Gold Experience, Sticky Fingers, King Crimson, Stone Free or Whitesnake.
+- **A Stand**, from the Stand Arrow: a single encounter in Acts I–II. Cut yourself (a Resolve check: pass and you choose one of three Stands; fail and the Arrow either chooses for you or rejects you), take it from its keeper in a fight, or pay and let fate decide. The 12 Stands are Star Platinum, Magician's Red, Hierophant Green, Silver Chariot, Crazy Diamond, Killer Queen, The Hand, Gold Experience, Sticky Fingers, King Crimson, Stone Free and Whitesnake.
 - **The Red Stone of Aja.** It evolves a Hamon user into the Aja Amplifier, or a vampire into the Ultimate Life Form.
 
 ## Materials, gear and money
@@ -178,6 +183,9 @@ The theme keys are `title`, `act1` to `act6`, `devilspalm`, `silvermine`, `lakei
 | `js/crafting.js` | Materials, Stand Remnants, equipment and slots, recipes, drop tables |
 | `js/variety.js` | Threat, generated fights, enemy traits, race conditions, act lineups |
 | `js/sbr.js` | Racers, canon side-story encounters, manga items, Act IV Tubular Bells |
+| `js/manga.js` | Story branches, skip consequences, act lineups, omens and endings |
+| `js/sides.js` / `js/corpse.js` | Side Stand users, vampires and Hamon; the Saint’s Corpse for every lead |
+| `js/panels.js` | Manga-panel dialogue pages and before/mid/after fight talk |
 | `js/custom.js` | The custom rider, the creator, and the Hamon, Vampire, Cyborg, Stand and Aja powers with their encounters |
 | `js/economy.js` | The 16 materials, Souls, upgrades, reinforce, salvage, selling, trinkets, services, fees |
 | `js/campaign.js` | World state, factions, consequences, follow-up encounters, story branches, endings, the Chronicle |

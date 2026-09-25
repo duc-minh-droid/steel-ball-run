@@ -1,0 +1,15 @@
+/* sides & corpse */
+
+/* Corpse Part abilities on the lead's action panel: a gold halo edge */
+.ab-btn[data-id^="corpse_"] { border-top: 5px solid #ffd84a; background: linear-gradient(180deg, #fffbe6, #fff 40%); }
+.ab-btn[data-id^="corpse_"]:hover { background: #fff3c0; }
+.ab-btn[data-id^="corpse_"] .ab-icon { box-shadow: 0 0 8px rgba(255, 216, 74, .8); }
+
+/* a lead carrying many parts can have 10+ abilities: wrap into two rows of smaller buttons */
+.ap-abilities:has(> .ab-btn:nth-child(8)) { flex-wrap: wrap; max-width: min(820px, 70vw); gap: 6px; }
+.ap-abilities:has(> .ab-btn:nth-child(8)) .ab-btn { min-width: 92px; max-width: 112px; min-height: 50px; padding: 4px 6px; font-size: 12px; }
+.ap-abilities:has(> .ab-btn:nth-child(8)) .ab-btn .ab-name { font-size: 12px; line-height: 1.05; }
+
+/* the Corpse Part chooser */
+.corpse-pick .chooser-ab { border-left: 6px solid #ffd84a; }
+.corpse-pick .cp-ico svg { width: 40px; height: 40px; display: block; }

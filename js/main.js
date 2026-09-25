@@ -25,6 +25,7 @@ SBR.game = (() => {
     SBR.pathAbilities(m).forEach(id => { if (!base.includes(id)) base.push(id); });
     if (P && P.drop) P.drop.forEach(id => { const i = base.indexOf(id); if (i >= 0) base.splice(i, 1); });
     SBR.equipBonus(m).abilities.forEach(id => { if (!base.includes(id)) base.push(id); });
+    if (SBR.extraAbilities) (SBR.extraAbilities(m) || []).forEach(id => { if (SBR.ABILITIES[id] && !base.includes(id)) base.push(id); });
     return base;
   }
   const xpToNext = lvl => 20 + lvl * 18;
@@ -140,7 +141,7 @@ SBR.game = (() => {
     hasAlly: id => !!findMember(id) || (SBR.run.gone || []).includes(id),
     money(n) {
       const r = SBR.run;
-      const v = n > 0 ? Math.round(n * (1 + (SBR.bonus().money || 0))) : n;
+      const v = n > 0 ? Math.round(n * (1 + (SBR.bonus().money || 0)) * SBR.riskMul()) : n;
       r.money = Math.max(0, r.money + v);
       if (r.money >= 400) achieve('rich');
       if (v) SBR.toast(`${art.icon('coin', 20)} ${v > 0 ? '+' : ''}${fmtMoney(v)}`, v > 0 ? 'good' : 'bad');
@@ -192,7 +193,7 @@ SBR.game = (() => {
       lost.forEach(id => { G.removeRelic(id); if (id === 'c_leftarm') { const j = findMember('johnny'); if (j) { j.maxHp -= 12; j.hp = Math.min(j.hp, j.maxHp); } } });
       if (lost.length) SBR.toast(`${art.icon('corpse', 22)} <div><b>Corpse Parts lost:</b><br><small>${lost.map(x => SBR.MATERIALS[x].name.replace('Corpse: ', '')).join(', ')}</small></div>`, 'loss');
     },
-    xp(n) { SBR.run.party.forEach(m => gainXp(m, n)); SBR.toast(`${art.icon('star', 20)} +${n} XP`, 'good'); },
+    xp(n) { n = Math.round(n * SBR.riskMul()); SBR.run.party.forEach(m => gainXp(m, n)); SBR.toast(`${art.icon('star', 20)} +${n} XP`, 'good'); },
     statUp(who, stat, n) {
       later(async () => {
         const m = who === 'choose' ? await ui.chooseMember(`Who gains +${n} ${SBR.STATS[stat].name}?`) : findMember(who);
@@ -210,13 +211,11 @@ SBR.game = (() => {
       const r = SBR.run;
       id = SBR.matId(id);
       if (SBR.MATERIALS[id].remnant && (r.mats[id] || 0) > 0) return;
+      if (n > 0 && !SBR.MATERIALS[id].remnant && !SBR.MATERIALS[id].holy) n = Math.max(1, Math.round(n * SBR.riskMul()));
       r.mats[id] = (r.mats[id] || 0) + n;
       if (!silent) SBR.toast(`<span class="toast-ico">${SBR.matIcon(id)}</span> +${n} ${SBR.MATERIALS[id].name} <small>(${r.mats[id]})</small>`, 'good');
     },
-    trinket(id, silent) {
-      const r = SBR.run; r.trinkets = r.trinkets || []; r.trinkets.push(id);
-      if (!silent) SBR.toast(`<span class="toast-ico">${SBR.trinketIcon(id)}</span> ${SBR.TRINKETS[id].name} <small>(sells for ${fmtMoney(SBR.TRINKETS[id].value)})</small>`, 'good');
-    },
+    trinket(id, silent) { return SBR.trinketReward(G, id, silent); },
     spend(n) { const r = SBR.run; if (r.money < n) return false; r.money -= n; SBR.audio.play('coin'); return true; },
     exhaust(id, n = 1) { const m = id === 'random' ? pick(SBR.run.party) : findMember(id); if (m) { m.exhaustion = (m.exhaustion || 0) + n; SBR.toast(`${SBR.CHARS[m.id].short} gains ${n} Exhaustion`, 'bad'); } },
     hasItem: id => SBR.run.items.includes(id),
@@ -344,21 +343,41 @@ SBR.game = (() => {
     const plan = SBR.actPlan(r.act);
     if (r.stage === act.stages) return [{ id: 'boss', type: 'boss', title: plan.boss.name, blurb: 'The stage\'s final obstacle. There is no way around.', icon: 'crown', forced: true, art: SBR.ENEMIES[act.boss.enemies[0]].art.key }];
     const storyId = plan.story[r.stage];
-    if (storyId && !(SBR.STORY[storyId].leadSkip || []).includes(r.lead)) { const s = SBR.STORY[storyId]; return [Object.assign({ id: storyId, type: 'story', forced: true, story: true }, s.card)]; }
+    let storyCard = null;
+    if (storyId && !(SBR.STORY[storyId].leadSkip || []).includes(r.lead) && !(r.flags['skipped_' + storyId])) {
+      const s = SBR.STORY[storyId];
+      storyCard = Object.assign({ id: storyId, type: 'story', story: true, stars: s.stars || 3 }, s.card);
+      if (s.required) return [Object.assign(storyCard, { forced: true })];
+    }
     const due = SBR.campaign.dueCard();
-    if (due) return [due];
+    if (due) return [Object.assign(due, { stars: due.stars || rollStars(due) })];
     const pool = SBR.EVENTS.filter(e => e.acts.includes(r.act) && !(e.once && r.usedEvents.includes(e.id)) && (!e.cond || e.cond(G)));
-    const n = 3 + (SBR.bonus().cards || 0);
+    const n = 3 + (SBR.bonus().cards || 0) - (storyCard ? 1 : 0);
     const out = [];
     const bag = pool.slice();
     while (out.length < n && bag.length) {
       const e = weighted(bag, x => x.weight || 1);
       bag.splice(bag.indexOf(e), 1);
       if (out.some(o => o.type === 'shop') && e.type === 'shop') continue;
-      out.push({ id: e.id, type: e.type, title: e.title, blurb: e.blurb, icon: e.icon, pace: e.pace, art: e.art, enemies: e.fight && e.fight.random ? SBR.buildFight(r.act, r.stage, e.type === 'elite' ? 'elite' : 'fight') : null });
+      const stars = rollStars(e);
+      if (e.fight && e.fight.random) { out.push({ id: e.id, type: e.type, title: e.title, blurb: e.blurb, icon: e.icon, pace: e.pace, art: e.art, stars, enemies: riskFight(r.act, r.stage, e.type, stars) }); continue; }
+      out.push({ id: e.id, type: e.type, title: e.title, blurb: e.blurb, icon: e.icon, pace: e.pace, art: e.art, stars, enemies: e.fight && e.fight.random ? SBR.buildFight(r.act, r.stage, e.type === 'elite' ? 'elite' : 'fight') : null });
     }
+    if (storyCard) { out.splice(Math.floor(Math.random() * (out.length + 1)), 0, storyCard); r.offeredStory = storyId; } else r.offeredStory = null;
     return out;
   }
+  /** 1-5 stars: how dangerous an encounter is, and how much it pays */
+  const STAR_RANGE = { fight: [1, 4], elite: [3, 5], boss: [5, 5], story: [2, 4], event: [1, 4], trainer: [2, 4], detour: [3, 5], shop: [1, 1], recruit: [1, 2], rest: [1, 1] };
+  function rollStars(e) { if (e.stars) return e.stars; const [lo, hi] = STAR_RANGE[e.type] || [1, 4]; return Math.min(5, randInt(lo, hi) + (SBR.threatTier() >= 3 && Math.random() < 0.4 ? 1 : 0)); }
+  /** risky fights are bigger and elite-grade; safe ones are smaller */
+  function riskFight(act, stage, type, stars) {
+    const kind = type === 'elite' || stars >= 4 ? 'elite' : 'fight';
+    let list = SBR.buildFight(act, stage, kind);
+    if (stars <= 1 && list.length > 1) list = list.slice(0, list.length - 1);
+    if (stars >= 5 && list.length < 5) list = list.concat(SBR.buildFight(act, stage, 'fight').slice(0, 1));
+    return list;
+  }
+  SBR.riskMul = () => { const s = SBR.run && SBR.run.risk; return s ? [0.6, 0.8, 1, 1.35, 1.8][s - 1] : 1; };
 
   function showStage() {
     const r = SBR.run;
@@ -386,6 +405,7 @@ SBR.game = (() => {
   }
   async function advanceStage() {
     const r = SBR.run;
+    r.risk = null;
     const act = SBR.ACTS[r.act];
     SBR.campaign.tick();
     if (r.area) { r.area.stage++; r.stageCards = null; addRp(1); SBR.saveRun(); return showStage(); }
@@ -422,6 +442,9 @@ SBR.game = (() => {
   /* ---------- card resolution ---------- */
   async function resolveCard(card) {
     const r = SBR.run;
+    r.risk = card.stars || null;
+    if (r.offeredStory && card.id !== r.offeredStory) { const sid = r.offeredStory; r.offeredStory = null; r.flags['skipped_' + sid] = true; if (SBR.onStorySkip) SBR.onStorySkip(sid, G); await flushPending(); }
+    r.offeredStory = null;
     if (card.areaBoss) {
       const A = SBR.AREAS[r.area.id];
       const win = await fight(A.boss.enemies, { boss: true, bossName: A.boss.name });
@@ -471,7 +494,7 @@ SBR.game = (() => {
     let outcome = ch.ok, failed = false;
     if (ch.check) {
       const who = (ch.check.who && SBR.run.party.find(m => m.id === ch.check.who && m.hp > 0)) || bestFor(ch.check.stat);
-      const ok = await ui.diceCheck({ stat: ch.check.stat, dc: ch.check.dc, who, mod: checkMod(who, ch.check.stat) });
+      const ok = await ui.diceCheck({ stat: ch.check.stat, dc: ch.check.dc + riskDC(), who, mod: checkMod(who, ch.check.stat) });
       outcome = ok ? ch.ok : ch.fail; failed = !ok;
     }
     if (key && SBR.campaign) SBR.campaign.onChoice(key + (failed ? ':fail' : ''), G);
@@ -489,6 +512,7 @@ SBR.game = (() => {
     SBR.saveRun();
     return true;
   }
+  function riskDC() { const s = SBR.run.risk; return s ? s - 3 : 0; }
   function bestFor(stat) { return SBR.run.party.filter(m => m.hp > 0).sort((a, b) => b.stats[stat] - a.stats[stat])[0] || SBR.run.party[0]; }
   function checkMod(m, stat) { return Math.floor(m.stats[stat] / 2) + (SBR.bonus().check || 0); }
 
@@ -577,7 +601,12 @@ SBR.game = (() => {
   async function fight(enemies, opts = {}) {
     const r = SBR.run;
     const act = SBR.ACTS[r.act];
+    // talk before / during / after a fight (manga panels): SBR.fightTalk(enemies, opts) -> { pre, mid: {round: sceneId}, post }
+    const talk = SBR.fightTalk ? SBR.fightTalk(enemies, opts) || {} : {};
+    if (talk.pre && SBR.STORY[talk.pre]) await ui.dialogue(talk.pre);
+    if (talk.mid) opts = Object.assign({}, opts, { midRound: Object.assign({}, talk.mid, opts.midRound || {}) });
     const { result, combat } = await SBR.battle.run(enemies, Object.assign({ title: opts.boss ? act.boss && opts.bossName : null, hazard: SBR.curHazard() }, opts));
+    if (result === 'win' && talk.post && SBR.STORY[talk.post]) await ui.dialogue(talk.post);
     // persist hp
     combat.party().forEach(u => {
       const m = u.ref;
@@ -591,8 +620,9 @@ SBR.game = (() => {
     achieve('first_blood');
     const b = SBR.bonus();
     if (b.postHeal) r.party.forEach(m => { m.hp = Math.min(m.maxHp, m.hp + b.postHeal); });
-    const xp = Math.round(combat.loot.xp * (1 + (b.xp || 0)));
-    const money = Math.round(combat.loot.money * (1 + (b.money || 0)));
+    const rm = SBR.riskMul();
+    const xp = Math.round(combat.loot.xp * (1 + (b.xp || 0)) * rm);
+    const money = Math.round(combat.loot.money * (1 + (b.money || 0)) * rm);
     r.money += money;
     if (r.money >= 400) achieve('rich');
     const loot = [];
@@ -600,8 +630,10 @@ SBR.game = (() => {
     if (Math.random() < relicChance) { const id = randomRelic(opts.boss || opts.elite ? ['common', 'rare'] : ['common']); if (id) { r.gear.push(id); loot.push({ kind: 'equip', id }); } }
     if (Math.random() < (opts.elite || opts.boss ? 0.6 : 0.25)) { const it = pick(Object.keys(SBR.ITEMS)); if (r.items.length < beltSize()) { r.items.push(it); loot.push({ kind: 'item', id: it }); } }
     const mats = rollDrops(combat);
+    if (rm !== 1) Object.keys(mats).forEach(k => { if (!SBR.MATERIALS[k].remnant && !SBR.MATERIALS[k].holy) mats[k] = Math.max(1, Math.round(mats[k] * rm)); });
+    if ((r.risk || 0) >= 4 && Math.random() < (r.risk === 5 ? 0.8 : 0.4)) { const id = randomRelic(['rare']); if (id) { r.gear.push(id); loot.push({ kind: 'equip', id }); } }
     Object.entries(mats).forEach(([k, n]) => { r.mats[k] = (r.mats[k] || 0) + n; });
-    SBR.econ.rollTrinkets(combat, opts).forEach(id => { G.trinket(id, true); loot.push({ kind: 'trinket', id }); });
+    SBR.econ.rollTrinkets(combat, opts).forEach(id => { const got = G.trinket(id, true); if (got) loot.push(got); });
     if ((opts.elite || opts.boss) && Math.random() < 0.35) { const eqPool = Object.keys(SBR.EQUIPMENT).filter(k => !SBR.EQUIPMENT[k].remnant && !SBR.EQUIPMENT[k].derived && SBR.EQUIPMENT[k].rarity !== 'common'); const eid = pick(eqPool); r.gear.push(eid); loot.push({ kind: 'equip', id: eid }); }
     const rp = opts.boss ? 10 : opts.elite ? 3 : 1;
     addRp(rp);
@@ -1045,7 +1077,7 @@ SBR.game = (() => {
   });
 
   const _debug = { rerollCards, resumeRun, newRun, startAct, fight, bossStage, playScene, showStage, actFinish, resolveCard, advanceStage, ending, gameOver, applySprint, drawCards, G };
-  return { canCraft, craft, reinforce, salvage, sell, findOwned, rerollCards, equip, unequip, freeSlot, _debug, makeMember, memberAbilities, xpToNext, autoAssign, beltSize, achieve, standings, playerRank, G, bestFor, checkMod, fieldUseItem, toTitle, titleScreen, lobbyScreen, setupScreen };
+  return { canCraft, craft, reinforce, salvage, sell, findOwned, rerollCards, equip, unequip, freeSlot, _debug, makeMember, memberAbilities, xpToNext, autoAssign, beltSize, achieve, standings, playerRank, G, bestFor, checkMod, fieldUseItem, toTitle, titleScreen, lobbyScreen, setupScreen, riskDC };
 })();
 
 /* boot */

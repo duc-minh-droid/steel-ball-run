@@ -334,3 +334,37 @@ SBR.matTip = (id, have) => {
   return h;
 };
 SBR.MAT_GROUPS = [['generic', 'GENERIC'], ['special', 'SPECIAL'], ['detour', 'DETOUR'], ['soul', 'SOULS'], ['holy', 'CORPSE PARTS']];
+
+/* ---------------- Trinkets are gone: loot is now real gear, materials or money ---------------- */
+Object.assign(SBR.EQUIPMENT, {
+  sandman_emerald: { slot: 'charm', family: 'coin', name: 'Sandman\'s Emerald', rarity: 'rare', stats: { luck: 4, res: 3 }, bonus: { crit: 0.03 }, price: 150, note: 'He tried to pay with it. Now it pays you back.' },
+  pocket_watch:    { slot: 'charm', family: 'device', name: 'Gold Pocket Watch', rarity: 'uncommon', stats: { ride: 2 }, bonus: { init: 3, crit: 0.03 }, price: 70, note: 'Engraved to someone called "R." Six seconds slow.' },
+  stage_medal:     { slot: 'charm', family: 'trophy', name: 'A Racer\'s Stage Medal', rarity: 'uncommon', stats: { ride: 3 }, bonus: { dodge: 0.04 }, price: 60, note: 'Pinned on at a finish line.' },
+});
+(() => {
+  const I = SBR.icons, st = I.st;
+  const gem = c => `<path d="M14 16h20l8 8-18 18L6 24z" fill="${c}" ${st}/><path d="M6 24h36M14 16l10 26 10-26" stroke="#1a1020" stroke-width="1.4" fill="none" opacity=".5"/>`;
+  I.define('equip', 'sandman_emerald', () => gem('#3ac870'));
+  I.define('equip', 'pocket_watch', () => `<circle cx="24" cy="28" r="14" fill="#f2c14e" ${st}/><circle cx="24" cy="28" r="10" fill="#f6ecd8" ${st} stroke-width="1.4"/><path d="M24 28V21M24 28l5 3" stroke="#1a1020" stroke-width="2"/><path d="M20 10h8v4h-8z" fill="#f2c14e" ${st}/>`);
+  I.define('equip', 'stage_medal', () => `<path d="M16 4h6l2 12-6 0zM26 4h6l-2 12h-6z" fill="#c8323c" ${st}/><circle cx="24" cy="30" r="12" fill="#e8c070" ${st}/><text x="24" y="35" text-anchor="middle" font-family="Rye,serif" font-size="13" fill="#1a1020">1</text>`);
+})();
+/** what an old trinket id turns into */
+SBR.TRINKET_AS = {
+  emerald: { gear: 'sandman_emerald' }, pocketwatch: { gear: 'pocket_watch' }, racer_medal: { gear: 'stage_medal' },
+  conf_coin: { mats: { silver: 1 } }, bounty: { money: 40 }, diamond: { mats: { gold: 1, silver: 1 } }, silver_spoon: { mats: { silver: 1 } },
+  arrowhead: { mats: { bone: 2 } }, gold_tooth: { mats: { gold: 1 } }, pigeon_note: { money: 35, flag: 'pigeonRead' }, sugar_gold: { mats: { gold: 2, sap: 1 } },
+};
+/* a few ids stay as hidden key items that encounters check for */
+['ticket', 'stand_arrow', 'aja_stone'].forEach(k => { if (SBR.TRINKETS[k]) SBR.TRINKETS[k].keep = true; });
+/** give the real reward for a loot id; returns a loot entry for the rewards screen, if any */
+SBR.trinketReward = (g, id, silent) => {
+  const r = SBR.run, T = SBR.TRINKETS[id];
+  if (T && T.keep) { r.trinkets = r.trinkets || []; if (!r.trinkets.includes(id)) r.trinkets.push(id); if (!silent) SBR.toast(`<span class="toast-ico">${SBR.trinketIcon(id)}</span> ${T.name}`, 'good'); return null; }
+  const A = SBR.TRINKET_AS[id]; if (!A) return null;
+  if (A.gear) { if (silent) { r.gear.push(A.gear); } else g.gear(A.gear); return { kind: 'equip', id: A.gear }; }
+  if (A.mats) Object.entries(A.mats).forEach(([k, n]) => g.mat(k, n, silent));
+  if (A.money) g.money(A.money);
+  if (A.flag) g.flag(A.flag);
+  return null;
+};
+SBR.TRINKET_DROPS = { common: ['conf_coin', 'silver_spoon', 'arrowhead', 'gold_tooth', 'bounty'], elite: ['pocketwatch', 'racer_medal', 'bounty', 'diamond'], boss: ['diamond', 'pocketwatch', 'racer_medal', 'emerald'] };

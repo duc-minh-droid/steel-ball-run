@@ -454,3 +454,30 @@ SBR.RIVALS.johnny = { name: 'Johnny Joestar', portrait: 'johnny', speed: 0.9, ou
     'cust_companions:2': { deed: 'Turned down Johnny Joestar and Gyro Zeppeli at a desert well.', rep: { racers: 1 } },
   });
 })();
+
+/* ---------------- 11. The Stand Arrow, in one encounter (Acts I-II) ---------------- */
+(() => {
+  // the old three-step chain is retired
+  ['cust_rumour', 'cust_collector'].forEach(id => { const e = SBR.EVENTS.find(x => x.id === id); if (e) e.cond = () => false; });
+  const can = g => SBR.isPU(SBR.run.lead) && g.canTakePath(SBR.run.lead) && !SBR.run.flags.arrowGone;
+  const fate = g => { const id = SBR.util.pick(SBR.CUSTOM_STANDS); SBR.run.flags.arrowGone = true; g.takePath(id); return id; };
+  const E = { id: 'cust_arrow', acts: [1, 2], type: 'event', title: 'The Meteorite Arrow', blurb: 'A man in a bowler hat, holding a golden arrowhead.', icon: 'star', art: 'collector', weight: 6, once: true, pace: -3, cond: can,
+    text: 'At a crossroads a man in a bowler hat is turning a golden arrowhead over in his gloved fingers. "Cut from a meteorite," he says. "It gives some people a ghost that fights for them. It kills the rest." He holds it out, point first. "It hums near you. Interesting."',
+    html: 'At a crossroads a man in a bowler hat is turning a golden arrowhead over in his gloved fingers. "Cut from a meteorite," he says. "It gives some people a ghost that fights for them. It kills the rest." He holds it out, point first. "It hums near you. Interesting."<span class="ev-path" style="--pc:#7a5ad0"><b>The Stand Arrow</b>: a chance at one of 12 Stands from Parts 3-6 (Star Platinum, Killer Queen, Gold Experience, King Crimson...). You can only ever carry one power.</span>',
+    choices: [
+      { label: 'Cut yourself with the Arrow (RESOLVE)', check: { stat: 'res', dc: 11 },
+        ok: { text: 'The point goes in. Something steps out of you, and three shapes flicker, waiting for you to choose.', fx: g => { SBR.run.flags.arrowGone = true; g.defer(() => SBR.standPick(g)); } },
+        fail: { text: 'You black out.', fx: g => { const m = SBR.run.party.find(x => SBR.isPU(x.id)); if (Math.random() < 0.5) { const id = fate(g); SBR.toast(`The Arrow chose for you: <b>${SBR.PATHS[id].name}</b>.`, 'good'); } else { if (m) m.hp = Math.max(1, Math.round(m.hp - m.maxHp * 0.4)); g.exhaust(SBR.run.lead); SBR.run.flags.arrowGone = true; SBR.toast('The Arrow rejected you, and crumbled to dust.', 'bad'); } } } },
+      { label: 'Take it from him by force', ok: { text: '"Then earn it," he says, and a Stand flickers into him.', fight: { enemies: ['arrow_collector'], elite: true, after: g => { SBR.run.flags.arrowGone = true; g.defer(() => SBR.standPick(g)); } } } },
+      { label: 'Buy it and let fate decide ($80)', cost: { money: 80 }, ok: { text: 'He takes the money and throws the Arrow at you before you can blink.', fx: g => { if (Math.random() < 0.7) { const id = fate(g); SBR.toast(`The Arrow chose: <b>${SBR.PATHS[id].name}</b>.`, 'good'); } else { SBR.run.flags.arrowGone = true; g.xp(25); SBR.toast('Nothing. The Arrow did not choose you. (+25 XP for the scare.)', 'bad'); } } } },
+      { label: 'Walk away', ok: { text: '"Some people are wiser than they look," he says, and is gone.', fx: g => g.pace(3) } },
+    ] };
+  SBR.EVENTS.push(E);
+  Object.assign(SBR.CONSEQ, {
+    'cust_arrow:0': { deed: 'Cut yourself with the Stand Arrow, and chose your Stand.', rep: { racers: 1 } },
+    'cust_arrow:0:fail': { deed: 'Cut yourself with the Stand Arrow, and let fate decide.' },
+    'cust_arrow:1': { deed: 'Took the Stand Arrow from its keeper by force.', rep: { racers: 1 } },
+    'cust_arrow:2': { deed: 'Bought a chance from the Stand Arrow.' },
+    'cust_arrow:3': { deed: 'Walked away from the Stand Arrow.' },
+  });
+})();

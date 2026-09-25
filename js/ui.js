@@ -110,7 +110,7 @@ SBR.ui = (() => {
   function trinketChip(id, extra = '') {
     const T = SBR.TRINKETS[id];
     const c = el('div', { class: 'icon-chip trinket rarity-' + T.rarity + ' ' + extra, html: SBR.trinketIcon(id) });
-    SBR.tip.bind(c, `<b>${T.name}</b> <i>Trinket · sells for ${fmtMoney(T.value)}</i><br>${T.desc}`);
+    SBR.tip.bind(c, `<b>${T.name}</b> <i>Key item</i><br>${T.desc}`);
     return c;
   }
   /* ---------- crafting helpers shared by the bench and the HUD ---------- */
@@ -148,6 +148,8 @@ SBR.ui = (() => {
     const alt = scene && scene.variants && SBR.run ? scene.variants() : null;
     if (alt) scene = Object.assign({}, scene, { lines: alt });
     if (!scene || !scene.lines || !scene.lines.length) return Promise.resolve();
+    // manga-panel pages for scenes that ask for them (see js/panels.js)
+    if (SBR.panels && SBR.panels.wants(sceneId, scene)) return SBR.panels.play(sceneId, scene);
     return new Promise(resolve => {
       const wrap = el('div', { class: 'dlg-wrap' });
       const bg = el('div', { class: 'dlg-bg', html: art.scene(scene.bg || 1, { still: true }) });
@@ -273,8 +275,9 @@ SBR.ui = (() => {
         if (ch.check) {
           const best = (ch.check.who && SBR.run.party.find(m => m.id === ch.check.who && m.hp > 0)) || g.bestFor(ch.check.stat);
           const mod = g.checkMod(best, ch.check.stat);
-          const pct = Math.round(Math.max(0.05, Math.min(0.95, (21 - (ch.check.dc - mod)) / 20)) * 100);
-          b.append(el('span', { class: 'choice-check', style: { '--c': SBR.STATS[ch.check.stat].color } }, `${SBR.STATS[ch.check.stat].short} DC${ch.check.dc} · ${pct}%`));
+          const dc = ch.check.dc + (g.riskDC ? g.riskDC() : 0);
+          const pct = Math.round(Math.max(0.05, Math.min(0.95, (21 - (dc - mod)) / 20)) * 100);
+          b.append(el('span', { class: 'choice-check', style: { '--c': SBR.STATS[ch.check.stat].color } }, `${SBR.STATS[ch.check.stat].short} DC${dc} · ${pct}%`));
         }
         if (cost) b.append(el('span', { class: 'choice-cost' + (afford ? '' : ' bad') }, fmtMoney(cost)));
         if (!reqOk && ch.reqText) b.append(el('span', { class: 'choice-cost bad' }, ch.reqText));
@@ -462,20 +465,25 @@ SBR.ui = (() => {
   }
   function encounterCard(card, i, onPick) {
     const typeLabel = { fight: 'Battle', elite: 'Elite', shop: 'Shop', event: 'Event', rest: 'Rest', trainer: 'Trainer', recruit: 'Ally', story: 'Story', boss: 'Boss', detour: 'Detour' }[card.type] || 'Event';
-    const c = el('div', { class: `enc-card type-${card.type}`, tabindex: 0, role: 'button' });
-    const artHtml = card.art ? portraitOf(card.art) : SBR.art.cardArt(card.type);
+    const hide = card.type !== 'boss' && !card.forced;
+    const c = el('div', { class: `enc-card type-${hide ? 'hidden' : card.type}`, tabindex: 0, role: 'button' });
+    const artHtml = card.art ? portraitOf(card.art) : SBR.art.cardArt(hide ? 'event' : card.type);
+    const stars = card.stars || 0;
     c.innerHTML = `
-      <div class="enc-type">${typeLabel}</div>
+      <div class="enc-type">${hide ? '???' : typeLabel}</div>
+      ${stars ? `<div class="enc-stars s${stars}" title="Danger ${stars}/5: harder, and pays more">${'★'.repeat(stars)}${'☆'.repeat(5 - stars)}</div>` : ''}
       <div class="enc-art">${artHtml}</div>
       <div class="enc-title">${card.title}</div>
       <div class="enc-blurb">${card.blurb}</div>
-      ${card.enemies ? `<div class="enc-foes">${card.enemies.map(id => `<span class="enc-foe" title="${SBR.ENEMIES[id].name}">${artFor(SBR.ENEMIES[id].art)}</span>`).join('')}</div>` : ''}
-      ${card.type === 'fight' || card.type === 'elite' ? `<div class="enc-threat">${'☠'.repeat(1 + SBR.threatTier() + (card.type === 'elite' ? 1 : 0))}</div>` : ''}
+      ${card.enemies && !hide ? `<div class="enc-foes">${card.enemies.map(id => `<span class="enc-foe" title="${SBR.ENEMIES[id].name}">${artFor(SBR.ENEMIES[id].art)}</span>`).join('')}</div>` : ''}
+      ${!hide && (card.type === 'fight' || card.type === 'elite') ? `<div class="enc-threat">${'☠'.repeat(1 + SBR.threatTier() + (card.type === 'elite' ? 1 : 0))}</div>` : ''}
       <div class="enc-foot">${card.pace ? `<span class="enc-pace ${card.pace > 0 ? 'up' : 'down'}">${card.pace > 0 ? '+' : ''}${card.pace} pace</span>` : '<span></span>'}<span class="enc-key">${i + 1}</span></div><div class="enc-gloss"></div>`;
     c.addEventListener('click', () => {
       if (c.parentNode && c.parentNode.dataset.picked) return;
       if (c.parentNode) c.parentNode.dataset.picked = '1';
-      SBR.audio.play('select'); c.classList.add('picked'); setTimeout(onPick, 260);
+      SBR.audio.play('select'); c.classList.add('picked');
+      if (hide) { c.classList.remove('type-hidden'); c.classList.add('type-' + card.type, 'revealing'); c.querySelector('.enc-type').textContent = typeLabel; }
+      setTimeout(onPick, hide ? 750 : 260);
     });
     c.addEventListener('keydown', e => { if (e.key === 'Enter') c.click(); });
     c.addEventListener('mouseenter', () => SBR.audio.play('hover'));
@@ -617,11 +625,10 @@ SBR.ui = (() => {
       if (!r.gear.length) gl.appendChild(el('p', { class: 'muted' }, 'Craft gear at the bench (C), then equip it from the Party screen (P).'));
       box.appendChild(gl);
       box.appendChild(matGroups(r));
-      if ((r.trinkets || []).length) {
-        const tv = r.trinkets.reduce((a, id) => a + SBR.TRINKETS[id].value, 0);
-        box.appendChild(el('div', { class: 'cs-sub' }, `TRINKETS — worth ${fmtMoney(tv)} at any shop`));
+      if ((r.trinkets || []).some(id => SBR.TRINKETS[id] && SBR.TRINKETS[id].keep)) {
+        box.appendChild(el('div', { class: 'cs-sub' }, 'KEY ITEMS'));
         const tl = el('div', { class: 'bag-grid' });
-        r.trinkets.forEach(id => tl.appendChild(trinketChip(id)));
+        r.trinkets.filter(id => SBR.TRINKETS[id] && SBR.TRINKETS[id].keep).forEach(id => tl.appendChild(trinketChip(id)));
         box.appendChild(tl);
       }
 
@@ -704,7 +711,7 @@ SBR.ui = (() => {
   /** the shop's buy-back counter: unequipped gear 40%, consumables 30%, trinkets full value */
   function sellPanel(rerender) {
     const r = SBR.run;
-    const wrap = el('div', { class: 'sell-panel' }, el('div', { class: 'cs-sub' }, 'SELL — the keeper buys gear at 40%, supplies at 30%, trinkets at full value'));
+    const wrap = el('div', { class: 'sell-panel' }, el('div', { class: 'cs-sub' }, 'SELL — the keeper buys gear at 40% and supplies at 30%'));
     const row = el('div', { class: 'sell-row' });
     const add = (kind, list, chip) => list.forEach((id, i) => {
       const v = Math.round(SBR.sellValue(kind, id) * (1 + (SBR.bonus().discount || 0)));

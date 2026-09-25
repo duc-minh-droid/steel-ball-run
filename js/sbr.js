@@ -417,10 +417,7 @@ Object.assign(SBR.CONSEQ, {
 (() => {
   SBR.ACTS[4].story = { 2: 'st_sugar', 3: 'st_tattoo', 4: 'st_mikeo', 5: 'st_wekapipo' };
   SBR.ACTS[5].story = { 2: 'st_disco', 5: 'st_valentine' };
-  SBR.LINEUPS[4][0].beats = [['st_sugar', 2, 2], ['st_tattoo', 3, 3], ['st_mikeo', 4, 4], ['st_wekapipo', 5, 6]];
-  SBR.LINEUPS[4][1].beats = [['st_tattoo', 2, 2], ['st_mikeo', 3, 3], ['st_axl', 4, 4], ['st_sugar', 5, 6]];
-  SBR.LINEUPS[5][0].beats = [['st_disco', 2, 3], ['st_valentine', 5, 6]];
-  SBR.LINEUPS[5][1].beats = [['st_disco', 2, 4], ['st_valentine', 4, 6]];
+  // the lineups themselves (with Mike O. in Act IV) live in manga.js
   const M = SBR.STORY.st_mikeo;
   M.bg = 4;
   M.lines = [
