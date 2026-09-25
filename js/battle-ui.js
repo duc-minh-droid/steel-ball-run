@@ -6,7 +6,7 @@ SBR.battle = (() => {
   let c = null, root = null, cards = {}, actionBox = null, orderBox = null, logBox = null, roundBox = null;
   let inputResolve = null, targeting = null, activeUid = null, keyHandler = null;
 
-  const SFX_WORDS = { nail: ['ズキュン', 'ZUKYUN'], ball: ['ギャルギャル', 'GYARU'], gun: ['BANG!', 'ドン'], claw: ['ザシュ', 'SLASH'], hit: ['ドゴォ', 'WHAM'], boom: ['ドグォン', 'KA-BOOM'], aoe: ['ドドド', 'DODODO'], golden: ['黄金', 'GOLDEN'], act4: ['ドララ', 'ORA ORA'], ballbreaker: ['ボール', 'BREAK'], spray: ['ブシュ', 'SPLRT'], rope: ['シュル', 'SNAP'] };
+  const SFX_WORDS = { ora: ['オラオラ', 'ORA ORA'], muda: ['無駄無駄', 'MUDA MUDA'], dora: ['ドラララ', 'DORARARA'], ari: ['アリアリ', 'ARI ARI'], nail: ['ズキュン', 'ZUKYUN'], ball: ['ギャルギャル', 'GYARU'], gun: ['BANG!', 'ドン'], claw: ['ザシュ', 'SLASH'], hit: ['ドゴォ', 'WHAM'], boom: ['ドグォン', 'KA-BOOM'], aoe: ['ドドド', 'DODODO'], golden: ['黄金', 'GOLDEN'], act4: ['ドララ', 'ORA ORA'], ballbreaker: ['ボール', 'BREAK'], spray: ['ブシュ', 'SPLRT'], rope: ['シュル', 'SNAP'] };
 
   /* ---------- render ---------- */
   function render(container, opts) {

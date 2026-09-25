@@ -196,6 +196,12 @@ SBR.fx = (() => {
         await Promise.all(tos.map(t => projectile('golden', from, t)));
         tos.forEach(t => { flash('#fff3a0', 160); spiral(t.x, t.y, '#ffd84a', 110, 7, 1.1, 3.4); stars(t.x, t.y, '#ffd84a', 14, 320); ring(t.x, t.y, '#fff3a0', 140, 8, 0.6); speedLines(t.x, t.y, '#fff3a0', 200); });
         break;
+      case 'ora': case 'muda': case 'dora': case 'ari': {
+        const col = { ora: '#b070ff', muda: '#f2c14e', dora: '#e89ac8', ari: '#5a8ad0' }[kind];
+        for (let i = 0; i < 5; i++) { tos.forEach(t => { const x = t.x + (Math.random() * 60 - 30), y = t.y + (Math.random() * 60 - 30); starBurst(x, y, col, 40, 8, 0.2); ring(x, y, col, 40, 4, 0.25); }); await wait(60); }
+        tos.forEach(t => { speedLines(t.x, t.y, col); sparks(t.x, t.y, '#fff', 20, 9); });
+        break;
+      }
       case 'act4':
         flash('#fff8d0', 300);
         goldRect(W / 2, H / 2, Math.min(W, H) * 0.35, '#ffd84a', 1.4);

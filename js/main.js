@@ -202,6 +202,7 @@ SBR.game = (() => {
     },
     statUpAll(stat, n) { SBR.run.party.forEach(m => { m.stats[stat] += n; if (stat === 'grit') { m.maxHp += 2 * n; m.hp += 2 * n; } }); SBR.toast(`Party: +${n} ${SBR.STATS[stat].name}`, 'good'); },
     train() { later(() => ui.chooseAbility()); },
+    defer(fn) { later(fn); },
     scene(id) { later(() => playScene(id)); },
     say(id, text) { SBR.toast(`<div class="toast-port">${ui.portraitOf(id)}</div><div><i>"${text}"</i></div>`, 'say'); },
     mat(id, n = 1, silent) {
@@ -578,7 +579,7 @@ SBR.game = (() => {
     combat.party().forEach(u => {
       const m = u.ref;
       if (u.removed) return;
-      if (u.dead) { m.exhaustion = (m.exhaustion || 0) + 1; m.hp = Math.max(1, Math.round(m.maxHp * 0.1)); u._fell = true; }
+      if (u.dead) { m.exhaustion = (m.exhaustion || 0) + 1; m.hp = Math.max(1, Math.round(m.maxHp * 0.1)); u._fell = true; if (m.id === 'custom') r.flags.customFell = true; }
       else m.hp = Math.max(1, Math.min(m.maxHp, u.hp));
     });
     if (result !== 'win') { await gameOver(); return false; }
@@ -958,7 +959,7 @@ SBR.game = (() => {
   /* ---------- Setup (horse + item) ---------- */
   function setupScreen() {
     SBR.meta.unlockedLeads = SBR.meta.unlockedLeads || ['johnny', 'gyro'];
-    let lead = SBR.meta.lastLead && SBR.meta.unlockedLeads.includes(SBR.meta.lastLead) ? SBR.meta.lastLead : 'johnny';
+    let lead = SBR.meta.lastLead && (SBR.meta.lastLead === 'custom' || SBR.meta.unlockedLeads.includes(SBR.meta.lastLead)) ? SBR.meta.lastLead : 'johnny';
     let horse = SBR.meta.lastHorse && SBR.meta.unlockedHorses.includes(SBR.meta.lastHorse) ? SBR.meta.lastHorse : 'slowdancer';
     let item = SBR.meta.lastItem && SBR.meta.unlockedItems.includes(SBR.meta.lastItem) ? SBR.meta.lastItem : 'colt';
     ui.transition(scr => {
@@ -972,14 +973,15 @@ SBR.game = (() => {
         box.appendChild(el('div', { class: 'cs-sub' }, 'CHOOSE YOUR LEAD RIDER'));
         const lg = el('div', { class: 'lead-grid' });
         SBR.LEADS.forEach(k => {
-          const C = SBR.CHARS[k], un = SBR.meta.unlockedLeads.includes(k);
+          const C = SBR.CHARS[k], un = k === 'custom' || SBR.meta.unlockedLeads.includes(k);
           const ach = Object.values(SBR.ACHIEVEMENTS).find(a => a.unlockLead === k);
-          const paths = SBR.pathsFor(k).map(pid => `<span class="lead-path" style="--pc:${SBR.PATHS[pid].color}">${SBR.PATHS[pid].name}</span>`).join('');
+          const paths = k === 'custom' ? [['Hamon', '#f2c14e'], ['Vampire', '#8a1a2a'], ['Cyborg', '#8a8aa0'], ['12 Stands', '#7a5ad0']].map(([n, c]) => `<span class="lead-path" style="--pc:${c}">${n}</span>`).join('') : SBR.pathsFor(k).map(pid => `<span class="lead-path" style="--pc:${SBR.PATHS[pid].color}">${SBR.PATHS[pid].name}</span>`).join('');
           const c = el('div', { class: 'lead-card' + (un ? '' : ' locked') + (k === lead ? ' selected' : '') }, el('div', { class: 'lead-port', html: art.portrait(C.portrait) }), el('div', { class: 'lead-info', html: `<b>${un ? C.name : '???'}</b><small>${un ? C.stand : art.icon('lock', 12) + ' ' + (ach ? ach.desc : '')}</small>${un ? `<div class="lead-paths">${paths}</div>` : ''}` }));
           if (un) { c.onclick = () => { SBR.audio.play('select'); lead = k; render(); }; SBR.tip.bind(c, () => `<b>${C.name}</b><br>${C.passive.name}: ${C.passive.desc}<br><i>Paths: ${SBR.pathsFor(k).map(pid => SBR.PATHS[pid].name).join(' · ')}</i>`); }
           lg.appendChild(c);
         });
         box.appendChild(lg);
+        if (lead === 'custom') box.appendChild(ui.btn('✎ Edit your rider: name and portrait', () => SBR.customUI.creator(render), 'btn-small btn-creator'));
         box.appendChild(el('div', { class: 'cs-sub' }, 'CHOOSE YOUR HORSE'));
         const hg = el('div', { class: 'horse-grid' });
         Object.entries(SBR.HORSES).forEach(([k, h]) => hg.appendChild(horseCard(k, h, SBR.meta.unlockedHorses.includes(k), kk => { horse = kk; render(); }, k === horse)));

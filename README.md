@@ -66,6 +66,22 @@ Then open <http://localhost:5178>. Progress saves in your browser's local storag
    - Diego's THE WORLD stops time more often as he gets desperate.
 9. **Build up across runs.** Race Points buy permanent Techniques. Achievements unlock lead riders, horses, starting items and Techniques.
 
+## Your own rider
+
+The fifth lead is one you make yourself. Pick them on the registration screen, then press **Edit your rider** to choose their name, title, skin, hair, eyes, hat, outfit, a detail such as a scar or a monocle, and backdrop.
+
+They start with nothing but an old six-shooter and a punch, and can earn **one** power on the road. Each power is borrowed from another part of JoJo:
+
+- **Hamon.** An old man balanced on a pole teaches the Ripple. It deals Holy damage, and double damage to the undead.
+- **Vampire.** Put on a Stone Mask. You get lifesteal and regeneration, but you are weak to Holy and Spin damage and you burn in scorching sun.
+- **German Cyborg.** Only badly hurt riders meet the field surgeons. You get armour, a chest machine gun and a UV lamp.
+- **A Stand**, from the Stand Arrow. Getting the Arrow takes a chain of encounters:
+  1. Hear the rumour.
+  2. Take the Arrow from the Arrow Collector, or find it at the heart of a detour.
+  3. Survive a DC 15 check when you cut yourself with it.
+  4. Choose one of three Stands: Star Platinum, Magician's Red, Hierophant Green, Silver Chariot, Crazy Diamond, Killer Queen, The Hand, Gold Experience, Sticky Fingers, King Crimson, Stone Free or Whitesnake.
+- **The Red Stone of Aja.** It evolves a Hamon user into the Aja Amplifier, or a vampire into the Ultimate Life Form.
+
 ## Materials, gear and money
 
 The crafting system follows *An Average Campaign*: a few materials that are reused everywhere.
@@ -162,6 +178,7 @@ The theme keys are `title`, `act1` to `act6`, `devilspalm`, `silvermine`, `lakei
 | `js/crafting.js` | Materials, Stand Remnants, equipment and slots, recipes, drop tables |
 | `js/variety.js` | Threat, generated fights, enemy traits, race conditions, act lineups |
 | `js/sbr.js` | Racers, canon side-story encounters, manga items, Act IV Tubular Bells |
+| `js/custom.js` | The custom rider, the creator, and the Hamon, Vampire, Cyborg, Stand and Aja powers with their encounters |
 | `js/economy.js` | The 16 materials, Souls, upgrades, reinforce, salvage, selling, trinkets, services, fees |
 | `js/campaign.js` | World state, factions, consequences, follow-up encounters, story branches, endings, the Chronicle |
 | `js/debug.js` | Debug panel and `SBR.debug` jump API |

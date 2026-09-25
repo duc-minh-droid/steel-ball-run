@@ -401,7 +401,88 @@ SBR.stands = (() => {
     `, '#a0c040');
   }
 
+  /* ---------- Parts 3-6: the custom rider's Stands (full-size humanoids, built on the shared body) ---------- */
+  /** body + clipped pattern + front details + head; behind is drawn before the body */
+  function human({ c, pat = '', front = '', head = '', behind = '', aura, slim }) {
+    const id = 'hb' + (++n), P = slim ? SLIM : BODY;
+    return wrap(`<defs><clipPath id="${id}"><path d="${P}"/></clipPath></defs>${behind}
+      <path d="${P}" ${F(c)}/><g clip-path="url(#${id})">${pat}</g><path d="${P}" fill="none" ${st}/>
+      <path d="M44 62q16 6 32 0M48 80q12 4 24 0M60 50v56" stroke="${K}" stroke-width="1.3" fill="none" opacity=".4"/>
+      ${front}${head}`, aura || c);
+  }
+  const face = (skin, eye = '#fff', y = 30) => `<path d="M52 ${y}l6 1.4M68 ${y}l-6 1.4" stroke="${K}" stroke-width="3" stroke-linecap="round"/><path d="M53 ${y + 0.4}l4 1M67 ${y + 0.4}l-4 1" stroke="${eye}" stroke-width="1.4" stroke-linecap="round"/><path d="M55 ${y + 10}q5 2 10 0" ${th} fill="none"/>`;
+  const starPlatinum = () => human({ c: '#8a6ad8',
+    behind: `<path d="M50 20Q20 30 10 70Q24 50 44 44M70 20q30 10 40 50Q96 50 76 44" ${F('#2a1a3a')}/><path d="M44 44Q20 60 8 58Q26 70 50 52" ${F('#e8508a')}/>`,
+    pat: `<path d="M40 104h40l-4 20H44z" fill="#f2c14e"/><path d="M50 106l10 18 10-18" fill="#e8508a" opacity=".8"/><rect x="0" y="86" width="16" height="12" fill="#f2c14e"/><rect x="104" y="86" width="16" height="12" fill="#f2c14e"/>`,
+    front: `<ellipse cx="30" cy="58" rx="11" ry="8" ${F('#f2c14e')}/><ellipse cx="90" cy="58" rx="11" ry="8" ${F('#f2c14e')}/>${star(30, 58, 4, '#e8508a')}${star(90, 58, 4, '#e8508a')}<path d="M44 52q16 8 32 0" stroke="#e8508a" stroke-width="5" fill="none"/>`,
+    head: `<path d="M44 30Q42 12 60 10Q78 12 76 30L72 44Q60 50 48 44z" ${F('#8a6ad8')}/><path d="M42 18Q60 4 78 18L76 26Q60 18 44 26z" ${F('#2a1a3a')}/><path d="M44 22h32" stroke="#f2c14e" stroke-width="3"/>${face('#8a6ad8', '#e8f0ff', 31)}<path d="M52 38l-2 6M68 38l2 6" stroke="${K}" stroke-width="1.2"/>` });
+  const magiciansRed = () => human({ c: '#c8502a',
+    behind: [...Array(7)].map((_, i) => `<path d="M${20 + i * 13} 150q-8-20 4-34 2 12 10 16 0-16 10-24-2 22 6 42z" fill="${i % 2 ? '#f2c14e' : '#e8742a'}" opacity=".8"/>`).join(''),
+    pat: `<path d="M20 70q40 20 80 0v16q-40 20-80 0z" fill="#e8742a"/><path d="M40 104h40v10H40z" fill="#f2c14e"/>${[0, 1, 2, 3].map(i => `<path d="M${36 + i * 14} 56q7 10 0 20" stroke="#f2c14e" stroke-width="2" fill="none"/>`).join('')}`,
+    front: `<g transform="translate(60 80)"><circle cy="-6" r="5" fill="none" stroke="#f2c14e" stroke-width="3"/><path d="M0-1v12M-6 3h12" stroke="#f2c14e" stroke-width="3"/></g>`,
+    head: `<path d="M46 40Q42 16 60 12Q74 14 76 28L92 32L76 38Q72 46 60 46Q50 46 46 40z" ${F('#c8502a')}/><path d="M76 30l16 2-16 6z" ${F('#f2c14e')}/><path d="M50 12l-4-8 8 6M58 10l0-9 5 9M66 12l6-7-2 9" ${F('#e8742a', th)}/><circle cx="66" cy="28" r="3.4" fill="#fff" ${th}/><circle cx="67" cy="28" r="1.6" fill="${K}"/><path d="M60 24q6-3 12 0" stroke="${K}" stroke-width="2.4"/>` });
+  const hierophant = () => human({ c: '#3aa05a', slim: true,
+    behind: rope('M50 104Q30 130 14 156', '#3aa05a', 3) + rope('M70 104q20 26 36 52', '#3aa05a', 3) + rope('M60 110q-4 30 6 48', '#6ad08a', 2.4),
+    pat: [...Array(9)].map((_, i) => `<path d="M${22 + i * 10} 44q-6 30 0 56t0 56" stroke="#8af0a0" stroke-width="2.4" fill="none"/>`).join('') + `<path d="M20 60h80M20 84h80M20 108h80" stroke="#1a6a3a" stroke-width="1.6"/>`,
+    front: `<path d="M50 104l10 8 10-8" ${F('#8af0a0', th)}/>`,
+    head: `<path d="M48 30Q48 14 60 12Q72 14 72 30L70 44Q60 48 50 44z" ${F('#3aa05a')}/><path d="M50 26h20v8H50z" fill="#8af0a0" ${th}/><path d="M53 30h5M62 30h5" stroke="${K}" stroke-width="2.4"/><path d="M60 12v34M52 16q-2 14 0 26M68 16q2 14 0 26" stroke="#8af0a0" stroke-width="1.4" fill="none"/>` });
+  const silverChariot = () => human({ c: '#c8ccd8', slim: true,
+    behind: `<path d="M86 60L112 8" stroke="${K}" stroke-width="5" stroke-linecap="round"/><path d="M86 60L112 8" stroke="#f6f4ee" stroke-width="2.4" stroke-linecap="round"/><path d="M80 62l12 4-2 6-12-4z" ${F('#f2c14e', th)}/>`,
+    pat: `<path d="M20 52h80M20 72h80M20 96h80M20 120h80M20 140h80" stroke="#8a90a0" stroke-width="2"/><path d="M60 44v112" stroke="#8a90a0" stroke-width="1.6"/>${[62, 86, 110, 132].map(y => `<circle cx="48" cy="${y}" r="1.6" fill="#6a7080"/><circle cx="72" cy="${y}" r="1.6" fill="#6a7080"/>`).join('')}`,
+    front: `<ellipse cx="38" cy="58" rx="10" ry="7" ${F('#e8e8f0')}/><ellipse cx="82" cy="58" rx="10" ry="7" ${F('#e8e8f0')}/>${shine(36, 55, 3)}${shine(80, 55, 3)}`,
+    head: `<path d="M60 14Q56 2 46 4Q54 6 56 14z" ${F('#e8508a', th)}/><path d="M48 32Q46 14 60 12Q74 14 72 32L70 44Q60 48 50 44z" ${F('#e8e8f0')}/><path d="M50 28h20" stroke="${K}" stroke-width="3"/><path d="M52 32h16M54 36h12" stroke="${K}" stroke-width="1.2"/>${shine(54, 20, 3)}` });
+  const crazyDiamond = () => human({ c: '#e89ac8',
+    behind: `<path d="M52 16Q40 8 30 14M68 16q12-8 22-2" fill="none" stroke="${K}" stroke-width="6" stroke-linecap="round"/><path d="M52 16Q40 8 30 14M68 16q12-8 22-2" fill="none" stroke="#3a6ac8" stroke-width="3" stroke-linecap="round"/>`,
+    pat: `<path d="M20 50h80v24H20z" fill="#3a6ac8"/><path d="M36 104h48l-4 20H40z" fill="#3a6ac8"/>${heart(46, 58, 0.5, '#e8508a')}${heart(74, 58, 0.5, '#e8508a')}${heart(60, 110, 0.55, '#e8508a')}${heart(40, 132, 0.4, '#e8508a')}${heart(80, 132, 0.4, '#e8508a')}`,
+    front: `<path d="M24 58l12-4 4 8-12 4zM96 58l-12-4-4 8 12 4z" ${F('#3a6ac8')}/><path d="M60 50l3 6-3 6-3-6z" fill="#f6f4ee" ${th}/>`,
+    head: `<path d="M46 32Q44 14 60 12Q76 14 74 32L70 44Q60 50 50 44z" ${F('#e89ac8')}/><path d="M44 26Q46 10 60 10Q74 10 76 26L70 28Q60 20 50 28z" ${F('#3a6ac8')}/>${heart(60, 14, 0.45, '#e8508a')}${face('#e89ac8', '#bdf0ff', 32)}<path d="M50 40l4 4M70 40l-4 4" stroke="${K}" stroke-width="1.2"/>` });
+  const killerQueen = () => human({ c: '#e8a0c8', slim: true,
+    pat: `<path d="M20 100h80v8H20z" fill="#8a4ab0"/><path d="M44 44L60 70L76 44" fill="none" stroke="#8a4ab0" stroke-width="3"/><circle cx="36" cy="92" r="4" fill="#f6f4ee"/><circle cx="84" cy="92" r="4" fill="#f6f4ee"/>`,
+    front: `<g transform="translate(60 104)"><circle r="6" fill="#f6f4ee" ${th}/><circle cx="-2" cy="-1" r="1.4" fill="${K}"/><circle cx="2" cy="-1" r="1.4" fill="${K}"/><path d="M-2 3h4" ${th}/></g><g transform="translate(30 96) scale(.7)"><circle r="6" fill="#f6f4ee" ${th}/><circle cx="-2" cy="-1" r="1.4" fill="${K}"/><circle cx="2" cy="-1" r="1.4" fill="${K}"/></g>`,
+    head: `<path d="M48 18L46 2L56 14M72 18l2-16-10 12" ${F('#e8a0c8')}/><path d="M50 12l-2-6M70 12l2-6" stroke="#8a4ab0" stroke-width="2"/><path d="M47 32Q46 14 60 13Q74 14 73 32L70 44Q60 48 50 44z" ${F('#e8a0c8')}/><ellipse cx="54" cy="30" rx="4" ry="5" fill="#f6f4ee" ${th}/><ellipse cx="66" cy="30" rx="4" ry="5" fill="#f6f4ee" ${th}/><circle cx="54" cy="31" r="2" fill="#8a4ab0"/><circle cx="66" cy="31" r="2" fill="#8a4ab0"/><path d="M52 40h16" ${th}/><path d="M56 40v3M60 40v3M64 40v3" ${th}/>` });
+  const theHand = () => human({ c: '#3a6ac8',
+    pat: `<path d="M20 58h80M20 64h80" stroke="#f2c14e" stroke-width="3"/><text x="44" y="92" font-size="16" font-family="Anton,Impact" fill="#f2c14e">$</text><text x="66" y="92" font-size="16" font-family="Anton,Impact" fill="#f2c14e">¥</text><path d="M20 120h80" stroke="#f2c14e" stroke-width="3"/><text x="40" y="142" font-size="12" font-family="Anton,Impact" fill="#f2c14e">$</text><text x="72" y="142" font-size="12" font-family="Anton,Impact" fill="#f2c14e">$</text>`,
+    front: `<g transform="translate(100 96)"><path d="M-8 0q0-10 8-10t8 10v8q0 6-8 6t-8-6z" ${F('#3a6ac8')}/><circle cy="1" r="4" fill="#f6f4ee" ${th}/><path d="M-3 1h6M0-2v6" stroke="#3a6ac8" stroke-width="1.6"/></g>`,
+    head: `<path d="M46 32Q44 14 60 12Q76 14 74 32L70 44Q60 50 50 44z" ${F('#3a6ac8')}/><path d="M46 22h28" stroke="#f2c14e" stroke-width="3"/><text x="60" y="20" font-size="8" text-anchor="middle" font-family="Anton,Impact" fill="#f2c14e">$</text>${face('#3a6ac8', '#fff', 30)}` });
+  const goldExperience = () => human({ c: '#f2c14e', slim: true,
+    pat: `<path d="M20 48h80v10H20z" fill="#3a8c4a"/><path d="M40 104h40v8H40z" fill="#3a8c4a"/>${[[48, 76], [72, 76], [40, 128], [80, 128]].map(([x, y]) => `<g transform="translate(${x} ${y})"><ellipse rx="5" ry="4" fill="#c8323c" ${th}/><path d="M0-4v8" ${th}/><circle cx="-2" cy="1" r="1" fill="${K}"/><circle cx="2" cy="1" r="1" fill="${K}"/></g>`).join('')}`,
+    front: `${heart(60, 60, 0.6, '#3a8c4a')}<ellipse cx="38" cy="58" rx="9" ry="7" ${F('#3a8c4a')}/><ellipse cx="82" cy="58" rx="9" ry="7" ${F('#3a8c4a')}/>`,
+    head: `<path d="M47 32Q46 14 60 13Q74 14 73 32L70 44Q60 48 50 44z" ${F('#f2c14e')}/><path d="M44 30q-6-12 4-18M76 30q6-12-4-18" fill="none" stroke="${K}" stroke-width="6"/><path d="M44 30q-6-12 4-18M76 30q6-12-4-18" fill="none" stroke="#3a8c4a" stroke-width="3.4"/><path d="M50 18h20" stroke="#3a8c4a" stroke-width="3"/>${face('#f2c14e', '#bdf0ff', 30)}` });
+  const stickyFingers = () => human({ c: '#f6f4ee', slim: true,
+    pat: `<path d="M20 44h30v112H20zM70 44h30v112H70z" fill="#5a8ad0"/><path d="M60 50v60" stroke="${K}" stroke-width="3"/><path d="M60 50v60" stroke="#c8ccd8" stroke-width="1.6" stroke-dasharray="2 2"/><path d="M28 76h20M72 76h20" stroke="#c8ccd8" stroke-width="2" stroke-dasharray="2 2"/>`,
+    front: `<rect x="56" y="108" width="8" height="6" rx="1" fill="#c8ccd8" ${th}/><circle cx="60" cy="118" r="2" fill="#c8ccd8" ${th}/>`,
+    head: `<path d="M47 32Q46 14 60 13Q74 14 73 32L70 44Q60 48 50 44z" ${F('#5a8ad0')}/><path d="M50 18Q60 10 70 18L70 26H50z" fill="#f6f4ee" ${th}/><path d="M50 20h20" stroke="${K}" stroke-width="1.6" stroke-dasharray="2 1.6"/><path d="M66 18l4 6" stroke="#c8ccd8" stroke-width="2"/>${face('#5a8ad0', '#fff', 32)}` });
+  const kingCrimson = () => human({ c: '#c8323c',
+    pat: [...Array(8)].map((_, i) => `<path d="M${16 + i * 12} 44l12 20-12 20 12 20-12 20 12 20" stroke="#f6ecd8" stroke-width="1.4" fill="none" opacity=".75"/>`).join('') + `<path d="M40 104h40v10H40z" fill="#8a1a2a"/>`,
+    front: `<ellipse cx="30" cy="58" rx="10" ry="7" ${F('#8a1a2a')}/><ellipse cx="90" cy="58" rx="10" ry="7" ${F('#8a1a2a')}/>`,
+    head: `<path d="M44 34Q42 14 60 12Q78 14 76 34L70 46Q60 50 50 46z" ${F('#c8323c')}/><path d="M46 36q14 6 28 0" stroke="#f6ecd8" stroke-width="1.4" fill="none"/><path d="M50 30l7 3M70 30l-7 3" stroke="${K}" stroke-width="3.4" stroke-linecap="round"/><path d="M51 30.6l4 1.6M69 30.6l-4 1.6" stroke="#fff" stroke-width="1.2"/><path d="M54 42h12" ${th}/>
+      <g transform="translate(60 20)"><ellipse rx="6" ry="5" fill="#f6ecd8" ${th}/><circle cx="-2" cy="-1" r="1.2" fill="${K}"/><circle cx="2" cy="-1" r="1.2" fill="${K}"/><path d="M-2 2q2 1.4 4 0" stroke="${K}" stroke-width="1"/></g>` });
+  const stoneFree = () => human({ c: '#4a7ad0', slim: true,
+    behind: rope('M84 94Q108 80 112 40', '#6ad0c8', 1.4) + rope('M36 94Q10 104 8 140', '#6ad0c8', 1.4),
+    pat: [...Array(10)].map((_, i) => `<path d="M20 ${46 + i * 12}q20 6 40 0t40 0" stroke="#6ad0c8" stroke-width="1.6" fill="none"/>`).join('') + [[46, 70], [74, 88], [52, 124]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="5" ry="3" fill="#1a1020" opacity=".7"/>`).join(''),
+    front: `<ellipse cx="38" cy="58" rx="8" ry="6" ${F('#6ad0c8')}/><ellipse cx="82" cy="58" rx="8" ry="6" ${F('#6ad0c8')}/>`,
+    head: `<path d="M47 32Q46 14 60 13Q74 14 73 32L70 44Q60 48 50 44z" ${F('#4a7ad0')}/><path d="M48 22q12-6 24 0" stroke="#6ad0c8" stroke-width="3" fill="none"/>${star(60, 18, 3.4, '#f2c14e')}<path d="M50 30l6 2M70 30l-6 2" stroke="${K}" stroke-width="3" stroke-linecap="round"/><path d="M52 34q-1 6 0 10M68 34q1 6 0 10" stroke="#6ad0c8" stroke-width="1.4"/><path d="M55 40q5 2 10 0" ${th} fill="none"/>` });
+  const whitesnake = () => {
+    const L = 'ATGC';
+    return human({ c: '#f6f4ee',
+      pat: `<path d="M20 44h80v112H20z" fill="#1a1020" opacity=".08"/>` + [...Array(24)].map((_, i) => `<text x="${24 + (i % 6) * 13}" y="${56 + Math.floor(i / 6) * 22}" font-size="10" font-family="Anton,Impact" fill="#1a1020">${L[(i * 7) % 4]}</text>`).join(''),
+      front: `<g transform="translate(100 94)"><circle r="8" fill="#e8e8f0" ${th}/><circle r="2.4" fill="#8a8aa0"/><path d="M-6-3a7 7 0 0 1 8-4" stroke="#fff" stroke-width="1.4" fill="none"/></g>`,
+      head: `<path d="M47 32Q46 14 60 13Q74 14 73 32L70 44Q60 48 50 44z" ${F('#f6f4ee')}/><path d="M46 26Q46 10 60 10Q74 10 74 26" ${F('#1a1020')}/><text x="53" y="22" font-size="7" font-family="Anton,Impact" fill="#f6f4ee">G A T</text><path d="M51 32l6 1M69 32l-6 1" stroke="${K}" stroke-width="3" stroke-linecap="round"/><path d="M52 40q8 4 16 0" ${th} fill="none"/><path d="M52 36l-2 6M68 36l2 6" stroke="${K}" stroke-width="1"/>` });
+  };
+
   const DEFS = {
+    star_platinum: { name: 'Star Platinum', entity: true, draw: starPlatinum },
+    magicians_red: { name: 'Magician\'s Red', entity: true, draw: magiciansRed },
+    hierophant: { name: 'Hierophant Green', entity: true, draw: hierophant },
+    silver_chariot: { name: 'Silver Chariot', entity: true, draw: silverChariot },
+    crazy_diamond: { name: 'Crazy Diamond', entity: true, draw: crazyDiamond },
+    killer_queen: { name: 'Killer Queen', entity: true, draw: killerQueen },
+    the_hand: { name: 'The Hand', entity: true, draw: theHand },
+    gold_experience: { name: 'Gold Experience', entity: true, draw: goldExperience },
+    sticky_fingers: { name: 'Sticky Fingers', entity: true, draw: stickyFingers },
+    king_crimson: { name: 'King Crimson', entity: true, draw: kingCrimson },
+    stone_free: { name: 'Stone Free', entity: true, draw: stoneFree },
+    whitesnake: { name: 'Whitesnake', entity: true, draw: whitesnake },
     tusk1: { name: 'Tusk ACT1', entity: true, draw: tusk1 },
     tusk2: { name: 'Tusk ACT2', entity: true, draw: tusk2 },
     tusk3: { name: 'Tusk ACT3', entity: true, draw: tusk3 },
@@ -436,6 +517,7 @@ SBR.stands = (() => {
   function keyFor(u, abilityId) {
     if (u.side === 'party') {
       if (u.id === 'gyro') return abilityId === 'ball_breaker' ? 'ballbreaker' : null;
+      if (u.id === 'custom') { const P = SBR.pathOf && SBR.pathOf(u.ref); return P && P.line === 'stand' && DEFS[P.stand] ? P.stand : null; }
       if (u.id === 'johnny') { const f = SBR.run.flags; return f.tusk4 ? 'tusk4' : f.tusk3 ? 'tusk3' : f.tusk2 ? 'tusk2' : f.tusk1 ? 'tusk1' : null; }
       return PARTY[u.id] || null;
     }

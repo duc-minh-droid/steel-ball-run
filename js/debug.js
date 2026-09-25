@@ -44,6 +44,8 @@ SBR.debug = (() => {
     r.party.forEach(m => { while (m.level < lvl) { m.level++; m.points += 3; m.maxHp += 3; } SBR.game.autoAssign(m); m.hp = m.maxHp; m.exhaustion = 0; });
     if (o.threat != null) r.threat = o.threat;
     if (o.money != null) r.money = o.money;
+    if (o.power) { const m = r.party.find(x => x.id === 'custom'); if (m) m.path = o.power; }
+    if (o.evo) r.flags[o.evo === 'hamon' ? 'ajaHamon' : 'ajaVampire'] = true;
     if (o.paths) Object.entries(o.paths).forEach(([cid, p]) => { const m = r.party.find(x => x.id === cid); if (m) m.path = p; });
     if (o.world && SBR.campaign) SBR.campaign.merge(o.world);
     if (o.pace != null) r.pace = o.pace;

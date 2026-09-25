@@ -256,6 +256,8 @@ SBR.Combat = class Combat {
     mult *= this.statMod(tgt, 'dmgIn', 'mul');
     if (tgt.side === 'party' && tgt.id === 'wekapipo') mult *= 0.9;
 
+    if (src && this.has(src, 'crimson')) { opts = Object.assign({}, opts, { noDodge: true, forceCrit: true }); this.removeStatus(src, 'crimson'); }
+    if (src && this.has(tgt, 'epitaph')) { this.removeStatus(tgt, 'epitaph'); this.push({ t: 'float', uid: tgt.uid, text: 'EPITAPH', cls: 'miss' }); return { hit: false, dodged: true }; }
     // dodge
     if (src && !opts.noDodge && Math.random() < this.dodgeChance(tgt)) {
       this.push({ t: 'float', uid: tgt.uid, text: 'DODGE', cls: 'miss' });
@@ -307,12 +309,14 @@ SBR.Combat = class Combat {
       if (copy && Math.random() < 0.5) { this.push({ t: 'float', uid: tgt.uid, text: 'DOJYAAAN~', cls: 'block' }); tgt = copy; }
     }
     // damage type vs resistances (after redirects, so the unit that actually takes the hit decides)
-    const eff = this.resMult(tgt, dtype);
+    let eff = this.resMult(tgt, dtype);
+    if (dtype === 'holy' && tgt.def && tgt.def.undead) eff *= 2;
     if (eff <= 0) { this.push({ t: 'float', uid: tgt.uid, text: 'IMMUNE', cls: 'block' }); this.push({ t: 'resist', uid: tgt.uid, dtype, eff: 0 }); return { hit: false, immune: true }; }
     amount *= eff;
     amount = Math.max(1, Math.round(amount));
     if (src && this.has(tgt, 'reflect') && src !== tgt) { const back = Math.max(1, Math.round(amount * 0.4)); this.push({ t: 'float', uid: tgt.uid, text: 'REFLECTED', cls: 'block' }); this.applyHp(src, back, false, 'GRID', null); }
     const res = this.applyHp(tgt, amount, crit, opts.label, src, blocked, { dtype, eff });
+    if (src && src.side === 'party' && this.eq(src, 'lifesteal') && !src.dead) this.heal(null, src, Math.max(1, Math.round(amount * this.eq(src, 'lifesteal'))));
     if (SBR.traitHooks && (src && src.traits || tgt.traits)) SBR.traitHooks.hit(this, src, tgt);
     // magnet share
     if (this.has(tgt, 'magnet') && !opts.noShare) {
@@ -369,6 +373,14 @@ SBR.Combat = class Combat {
         u.hp = Math.ceil(u.maxHp * 0.4);
         this.push({ t: 'fx', kind: 'rewind', uid: u.uid });
         this.push({ t: 'float', uid: u.uid, text: 'MANDOM!', cls: 'buff big' });
+        this.push({ t: 'revive', uid: u.uid, hp: u.hp });
+        return;
+      }
+      if (this.has(u, 'bitesdust')) {
+        u.statuses = u.statuses.filter(s => s.id !== 'bitesdust');
+        u.hp = Math.ceil(u.maxHp * 0.5);
+        this.push({ t: 'fx', kind: 'rewind', uid: u.uid });
+        this.push({ t: 'float', uid: u.uid, text: 'BITES THE DUST!', cls: 'buff big' });
         this.push({ t: 'revive', uid: u.uid, hp: u.hp });
         return;
       }
@@ -431,6 +443,7 @@ SBR.Combat = class Combat {
       if (flag) this.unlockFlag(flag);
     }
     this.enemies().forEach(u => { const h = u.def.hooks; if (h && h.roundStart) h.roundStart(this.ctx(u, null)); });
+    { const C = SBR.curCondition && SBR.curCondition(); const sun = this.opts.hazard === 'heat' || (C && ['drought', 'sandstorm'].includes(SBR.run.conditions[SBR.run.act])); if (sun) this.alive('party').filter(u => this.eq(u, 'sunburn') > 0).forEach(u => { this.push({ t: 'float', uid: u.uid, text: 'SUNLIGHT', cls: 'debuff' }); this.typedHp(u, Math.max(2, Math.round(u.maxHp * 0.03)), 'holy', 'SUN'); }); }
     const hz = this.opts.hazard && SBR.HAZARDS && SBR.HAZARDS[this.opts.hazard];
     if (hz) { if (this.round === 1) this.log(`Hazard — ${hz.name}: ${hz.desc}`); hz.round(this); this.checkEnd(); }
   }
@@ -467,6 +480,8 @@ SBR.Combat = class Combat {
         case 'guilt': this.typedHp(u, 2 * s.stacks, 'stand', 'GUILT'); s.stacks = Math.min(d.max, s.stacks + 1); break;
         case 'infinite': this.typedHp(u, Math.max(3, Math.round(u.maxHp * 0.08)), 'true', '∞'); break;
         case 'regen': this.heal(null, u, 4); break;
+        case 'burn': this.typedHp(u, 3 * s.stacks, 'phys', 'BURN'); s.stacks--; if (s.stacks <= 0) this.removeStatus(u, s.id); break;
+        case 'sha': this.push({ t: 'fx', kind: 'boom', uid: u.uid }); this.typedHp(u, 6, 'phys', 'SHA!'); break;
         case 'primed':
           s.turns--;
           if (s.turns <= 0) { this.removeStatus(u, 'primed'); this.push({ t: 'fx', kind: 'boom', uid: u.uid }); this.typedHp(u, 18, 'phys', 'BOOM'); }
@@ -600,6 +615,7 @@ SBR.Combat = class Combat {
     const cost = a => (a.cost != null ? a.cost : a.cd >= 3 ? 2 : a.cd >= 1 ? 1 : 0);
     const abl = u.xAbilities || def.abilities;
     let opts = abl.filter((a, i) => !(u.cds['a' + i] > 0) && cost(a) <= (u.energy || 0) && (!a.cond || a.cond(x0)));
+    if (this.has(u, 'disclock')) { const basic = abl.filter(a => cost(a) === 0 && !a.cd); opts = basic.length ? basic : [abl[0]]; }
     if (!opts.length) opts = abl.filter(a => cost(a) === 0);
     if (!opts.length) opts = [abl[abl.length - 1]];
     // smarter at higher threat: favour the costliest move it can afford, and AoE into a full party

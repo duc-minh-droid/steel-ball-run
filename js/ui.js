@@ -708,15 +708,17 @@ SBR.ui = (() => {
     const row = el('div', { class: 'sell-row' });
     const add = (kind, list, chip) => list.forEach((id, i) => {
       const v = Math.round(SBR.sellValue(kind, id) * (1 + (SBR.bonus().discount || 0)));
-      const c = el('div', { class: 'sell-item' }, chip(id), btn('+' + fmtMoney(v), () => { SBR.game.sell(kind, i); SBR.audio.play('coin'); rerender(); }, 'btn-small'));
+      const full = kind === 'trinket' ? r.trinkets : kind === 'equip' ? r.gear : r.items;
+      const c = el('div', { class: 'sell-item' }, chip(id), btn('+' + fmtMoney(v), () => { SBR.game.sell(kind, kind === 'trinket' ? full.indexOf(id) : i); SBR.audio.play('coin'); rerender(); }, 'btn-small'));
       row.appendChild(c);
     });
-    add('trinket', r.trinkets || [], id => trinketChip(id));
+    add('trinket', (r.trinkets || []).filter(id => !SBR.TRINKETS[id].keep), id => trinketChip(id));
     add('equip', r.gear, id => equipChip(id));
     add('item', r.items, id => itemChip(id));
     if (!row.children.length) row.appendChild(el('p', { class: 'muted' }, 'Nothing to sell. Unequipped gear, spare supplies and trinkets show up here.'));
     wrap.appendChild(row);
-    if ((r.trinkets || []).length > 1) wrap.appendChild(btn(`Sell all trinkets (+${fmtMoney(r.trinkets.reduce((a, id) => a + SBR.sellValue('trinket', id), 0))})`, () => { while (r.trinkets.length) SBR.game.sell('trinket', 0); SBR.audio.play('coin'); rerender(); }, 'btn-small btn-ghost'));
+    const sellable = () => (r.trinkets || []).filter(id => !SBR.TRINKETS[id].keep);
+    if (sellable().length > 1) wrap.appendChild(btn(`Sell all trinkets (+${fmtMoney(sellable().reduce((a, id) => a + SBR.sellValue('trinket', id), 0))})`, () => { let i; while ((i = r.trinkets.findIndex(id => !SBR.TRINKETS[id].keep)) >= 0) SBR.game.sell('trinket', i); SBR.audio.play('coin'); rerender(); }, 'btn-small btn-ghost'));
     return wrap;
   }
   /** reinforce and salvage. smith = the blacksmith service (money only, pricier, no salvage) */
@@ -845,6 +847,11 @@ SBR.ui = (() => {
     const P = SBR.pathOf(m);
     const opts = SBR.pathsFor(m.id);
     if (!opts.length) return row;
+    if (!P && m.id === 'custom') {
+      row.appendChild(el('div', { class: 'cs-sub' }, 'POWER — none yet'));
+      row.appendChild(el('p', { class: 'muted path-hint', html: 'Find one on the road: a <b style="color:#f2c14e">Hamon</b> master, a <b style="color:#8a1a2a">Stone Mask</b>, <b style="color:#8a8aa0">German field surgeons</b> (only for the badly hurt), or the <b style="color:#7a5ad0">Stand Arrow</b>, if you can find out where it is. You only ever get one.' }));
+      return row;
+    }
     if (!P) {
       row.appendChild(el('div', { class: 'cs-sub' }, 'PATH — not chosen'));
       row.appendChild(el('p', { class: 'muted path-hint' }));
