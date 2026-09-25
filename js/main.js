@@ -814,7 +814,7 @@ SBR.game = (() => {
         <p class="end-rp">${art.icon('trophy', 26)} ${r.rp || 0} Race Points earned this run</p>
         <p class="muted">Spend RP at the Saloon to buy Techniques that make future runs easier.</p></div>`;
       const box = scr.querySelector('.end-box');
-      box.appendChild(ui.btn('Return to the Saloon', () => lobbyScreen(), 'btn-primary'));
+      box.appendChild(ui.btn('Return to the Saloon', () => lobbyScreen(), 'btn-primary btn-go', { 'data-kana': 'ゴゴゴ' }));
       ui.menacing(scr, 6);
     });
     SBR.clearRun();
@@ -839,7 +839,7 @@ SBR.game = (() => {
         <p>Final standing: <b>${SBR.util.ordinal(rank)}</b> with ${r.points.player || 0} points.</p>
         <p class="end-rp">${art.icon('trophy', 26)} ${r.rp || 0} Race Points earned</p>
         <p class="muted">Thank you for riding. New horses and Techniques may be waiting at the Saloon.</p></div>`;
-      scr.querySelector('.end-box').appendChild(ui.btn('Return to the Saloon', () => lobbyScreen(), 'btn-primary'));
+      scr.querySelector('.end-box').appendChild(ui.btn('Return to the Saloon', () => lobbyScreen(), 'btn-primary btn-go', { 'data-kana': 'ドドド' }));
     });
     SBR.clearRun();
   }
@@ -856,10 +856,10 @@ SBR.game = (() => {
         <div class="title-menu"></div>
         <div class="title-foot">A fan-made roguelite. Deliberately difficult. Click anywhere to enable sound.</div>`;
       const menu = scr.querySelector('.title-menu');
-      if (has) menu.appendChild(ui.btn('Continue Race', () => { SBR.run = SBR.loadRun(); resumeRun(); }, 'btn-title primary'));
-      menu.appendChild(ui.btn(has ? 'New Race (abandon current)' : 'New Race', () => { SBR.clearRun(); lobbyScreen(); }, 'btn-title' + (has ? '' : ' primary')));
-      menu.appendChild(ui.btn('Saloon & Stable', () => lobbyScreen(), 'btn-title'));
-      menu.appendChild(ui.btn('Settings', () => ui.settingsScreen(false), 'btn-title'));
+      if (has) menu.appendChild(ui.btn('Continue Race', () => { SBR.run = SBR.loadRun(); resumeRun(); }, 'btn-title primary', { 'data-kana': 'ゴゴゴ' }));
+      menu.appendChild(ui.btn(has ? 'New Race (abandon current)' : 'New Race', () => { SBR.clearRun(); lobbyScreen(); }, 'btn-title' + (has ? '' : ' primary'), { 'data-kana': 'ドドド' }));
+      menu.appendChild(ui.btn('Saloon & Stable', () => lobbyScreen(), 'btn-title', { 'data-kana': 'ゴゴゴ' }));
+      menu.appendChild(ui.btn('Settings', () => ui.settingsScreen(false), 'btn-title', { 'data-kana': 'メメタァ' }));
       ui.menacing(scr, 5);
     }, 'fade');
   }
@@ -887,9 +887,9 @@ SBR.game = (() => {
       const head = el('div', { class: 'lobby-head', html: `<div class="lh-title">The Starting Line Saloon</div><div class="lh-rp">${art.icon('trophy', 26)} <b>${SBR.meta.rp}</b> RP</div>` });
       const tabs = el('div', { class: 'lobby-tabs' });
       const body = el('div', { class: 'lobby-body' });
-      const TABS = [['saloon', 'Techniques'], ['stable', 'Stable'], ['achievements', 'Achievements'], ['compendium', 'Compendium']];
-      TABS.forEach(([k, label]) => {
-        const t = el('button', { class: 'lobby-tab' + (k === tab ? ' active' : '') }, label);
+      const TABS = [['saloon', 'Techniques', '技'], ['stable', 'Stable', '馬'], ['achievements', 'Achievements', '栄'], ['compendium', 'Compendium', '図']];
+      TABS.forEach(([k, label, kana]) => {
+        const t = el('button', { class: 'lobby-tab' + (k === tab ? ' active' : ''), 'data-kana': kana }, label);
         t.onclick = () => { SBR.audio.play('click'); tab = k; tabs.querySelectorAll('.lobby-tab').forEach(x => x.classList.toggle('active', x === t)); renderBody(); };
         tabs.appendChild(t);
       });
@@ -899,8 +899,8 @@ SBR.game = (() => {
       }
       renderBody();
       const foot = el('div', { class: 'lobby-foot' });
-      foot.appendChild(ui.btn('◂ Title', () => titleScreen(), 'btn-ghost'));
-      foot.appendChild(ui.btn('Enter the Race ▸', () => setupScreen(), 'btn-primary big'));
+      foot.appendChild(ui.btn('◂ Title', () => titleScreen(), 'btn-ghost btn-tbc'));
+      foot.appendChild(ui.btn('Enter the Race ▸', () => setupScreen(), 'btn-primary big btn-go', { 'data-kana': 'ドドドド' }));
       box.append(head, tabs, body, foot);
       scr.appendChild(box);
     });
@@ -917,8 +917,9 @@ SBR.game = (() => {
       const avail = m.unlockedTech.includes(k);
       const owned = (m.ownedTech || []).includes(k);
       const eq = m.equippedTech.includes(k);
-      const card = el('div', { class: 'tech-card' + (eq ? ' equipped' : '') + (!avail ? ' locked' : '') });
-      card.innerHTML = `<div class="tc-slots">${'◆'.repeat(t.slots)}</div><div class="tc-name">${t.name}</div><div class="tc-desc">${avail ? t.desc : '???'}</div><div class="tc-unlock">${avail ? '' : art.icon('lock', 14) + ' ' + t.unlockText}</div>`;
+      const rule = t.tag === 'RULE';
+      const card = el('div', { class: 'tech-card' + (eq ? ' equipped' : '') + (!avail ? ' locked' : '') + (rule ? ' rule' : '') });
+      card.innerHTML = `${rule ? '<div class="tc-rule" title="Changes the rules of the run, not just your stats"><span>RULE CHANGE</span><i>「掟」</i></div>' : ''}<div class="tc-slots">${'◆'.repeat(t.slots)}</div><div class="tc-name">${t.name}</div><div class="tc-desc">${avail ? t.desc : '???'}</div><div class="tc-unlock">${avail ? '' : art.icon('lock', 14) + ' ' + t.unlockText}</div>`;
       if (avail && !owned) card.appendChild(ui.btn(`Buy · ${t.cost} RP`, () => { if (m.rp < t.cost) return SBR.toast('Not enough RP', 'bad'); m.rp -= t.cost; m.ownedTech = (m.ownedTech || []).concat(k); SBR.saveMeta(); SBR.audio.play('coin'); refresh(); }, 'btn-small' + (m.rp < t.cost ? ' disabled' : '')));
       if (owned) card.appendChild(ui.btn(eq ? 'Unequip' : 'Equip', () => {
         if (eq) m.equippedTech = m.equippedTech.filter(x => x !== k);
@@ -1059,8 +1060,8 @@ SBR.game = (() => {
         const eq = SBR.meta.equippedTech.map(k => SBR.TECHNIQUES[k].name).join(', ') || 'none';
         box.appendChild(el('p', { class: 'muted' }, `Techniques equipped: ${eq}`));
         const foot = el('div', { class: 'lobby-foot' });
-        foot.appendChild(ui.btn('◂ Saloon', () => lobbyScreen(), 'btn-ghost'));
-        foot.appendChild(ui.btn('RIDE! ▸', () => beginRace(horse, item, lead), 'btn-primary big'));
+        foot.appendChild(ui.btn('◂ Saloon', () => lobbyScreen(), 'btn-ghost btn-tbc'));
+        foot.appendChild(ui.btn('RIDE! ▸', () => beginRace(horse, item, lead), 'btn-primary big btn-go', { 'data-kana': 'ドドドド' }));
         box.appendChild(foot);
       };
       render();

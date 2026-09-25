@@ -246,7 +246,7 @@ SBR.ui = (() => {
   /* ---------- Dice check ---------- */
   function diceCheck({ stat, dc, who, mod }) {
     return new Promise(resolve => {
-      const roll = SBR.util.randInt(1, 20);
+      const roll = SBR.boonRoll ? SBR.boonRoll() : SBR.util.randInt(1, 20);
       const total = roll + mod;
       const ok = roll === 20 || (roll !== 1 && total >= dc);
       const box = el('div', { class: 'dice-panel' });

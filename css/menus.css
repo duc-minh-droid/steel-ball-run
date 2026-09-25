@@ -1,0 +1,330 @@
+/* =================== Menus & meta screens: JoJo style =================== */
+/* Title, Saloon lobby, Registration (setup), modals, generic buttons, toasts, end screens.
+   Loaded last so it can restyle the shared .btn without touching the older sheets. */
+@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+
+:root {
+  --jj-magenta: #d6307a; --jj-purple: #4a2378; --jj-violet: #7a4ad0; --jj-teal: #2fb3a4; --jj-gold: #f2c14e; --jj-cream: #fff3c0;
+  --jj-tbc: #d8c078; /* the "To Be Continued" arrow */
+  --f-anton: 'Anton', 'Oswald', Impact, sans-serif;
+  --jj-skew: -8deg;
+  --jj-tone: radial-gradient(rgba(26, 16, 32, .16) 1.1px, transparent 1.5px);
+}
+
+/* ---------- generic buttons: slanted ink plates with offset shadows ---------- */
+.btn {
+  clip-path: none; border: 3px solid var(--ink); border-radius: 0;
+  transform: skewX(var(--jj-skew)); box-shadow: 4px 4px 0 var(--ink);
+  transition: transform .12s cubic-bezier(.2, 1.4, .4, 1), box-shadow .12s, background .12s, color .12s;
+}
+.btn:hover { transform: skewX(var(--jj-skew)) translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); background: var(--jj-cream); }
+.btn:active { transform: skewX(var(--jj-skew)) translate(3px, 3px); box-shadow: 0 0 0 var(--ink); transition-duration: .04s; }
+.btn:focus-visible { outline: 3px dashed var(--jj-magenta); outline-offset: 4px; }
+.btn-primary { background: linear-gradient(180deg, #ffe07a, var(--jj-gold) 60%, #e8a83a); box-shadow: 4px 4px 0 var(--ink), 7px 7px 0 var(--jj-magenta); }
+.btn-primary:hover { background: var(--jj-magenta); color: #fff; text-shadow: 2px 2px 0 var(--ink); box-shadow: 6px 6px 0 var(--ink), 10px 10px 0 var(--jj-gold); }
+.btn-primary:active { box-shadow: 0 0 0 var(--ink), 2px 2px 0 var(--jj-gold); }
+.btn-ghost { box-shadow: none; }
+.btn-ghost:hover { background: var(--paper); color: var(--ink); box-shadow: 4px 4px 0 var(--jj-magenta); }
+.btn-danger:hover { background: var(--ink); color: #ff8a8a; }
+.btn-small { box-shadow: 3px 3px 0 var(--ink); }
+.btn-small:hover { box-shadow: 4px 4px 0 var(--ink); }
+.btn.disabled:hover, .btn[disabled]:hover { transform: skewX(var(--jj-skew)); background: inherit; color: inherit; text-shadow: none; }
+.btn-unlock { background: var(--jj-gold); }
+.btn-unlock:hover { background: var(--ink); color: var(--jj-gold); }
+
+/* ---------- kana pop: menu buttons shout ゴゴゴ / ドドド when hovered ---------- */
+.title-menu .btn, .lobby-foot .btn, .end-box .btn { position: relative; }
+.btn[data-kana]::after {
+  content: attr(data-kana); position: absolute; right: -10px; top: -22px; transform: skewX(8deg) rotate(8deg) scale(.3); opacity: 0;
+  font-family: var(--f-jp); font-weight: 900; font-size: 22px; line-height: 1; letter-spacing: -.05em; white-space: nowrap;
+  color: var(--jj-violet); -webkit-text-stroke: 1.5px var(--ink); text-shadow: 2px 2px 0 var(--ink); pointer-events: none;
+  transition: transform .18s cubic-bezier(.2, 1.8, .4, 1), opacity .12s; z-index: 2;
+}
+.btn[data-kana]:hover::after, .btn[data-kana]:focus-visible::after { opacity: 1; transform: skewX(8deg) rotate(8deg) scale(1); }
+
+@keyframes jjShake { 0%, 100% { translate: 0 0; } 20% { translate: -2px 1px; } 40% { translate: 2px -1px; } 60% { translate: -1px -1px; } 80% { translate: 1px 1px; } }
+@keyframes jjSlideIn { from { opacity: 0; translate: 80px 0; } to { opacity: 1; translate: 0 0; } }
+@keyframes jjSlam { 0% { opacity: 0; transform: scale(1.6) rotate(-4deg); } 60% { opacity: 1; transform: scale(.97) rotate(.5deg); } 100% { transform: none; } }
+@keyframes jjSpin { to { rotate: 360deg; } }
+@keyframes jjLines { to { background-position: 60px 0, 0 0; } }
+@keyframes jjMenace { 0%, 100% { opacity: .5; translate: 0 0; } 50% { opacity: .95; translate: 0 -6px; } }
+
+/* ---------- title screen ---------- */
+.screen-title::after { /* ink vignette + halftone fade at the bottom, behind the menu */
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background: linear-gradient(0deg, rgba(26, 16, 32, .55), transparent 38%), radial-gradient(ellipse at 50% 40%, transparent 55%, rgba(26, 16, 32, .5));
+}
+.title-logo .tl-jojo {
+  display: inline-block; font-family: var(--f-anton); letter-spacing: .14em; font-size: 18px; color: var(--jj-gold);
+  background: var(--ink); padding: 3px 16px; transform: skewX(-12deg); box-shadow: 4px 4px 0 var(--jj-magenta); -webkit-text-stroke: 0; text-shadow: none;
+}
+.title-logo .tl-jojo::before { content: '「'; color: var(--jj-magenta); margin-right: 4px; }
+.title-logo .tl-jojo::after { content: '」'; color: var(--jj-magenta); margin-left: 4px; }
+.title-menu { gap: 16px; }
+.title-menu::before { /* vertical menace column beside the menu */
+  content: 'ゴゴゴゴ'; position: absolute; left: -64px; top: 50%; transform: translateY(-50%) rotate(-6deg); writing-mode: vertical-rl; text-orientation: upright;
+  font-family: var(--f-jp); font-weight: 900; font-size: 38px; line-height: .95; color: var(--jj-violet);
+  -webkit-text-stroke: 2px var(--ink); text-shadow: 3px 3px 0 var(--ink); pointer-events: none; animation: jjMenace 2.4s ease-in-out infinite;
+}
+.btn-title {
+  font-family: var(--f-anton); font-weight: 400; font-size: 24px; letter-spacing: .06em; line-height: 1.1;
+  padding: 12px 44px 12px 52px; min-width: 300px; border-width: 4px; background: var(--paper);
+  background-image: var(--jj-tone), linear-gradient(180deg, #fffaf0, var(--paper)); background-size: 6px 6px, 100% 100%;
+  box-shadow: 5px 5px 0 var(--ink); animation: jjSlideIn .45s cubic-bezier(.2, 1.3, .4, 1) both;
+}
+.title-menu .btn-title:nth-child(2) { animation-delay: .07s; } .title-menu .btn-title:nth-child(3) { animation-delay: .14s; } .title-menu .btn-title:nth-child(4) { animation-delay: .21s; }
+.btn-title::before { /* Joestar star plate on the left */
+  content: '\2605'; position: absolute; left: 12px; top: 50%; translate: 0 -50%; font-size: 20px; line-height: 1;
+  color: var(--jj-gold); -webkit-text-stroke: 1.5px var(--ink); transition: rotate .3s, color .12s;
+}
+.btn-title.primary { background: linear-gradient(180deg, #ffe07a, var(--jj-gold) 60%, #e8a83a); box-shadow: 5px 5px 0 var(--ink), 9px 9px 0 var(--jj-magenta); }
+.btn-title.primary::before { color: var(--jj-magenta); }
+.btn-title:hover, .btn-title.primary:hover {
+  background: var(--ink); color: var(--jj-gold); text-shadow: 2px 2px 0 var(--jj-magenta);
+  box-shadow: 6px 6px 0 var(--jj-magenta), 10px 10px 0 var(--jj-gold); animation: jjShake .28s linear 1;
+}
+.btn-title:hover::before { rotate: 72deg; color: var(--jj-magenta); }
+.btn-title[data-kana]::after { font-size: 26px; right: -14px; top: -26px; }
+.title-foot { z-index: 5; }
+.title-foot { opacity: .85; font-size: 12px; letter-spacing: .04em; }
+
+/* ---------- panels: Saloon + Registration ---------- */
+.lobby, .setup {
+  border-width: 5px;
+  box-shadow: 0 0 0 3px var(--paper), 0 0 0 7px var(--ink), 12px 12px 0 7px var(--jj-magenta), 12px 12px 0 10px var(--ink);
+  background-image: radial-gradient(rgba(26, 16, 32, .07) 1px, transparent 1.4px), linear-gradient(160deg, #fffaf0 0%, var(--paper) 45%, #efe0bf 100%);
+  background-size: 7px 7px, 100% 100%;
+}
+.lobby { inset: 26px; }
+.lobby-head { position: relative; gap: 12px; flex-wrap: wrap; }
+.lh-title { font-size: 34px; line-height: 1.05; text-shadow: 2px 2px 0 var(--jj-gold), 4px 4px 0 var(--ink); }
+.lh-title::before { content: '「'; color: var(--jj-magenta); -webkit-text-stroke: 0; text-shadow: 2px 2px 0 var(--ink); margin-right: 2px; }
+.lh-title::after { content: '」'; color: var(--jj-magenta); -webkit-text-stroke: 0; text-shadow: 2px 2px 0 var(--ink); margin-left: 2px; }
+.lobby-head::after { /* menace kana tucked behind the title */
+  content: 'ゴゴゴ'; position: absolute; left: min(560px, 52%); top: -6px; font-family: var(--f-jp); font-weight: 900; font-size: 26px;
+  color: var(--jj-violet); -webkit-text-stroke: 1.5px var(--ink); text-shadow: 2px 2px 0 var(--ink); transform: rotate(-8deg); pointer-events: none;
+  animation: jjMenace 2.6s ease-in-out infinite;
+}
+.lh-rp {
+  font-family: var(--f-anton); font-weight: 400; letter-spacing: .04em; transform: skewX(-10deg); border-width: 4px;
+  background: linear-gradient(180deg, #ffe07a, var(--jj-gold) 60%, #e8a83a); box-shadow: 4px 4px 0 var(--ink), 7px 7px 0 var(--jj-magenta);
+}
+.lh-rp b { font-weight: 400; font-size: 26px; }
+.lobby-tabs { flex-wrap: wrap; gap: 10px; border-bottom: 4px solid var(--ink); padding: 0 4px 10px; margin: 12px 0 10px; }
+.lobby-tab {
+  position: relative; font-family: var(--f-anton); font-weight: 400; font-size: 17px; letter-spacing: .08em; padding: 7px 20px;
+  border: 3px solid var(--ink); background: var(--paper); background-image: var(--jj-tone); background-size: 6px 6px;
+  transform: skewX(-12deg); box-shadow: 3px 3px 0 var(--ink); color: var(--ink);
+  transition: transform .12s cubic-bezier(.2, 1.4, .4, 1), background .12s, color .12s, box-shadow .12s;
+}
+.lobby-tab:hover { transform: skewX(-12deg) translateY(-3px); background-color: var(--jj-cream); box-shadow: 4px 5px 0 var(--ink); }
+.lobby-tab:active { transform: skewX(-12deg) translate(2px, 2px); box-shadow: 0 0 0 var(--ink); }
+.lobby-tab.active { background: var(--ink); color: var(--jj-gold); box-shadow: 4px 4px 0 var(--jj-magenta); transform: skewX(-12deg) translateY(-2px); }
+.lobby-tab[data-kana]::after {
+  content: attr(data-kana); position: absolute; right: -8px; top: -14px; font-family: var(--f-jp); font-weight: 900; font-size: 15px; line-height: 1;
+  color: #fff; background: var(--jj-magenta); border: 2px solid var(--ink); padding: 2px 3px; transform: skewX(12deg) rotate(10deg) scale(0);
+  transition: transform .16s cubic-bezier(.2, 1.8, .4, 1); pointer-events: none;
+}
+.lobby-tab:hover::after, .lobby-tab.active::after { transform: skewX(12deg) rotate(10deg) scale(1); }
+.lobby-body { padding: 6px 8px 8px 2px; }
+.lobby-body > p.muted, .setup > p.muted { font-size: 14px; }
+
+/* section headers: ink bands with a gold rule */
+.lobby .cs-sub, .setup .cs-sub {
+  display: flex; align-items: center; gap: 10px; border: 0; padding: 0; margin: 18px 0 10px;
+  font-family: var(--f-anton); font-weight: 400; font-size: 16px; letter-spacing: .14em; color: var(--ink);
+}
+.lobby .cs-sub::before, .setup .cs-sub::before { content: '\25C6'; color: var(--jj-magenta); -webkit-text-stroke: 1px var(--ink); font-size: 18px; }
+.lobby .cs-sub::after, .setup .cs-sub::after { content: ''; flex: 1; height: 4px; background: linear-gradient(90deg, var(--ink) 0 60%, var(--jj-gold) 60% 80%, var(--jj-magenta) 80%); transform: skewX(-30deg); }
+
+/* ---------- cards: manga panels ---------- */
+.tech-card, .horse-card, .starter-card, .achv, .comp-card, .lead-card {
+  position: relative; border: 3px solid var(--ink); background-color: #fffdf6;
+  box-shadow: 4px 4px 0 var(--ink); transition: transform .14s cubic-bezier(.2, 1.4, .4, 1), box-shadow .14s, background .14s;
+}
+.tech-card:hover, .horse-card:not(.locked):hover, .starter-card:not(.locked):hover, .lead-card:not(.locked):hover, .comp-card:not(.locked):hover {
+  transform: translate(-2px, -3px) rotate(-.6deg); box-shadow: 6px 7px 0 var(--ink), 9px 10px 0 var(--jj-magenta);
+}
+.tech-card.selected, .horse-card.selected, .starter-card.selected, .lead-card.selected, .tech-card.equipped {
+  background-color: var(--jj-cream); background-image: repeating-linear-gradient(-45deg, rgba(242, 193, 78, .22) 0 6px, transparent 6px 12px);
+  box-shadow: 0 0 0 3px var(--jj-gold), 0 0 0 6px var(--ink), 7px 7px 0 6px var(--jj-magenta);
+}
+.horse-card.selected, .starter-card.selected, .lead-card.selected, .tech-card.equipped { transform: translateY(-3px); }
+.horse-card.selected::after, .starter-card.selected::after, .lead-card.selected::after, .tech-card.equipped::after { /* stamp */
+  content: attr(data-stamp); position: absolute; top: -12px; right: -8px; z-index: 3; pointer-events: none;
+  font-family: var(--f-anton); font-size: 13px; letter-spacing: .1em; line-height: 1; color: #fff;
+  background: var(--jj-magenta); border: 2px solid var(--ink); padding: 4px 8px 3px; transform: rotate(8deg) skewX(-10deg); box-shadow: 2px 2px 0 var(--ink);
+}
+.horse-card.selected::after, .starter-card.selected::after, .lead-card.selected::after { content: 'CHOSEN'; }
+.tech-card.equipped::after { content: 'EQUIPPED'; }
+.lead-card.selected::after { top: auto; bottom: -10px; }
+.tech-card.locked, .horse-card.locked, .starter-card.locked, .achv:not(.got), .comp-card.locked {
+  background-color: #efe6d6; background-image: var(--jj-tone); background-size: 5px 5px; box-shadow: 3px 3px 0 rgba(26, 16, 32, .55);
+}
+
+/* technique cards (tarot.css also owns .tc-name/.tc-desc, so scope the look back here) */
+.tech-grid { gap: 20px 16px; padding: 14px 10px 8px 2px; }
+.lobby-body .btn-ghost, .setup .btn-ghost:not(.btn-tbc) { color: var(--ink); border-color: var(--ink); background: #fffaf0; box-shadow: 3px 3px 0 var(--ink); }
+.lobby-body .btn-ghost:hover, .setup .btn-ghost:not(.btn-tbc):hover { background: var(--ink); color: var(--jj-gold); }
+.tech-card { padding: 12px 12px 12px; gap: 6px; }
+.tech-card::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 6px; background: linear-gradient(90deg, var(--jj-violet), var(--jj-magenta)); border-bottom: 2px solid var(--ink); }
+.tech-card .tc-slots { color: var(--jj-magenta); -webkit-text-stroke: .6px var(--ink); letter-spacing: 3px; font-size: 14px; margin-top: 4px; }
+.tech-card .tc-name { font-family: var(--f-title); font-size: 19px; line-height: 1.1; text-align: left; background: none; border: 0; margin: 0; padding: 0; color: var(--ink); text-shadow: 1px 1px 0 #fff, 2px 2px 0 var(--jj-gold); }
+.tech-card .tc-desc { display: block; font-family: var(--f-ui); font-style: normal; font-size: 13px; line-height: 1.35; text-align: left; color: #2a2030; flex: 1; }
+.tech-card.locked { opacity: .8; }
+.tech-card.locked .tc-desc { font-family: var(--f-anton); font-size: 18px; letter-spacing: .2em; color: rgba(26, 16, 32, .45); }
+.tech-card .tc-unlock { font-size: 12px; }
+.tech-card .btn { align-self: flex-start; }
+.tc-rule {
+  position: absolute; top: -11px; left: 10px; z-index: 2; display: flex; align-items: center; gap: 2px;
+  background: var(--ink); color: var(--jj-gold); border: 2px solid var(--ink); padding: 1px 8px 1px 7px; transform: skewX(-12deg) rotate(-2deg);
+  box-shadow: 3px 3px 0 var(--jj-magenta); font-family: var(--f-anton); font-size: 12px; letter-spacing: .12em; line-height: 1.3;
+}
+.tc-rule i { font-style: normal; font-family: var(--f-jp); font-weight: 900; font-size: 12px; color: #fff; letter-spacing: 0; }
+.tech-card.rule { border-color: var(--jj-purple); }
+.tech-card.rule::before { background: repeating-linear-gradient(-45deg, var(--ink) 0 6px, var(--jj-gold) 6px 12px); }
+.tech-card.rule .tc-slots { margin-top: 10px; }
+.tech-card.rule:not(.locked) { background-image: linear-gradient(160deg, rgba(122, 74, 208, .1), transparent 55%); }
+.tech-slots { gap: 12px; margin: 6px 0 14px 6px; }
+.tslot { width: 26px; height: 26px; background: #fff; box-shadow: 2px 2px 0 var(--ink); }
+.tslot.on { background: var(--jj-magenta); box-shadow: 2px 2px 0 var(--ink), 0 0 0 3px var(--jj-gold) inset; }
+
+/* horses */
+.horse-grid { gap: 16px; padding: 6px 6px 6px 2px; }
+.hc-art { position: relative; overflow: hidden; border-width: 3px; }
+.hc-art::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-conic-gradient(from 0deg at 50% 110%, rgba(255, 255, 255, .22) 0 4deg, transparent 4deg 12deg); }
+.horse-card .hc-name { font-size: 21px; text-shadow: 1px 1px 0 #fff, 2px 2px 0 var(--jj-gold); }
+.horse-card.locked .hc-name { text-shadow: none; }
+.hc-breed { font-family: var(--f-anton); font-weight: 400; opacity: .75; }
+.hc-bars .bar { background: #fff; transform: skewX(-20deg); }
+.hc-bars .bar div { background: linear-gradient(90deg, var(--orange), var(--jj-magenta)); }
+
+/* starters, achievements, compendium, leads */
+.starter-grid { gap: 12px; padding: 4px 6px 6px 2px; }
+.starter-card:not(.locked):hover { transform: translate(3px, -2px); }
+.achv-list { gap: 12px; padding: 4px 6px 6px 2px; }
+.achv.got { background-color: var(--jj-cream); background-image: repeating-linear-gradient(-45deg, rgba(242, 193, 78, .22) 0 6px, transparent 6px 12px); }
+.achv b { font-family: var(--f-title); font-weight: 400; font-size: 16px; }
+.achv-rp { font-family: var(--f-anton); font-weight: 400; background: var(--ink); color: var(--jj-gold); padding: 2px 8px; transform: skewX(-10deg); white-space: nowrap; }
+.comp-grid { gap: 12px; padding: 4px 6px 6px 2px; }
+.comp-card { padding: 5px; }
+.comp-card b { display: block; font-family: var(--f-anton); font-weight: 400; letter-spacing: .03em; margin-top: 3px; }
+.comp-card.tier-boss { box-shadow: 0 0 0 3px var(--red), 4px 4px 0 3px var(--ink); }
+.comp-q { font-family: var(--f-jp); font-weight: 900; background: #2a1a38; background-image: repeating-conic-gradient(from 0deg at 50% 50%, rgba(255, 255, 255, .08) 0 6deg, transparent 6deg 18deg); color: var(--jj-violet); -webkit-text-stroke: 1.5px var(--ink); text-shadow: 3px 3px 0 var(--ink); }
+.sgl { padding: 6px 8px; border-left: 4px solid var(--ink); background: rgba(255, 255, 255, .5); }
+.lead-grid { gap: 12px; padding: 4px 6px 6px 2px; }
+.lead-card { background-color: rgba(255, 253, 246, .9); }
+.lead-info b { font-family: var(--f-anton); font-weight: 400; font-size: 15px; letter-spacing: .02em; }
+.lead-port { border-width: 3px; }
+.setup-head { position: relative; }
+.setup-port { transform: rotate(-3deg); border-width: 4px; box-shadow: 4px 4px 0 var(--ink), 7px 7px 0 var(--jj-magenta); }
+.setup-head p { margin: 4px 0 0; }
+.rp-have { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; opacity: 1; font-size: 13px; background: var(--ink); color: var(--paper); padding: 3px 12px; transform: skewX(-10deg); margin: 12px 0 0; }
+.rp-have b { color: var(--jj-gold); }
+
+/* ---------- footer: "To Be Continued" back arrow + big go button ---------- */
+.lobby-foot { gap: 12px; flex-wrap: wrap; padding-top: 12px; border-top: 3px dashed rgba(26, 16, 32, .25); }
+.btn-tbc, .lobby-foot .btn-tbc {
+  position: relative; isolation: isolate; transform: none; border: 0; background: transparent; color: var(--ink); box-shadow: none;
+  font-family: var(--f-anton); font-weight: 400; font-size: 16px; letter-spacing: .1em; padding: 10px 22px 10px 38px;
+  filter: drop-shadow(3px 3px 0 var(--ink)); transition: transform .14s cubic-bezier(.2, 1.4, .4, 1), filter .14s;
+}
+.btn-tbc::before, .btn-tbc::after { content: ''; position: absolute; z-index: -1; clip-path: polygon(0 50%, 22px 0, 100% 0, 100% 100%, 22px 100%); }
+.btn-tbc::before { inset: 0; background: var(--ink); }
+.btn-tbc::after { inset: 3px; background: var(--jj-tbc); background-image: repeating-linear-gradient(90deg, rgba(26, 16, 32, .12) 0 2px, transparent 2px 7px); clip-path: polygon(0 50%, 20px 0, 100% 0, 100% 100%, 20px 100%); }
+.btn-tbc:hover, .lobby-foot .btn-tbc:hover { transform: translateX(-5px); background: transparent; color: var(--ink); box-shadow: none; filter: drop-shadow(4px 4px 0 var(--jj-magenta)); }
+.btn-tbc:active, .lobby-foot .btn-tbc:active { transform: translateX(-2px) translateY(2px); box-shadow: none; filter: drop-shadow(0 0 0 var(--ink)); }
+.btn-go, .btn-primary.big {
+  font-family: var(--f-anton); font-weight: 400; letter-spacing: .08em; font-size: 24px; padding: 12px 38px; border-width: 4px;
+  background-image: repeating-linear-gradient(100deg, rgba(255, 255, 255, 0) 0 22px, rgba(255, 255, 255, .35) 22px 26px), linear-gradient(180deg, #ffe07a, var(--jj-gold) 60%, #e8a83a);
+  background-size: 60px 100%, 100% 100%;
+}
+.btn-go:hover, .btn-primary.big:hover {
+  background-image: repeating-linear-gradient(100deg, rgba(255, 255, 255, 0) 0 22px, rgba(255, 255, 255, .22) 22px 26px), linear-gradient(180deg, #ee4a92, var(--jj-magenta));
+  animation: jjLines .5s linear infinite, jjShake .28s linear 1;
+}
+.btn-go[data-kana]::after { font-size: 24px; right: -8px; top: -28px; }
+
+/* ---------- modals: double ink frame, speed-line backdrop ---------- */
+.modal-wrap { background: radial-gradient(ellipse at 50% 50%, rgba(20, 10, 30, .45), rgba(20, 10, 30, .78)), repeating-conic-gradient(from 0deg at 50% 50%, rgba(255, 255, 255, .035) 0 3deg, transparent 3deg 9deg); }
+.modal-title { top: 10px; }
+.modal-title span { font-family: var(--f-anton); font-weight: 400; letter-spacing: .08em; font-size: 19px; padding: 3px 20px 3px 16px; transform: skewX(-12deg); box-shadow: 3px 3px 0 var(--jj-magenta); text-shadow: none; }
+.modal-title span::before { content: '「'; color: var(--jj-magenta); margin-right: 3px; }
+.modal-title span::after { content: '」'; color: var(--jj-magenta); margin-left: 3px; }
+.modal-x { transform: skewX(-8deg); box-shadow: 3px 3px 0 var(--ink); background: var(--jj-magenta); transition: transform .15s, background .12s, box-shadow .12s; }
+.modal-x:hover { transform: skewX(-8deg) rotate(90deg); background: var(--ink); color: var(--jj-gold); box-shadow: 3px 3px 0 var(--jj-magenta); }
+.modal-x:active { transform: skewX(-8deg) rotate(90deg) scale(.9); }
+
+/* settings */
+.settings .set-row { font-family: var(--f-anton); font-weight: 400; letter-spacing: .06em; text-transform: uppercase; font-size: 15px; border-bottom: 2px dashed rgba(26, 16, 32, .25); padding: 10px 2px; gap: 12px; }
+.settings .set-row > span::before { content: '\25C6'; color: var(--jj-magenta); margin-right: 8px; font-size: 12px; vertical-align: 2px; }
+.settings input[type=range] { accent-color: var(--jj-magenta); max-width: 48vw; }
+.settings input[type=checkbox] { accent-color: var(--jj-magenta); }
+.settings .keys { background: var(--ink); color: var(--paper); padding: 8px 12px; border-left: 6px solid var(--jj-gold); opacity: 1; font-size: 12.5px; }
+.settings .keys b { color: var(--jj-gold); }
+.settings .btn-danger { font-family: var(--f-anton); font-weight: 400; letter-spacing: .08em; font-size: 17px; }
+
+/* ---------- toasts ---------- */
+.toast { border-width: 3px; box-shadow: 4px 4px 0 var(--ink); background-image: linear-gradient(100deg, rgba(255, 255, 255, .5), transparent 40%); }
+.toast.good { box-shadow: 4px 4px 0 var(--ink), 6px 6px 0 var(--jj-teal); }
+.toast.bad { box-shadow: 4px 4px 0 var(--ink), 6px 6px 0 var(--red); }
+.toast.achv { box-shadow: 4px 4px 0 var(--ink), 7px 7px 0 var(--jj-magenta); }
+.toast b { font-weight: 700; }
+
+/* ---------- end screens ---------- */
+.screen-end::before { /* sunburst behind the panel */
+  content: ''; position: absolute; left: 50%; top: 50%; width: 180vmax; height: 180vmax; margin: -90vmax 0 0 -90vmax; z-index: 2; pointer-events: none;
+  background: repeating-conic-gradient(from 0deg, rgba(242, 193, 78, .16) 0 5deg, transparent 5deg 15deg); animation: jjSpin 90s linear infinite;
+}
+.screen-end.lose::before { background: repeating-conic-gradient(from 0deg, rgba(122, 74, 208, .12) 0 5deg, transparent 5deg 15deg); }
+.end-box {
+  border-width: 5px; padding: 32px 28px 30px;
+  background-image: radial-gradient(rgba(26, 16, 32, .07) 1px, transparent 1.4px), linear-gradient(160deg, #fffaf0, var(--paper) 50%, #efe0bf);
+  background-size: 7px 7px, 100% 100%;
+  box-shadow: 0 0 0 3px var(--paper), 0 0 0 7px var(--ink), 12px 12px 0 7px var(--jj-magenta), 12px 12px 0 10px var(--ink);
+}
+.screen-end.lose .end-box { box-shadow: 0 0 0 3px var(--paper), 0 0 0 7px var(--ink), 12px 12px 0 7px var(--jj-violet), 12px 12px 0 10px var(--ink); }
+.end-box::before, .end-box::after { /* ゴゴゴ columns on both sides */
+  content: 'ゴゴゴ'; position: absolute; top: 50%; writing-mode: vertical-rl; text-orientation: upright; font-family: var(--f-jp); font-weight: 900; font-size: 34px; line-height: .95;
+  color: var(--jj-violet); -webkit-text-stroke: 2px var(--ink); text-shadow: 3px 3px 0 var(--ink); pointer-events: none; animation: jjMenace 2.4s ease-in-out infinite;
+}
+.end-box::before { left: -58px; transform: translateY(-50%) rotate(-6deg); }
+.end-box::after { right: -58px; transform: translateY(-50%) rotate(6deg); animation-delay: 1.2s; }
+.screen-end.win .end-box::before, .screen-end.win .end-box::after { content: 'ドドド'; color: var(--jj-gold); }
+.end-kicker { font-family: var(--f-anton); font-weight: 400; letter-spacing: .3em; padding: 4px 18px; box-shadow: 4px 4px 0 var(--jj-magenta); }
+.end-box h1 { line-height: 1.05; text-shadow: 2px 2px 0 var(--jj-gold), 4px 4px 0 var(--ink); }
+.screen-end.lose .end-box h1 { text-shadow: 2px 2px 0 var(--jj-violet), 4px 4px 0 var(--ink); }
+.end-rp { font-family: var(--f-anton); font-weight: 400; letter-spacing: .04em; }
+.end-box .btn { margin-top: 6px; }
+
+/* ---------- responsive ---------- */
+@media (max-width: 900px) {
+  .title-menu::before { display: none; }
+  .end-box::before, .end-box::after { display: none; }
+}
+@media (max-width: 700px) {
+  .lobby { inset: 8px; }
+  .title-logo .tl-jojo { font-size: 13px; letter-spacing: .06em; white-space: nowrap; padding: 3px 10px; }
+  .lobby, .setup { box-shadow: 0 0 0 2px var(--paper), 0 0 0 5px var(--ink); }
+  .lh-title { font-size: 26px; }
+  .lobby-head::after { display: none; }
+  .lh-rp { font-size: 18px; padding: 2px 10px; } .lh-rp b { font-size: 20px; }
+  .lobby-tabs { gap: 8px 8px; padding: 6px 2px 10px; }
+  .lobby-tab { font-size: 14px; padding: 6px 12px; }
+  .btn-title { font-size: 20px; padding: 10px 40px 10px 46px; min-width: 0; }
+  .btn-go, .btn-primary.big { font-size: 19px; padding: 10px 22px; }
+  .btn-tbc, .lobby-foot .btn-tbc { font-size: 14px; padding: 9px 16px 9px 32px; }
+  .btn[data-kana]::after { right: -4px; }
+  .tech-grid, .horse-grid, .starter-grid, .achv-list { grid-template-columns: 1fr; }
+  .end-box { padding: 26px 18px 22px; box-shadow: 0 0 0 3px var(--paper), 0 0 0 6px var(--ink), 8px 8px 0 6px var(--jj-magenta); }
+  .end-box h1 { font-size: 30px; }
+}
+
+/* ---------- reduced motion: the game's toggle (body.reduced) and the OS setting ---------- */
+body.reduced .title-menu::before, body.reduced .lobby-head::after, body.reduced .end-box::before, body.reduced .end-box::after,
+body.reduced .screen-end::before, body.reduced .btn-title, body.reduced .btn-title:hover, body.reduced .btn-go:hover, body.reduced .btn-primary.big:hover { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .title-menu::before, .lobby-head::after, .end-box::before, .end-box::after, .screen-end::before,
+  .btn-title, .btn-title:hover, .btn-go:hover, .btn-primary.big:hover { animation: none !important; }
+  .btn, .lobby-tab, .tech-card, .horse-card, .starter-card, .lead-card, .comp-card, .btn[data-kana]::after, .lobby-tab::after { transition-duration: .01s !important; }
+}
