@@ -735,7 +735,7 @@ SBR.ui = (() => {
   /** the shop's buy-back counter: unequipped gear 40%, consumables 30%, trinkets full value */
   function sellPanel(rerender) {
     const r = SBR.run;
-    const wrap = el('div', { class: 'sell-panel' }, el('div', { class: 'cs-sub' }, 'SELL — the keeper buys gear at 40% and supplies at 30%'));
+    const wrap = el('div', { class: 'sell-panel' }, el('div', { class: 'cs-sub' }, 'SELL — the keeper buys gear at 25% and supplies at 20%'));
     const row = el('div', { class: 'sell-row' });
     const add = (kind, list, chip) => list.forEach((id, i) => {
       const v = Math.round(SBR.sellValue(kind, id) * (1 + (SBR.bonus().discount || 0)));

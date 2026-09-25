@@ -87,7 +87,7 @@ They start with nothing but an old six-shooter and a punch, and can earn **one**
 - **Hamon.** An old man balanced on a pole teaches the Ripple. It deals Holy damage, and double damage to the undead.
 - **Vampire.** Put on a Stone Mask. You get lifesteal and regeneration, but you are weak to Holy and Spin damage and you burn in scorching sun.
 - **German Cyborg.** Only badly hurt riders meet the field surgeons. You get armour, a chest machine gun and a UV lamp.
-- **A Stand**, from the Stand Arrow: a single encounter in Acts I–II. Cut yourself (a Resolve check: pass and you choose one of three Stands; fail and the Arrow either chooses for you or rejects you), take it from its keeper in a fight, or pay and let fate decide. The 12 Stands are Star Platinum, Magician's Red, Hierophant Green, Silver Chariot, Crazy Diamond, Killer Queen, The Hand, Gold Experience, Sticky Fingers, King Crimson, Stone Free and Whitesnake.
+- **A Stand**, from the Stand Arrow: a single encounter in Acts I–II. Cut yourself (a Resolve check: pass and three Stand tarot cards are dealt, and you choose one; fail and the Arrow either chooses for you or rejects you), take it from its keeper in a fight, or pay and let fate decide. The 12 Stands are Star Platinum, Magician's Red, Hierophant Green, Silver Chariot, Crazy Diamond, Killer Queen, The Hand, Gold Experience, Sticky Fingers, King Crimson, Stone Free and Whitesnake.
 - **The Red Stone of Aja.** It evolves a Hamon user into the Aja Amplifier, or a vampire into the Ultimate Life Form.
 
 ## Materials, gear and money
@@ -111,10 +111,10 @@ The crafting system follows *An Average Campaign*: a few materials that are reus
   - Salvaging gear gives back half its materials.
 - **Tracking.** Pin a recipe and its missing materials show in the HUD. The Craft tab shows how many recipes you can make right now, and the bench has a "Craftable now" filter.
 - **Money has uses.**
-  - Shops buy gear, supplies and sell-only trinkets, such as Sandman's emerald.
+  - Money is scarce. Fights, events and stage prizes pay about half what they used to, and shops buy gear back at 25% and supplies at 20%.
   - Town services: a doctor, a farrier, guides, the telegraph office, the church, newspaper adverts and the blacksmith.
   - Paid training.
-  - Stage checkpoint fees, which you can dodge if you don't mind the law remembering.
+  - Checkpoints between acts, about half the time (more often when you're Hunted). Each is one of five scenes: a small toll, a free relief station, a search by the President's men (dangerous if you carry Corpse parts), a rival's protest, or the press tent. Only some cost money.
   - Bribing a scout to redraw the stage's encounters.
 
 ## More of Steel Ball Run

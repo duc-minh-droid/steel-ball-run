@@ -551,7 +551,7 @@ SBR.RIVALS.johnny = { name: 'Johnny Joestar', portrait: 'johnny', speed: 0.9, ou
   // the old three-step chain is retired
   ['cust_rumour', 'cust_collector'].forEach(id => { const e = SBR.EVENTS.find(x => x.id === id); if (e) e.cond = () => false; });
   const can = g => SBR.isPU(SBR.run.lead) && g.canTakePath(SBR.run.lead) && !SBR.run.flags.arrowGone;
-  const fate = g => { const id = SBR.util.pick(SBR.CUSTOM_STANDS); SBR.run.flags.arrowGone = true; g.takePath(id); return id; };
+  const fate = g => { const id = SBR.util.pick(SBR.CUSTOM_STANDS); SBR.run.flags.arrowGone = true; g.takePath(id); if (SBR.tarotFate) g.defer(() => SBR.tarotFate(id)); return id; };
   const E = { id: 'cust_arrow', acts: [1, 2], type: 'event', title: 'The Meteorite Arrow', blurb: 'A man in a bowler hat, holding a golden arrowhead.', icon: 'star', art: 'collector', weight: 6, once: true, pace: -3, cond: can,
     text: 'At a crossroads a man in a bowler hat is turning a golden arrowhead over in his gloved fingers. "Cut from a meteorite," he says. "It gives some people a ghost that fights for them. It kills the rest." He holds it out, point first. "It hums near you. Interesting."',
     html: 'At a crossroads a man in a bowler hat is turning a golden arrowhead over in his gloved fingers. "Cut from a meteorite," he says. "It gives some people a ghost that fights for them. It kills the rest." He holds it out, point first. "It hums near you. Interesting."<span class="ev-path" style="--pc:#7a5ad0"><b>The Stand Arrow</b>: a chance at one of 12 Stands from Parts 3-6 (Star Platinum, Killer Queen, Gold Experience, King Crimson...). You can only ever carry one power.</span>',

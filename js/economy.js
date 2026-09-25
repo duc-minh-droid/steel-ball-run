@@ -146,9 +146,11 @@ SBR.salvageYield = id => {
   const [, lv] = SBR.gearBase(id); if (lv) { const R = SBR.REINFORCE_MATS[B.slot] || {}; Object.entries(R).forEach(([k, n]) => { out[k] = (out[k] || 0) + Math.floor(n * lv / 2); }); }
   return out;
 };
+/** money is scarce: every gain (fights, events, prizes) is scaled by this; selling pays a quarter */
+SBR.EARN = 0.55;
 SBR.sellValue = (kind, id) => {
-  if (kind === 'equip') { const E = SBR.EQUIPMENT[id]; return Math.max(8, Math.round((E.price || (E.rarity === 'remnant' ? 150 : 60)) * 0.4)); }
-  if (kind === 'item') return Math.max(3, Math.round((SBR.ITEMS[id].price || 20) * 0.3));
+  if (kind === 'equip') { const E = SBR.EQUIPMENT[id]; return Math.max(8, Math.round((E.price || (E.rarity === 'remnant' ? 150 : 60)) * 0.25)); }
+  if (kind === 'item') return Math.max(3, Math.round((SBR.ITEMS[id].price || 20) * 0.2));
   if (kind === 'trinket') return SBR.TRINKETS[id].value;
   return 0;
 };
@@ -375,3 +377,86 @@ SBR.trinketReward = (g, id, silent) => {
   return null;
 };
 SBR.TRINKET_DROPS = { common: ['conf_coin', 'silver_spoon', 'arrowhead', 'gold_tooth', 'bounty'], elite: ['pocketwatch', 'racer_medal', 'bounty', 'diamond'], boss: ['diamond', 'pocketwatch', 'racer_medal', 'emerald'] };
+
+/* ---------------- Checkpoints: not every act, and not always a toll ----------------
+   Between acts there is a 45% chance of a checkpoint (more when you're Hunted). It is one of five scenes;
+   only the toll and the time penalty cost money, and the fee is small, since money is scarce now. */
+SBR.econ.feeCost = () => 8 + 6 * SBR.run.act;
+(() => {
+  const corpseHeld = () => Object.keys(SBR.run.mats || {}).filter(k => /^c_/.test(k) && SBR.run.mats[k] > 0).length;
+  const V = {
+    toll: n => ({
+      title: `Checkpoint: ${SBR.ACTS[n].name}`, art: 'steven', icon: 'flag',
+      text: `Race officials in white armbands check every rider through. "Stage fee. Mr. Steel pays for the water, the maps and the doctors. You pay for Mr. Steel."`,
+      choices: [
+        { label: `Pay the fee`, get cost() { return { money: SBR.econ.feeCost() }; }, ok: { text: 'Stamped and waved through. An official tips his hat and hands you the latest standings. (+4 pace.)', fx: g => g.pace(4) } },
+        { label: 'Slip around the checkpoint at night (RIDING)', check: { stat: 'ride', dc: 12 }, ok: { text: 'Nobody sees you. You save the money, and an hour. (+3 pace.)', fx: g => g.pace(3) },
+          fail: { text: 'A deputy with a lantern writes your number down. The fine comes out of your prize money later.', fx: g => { g.pace(-4); g.threat(0.5); } } },
+        { label: 'Pay double for the doctor\'s tent too', get cost() { return { money: SBR.econ.feeCost() * 2 }; }, ok: { text: 'A real doctor, real bandages, real sleep. (Party heals 50%.)', fx: g => g.healAll(0.5) } },
+      ],
+    }),
+    water: n => ({
+      title: `Relief Station: ${SBR.ACTS[n].name}`, art: 'steven', icon: 'tent',
+      text: 'No fee here. Mr. Steel\'s sponsors have set up barrels of water, oats and a tent full of cots. A photographer is waiting for anyone who looks famous.',
+      choices: [
+        { label: 'Sleep in the tent', ok: { text: 'Six hours of real sleep. (Party heals 30%.)', fx: g => g.healAll(0.3) } },
+        { label: 'Pose for the photographer', ok: { text: 'Your face goes out on the wire tomorrow. A sponsor slips you a few dollars. (+$12.)', fx: g => g.money(22) } },
+        { label: 'Grab a canteen and ride on', ok: { text: 'You water the horse and are gone before the others wake. (+6 pace.)', fx: g => g.pace(6) } },
+      ],
+    }),
+    search: n => {
+      const held = corpseHeld();
+      return {
+        title: `Inspection: ${SBR.ACTS[n].name}`, art: 'agent', icon: 'search',
+        text: held ? 'Officials are going through every rider\'s saddlebags. The men beside them don\'t wear armbands. They wear the President\'s pins, and they are looking for something that doesn\'t rot.' : 'Officials are going through every rider\'s saddlebags, "for contraband." The men beside them wear the President\'s pins.',
+        choices: [
+          { label: held ? 'Let them search, and pray (LUCK)' : 'Let them search', check: held ? { stat: 'luck', dc: 13 } : undefined,
+            ok: { text: held ? 'They look right at it and see a dried-up root. You ride on with your heart in your throat.' : 'Nothing to find. They wave you on, a little disappointed.', fx: g => g.pace(2) },
+            fail: { text: 'A gloved hand closes on it. "Well now." You ride off with pistols firing behind you, and a new name on their list.', fx: g => { g.threat(1.5); g.pace(-3); } } },
+          { label: 'Grease a palm', get cost() { return { money: SBR.econ.feeCost() }; }, ok: { text: '"Clean," the official says loudly, pocketing the money. The pinned men frown, but don\'t argue.' } },
+          { label: 'Ride through without stopping (RIDING)', check: { stat: 'ride', dc: 13 }, ok: { text: 'You clear the rope before anyone can grab your reins. (+4 pace.)', fx: g => { g.pace(4); g.threat(0.5); } },
+            fail: { text: 'They drag you off the horse. It takes an hour and a bruise to get back on. (-6 pace.)', fx: g => { g.pace(-6); g.threat(0.5); } } },
+        ],
+      };
+    },
+    penalty: n => ({
+      title: `Protest: ${SBR.ACTS[n].name}`, art: 'steven', icon: 'flag',
+      text: 'A rider has filed a protest: he swears you cut across private land on the last leg. The officials want a fine, or they will add time to your stage.',
+      choices: [
+        { label: 'Pay the fine', get cost() { return { money: SBR.econ.feeCost() }; }, ok: { text: 'Paid. The protest goes in the stove.' } },
+        { label: 'Argue your case (RESOLVE)', check: { stat: 'res', dc: 12 }, ok: { text: 'You draw them the route on the back of the protest. They tear it up. (+3 pace.)', fx: g => g.pace(3) },
+          fail: { text: 'They don\'t believe a word. Time added to your stage. (-10 pace.)', fx: g => g.pace(-10) } },
+        { label: 'Take the time penalty', ok: { text: 'Fine. Add it. You\'ll make it up on the road. (-6 pace.)', fx: g => g.pace(-6) } },
+      ],
+    }),
+    press: n => ({
+      title: `Press Tent: ${SBR.ACTS[n].name}`, art: 'steven', icon: 'question',
+      text: 'Reporters from every paper in the country crowd the checkpoint. "A word for our readers? Who\'s going to win? Who\'s cheating?"',
+      choices: [
+        { label: 'Praise your rivals', ok: { text: 'Tomorrow\'s paper calls you a gentleman. Other riders nod to you on the trail.' } },
+        { label: 'Say the President is buying the race', ok: { text: 'The story runs in six cities. Somebody in Washington reads it twice.', fx: g => g.threat(0.5) } },
+        { label: 'Sell them a story ($)', ok: { text: 'You make something up. They pay for it anyway. (+$15.)', fx: g => g.money(27) } },
+      ],
+    }),
+  };
+  const CONS = {
+    toll: [{ deed: 'Paid the stage fee at a checkpoint.', rep: { racers: 1 } }, { deed: 'Slipped around a race checkpoint at night.', fail: { deed: 'Was caught sneaking around a race checkpoint.', rep: { law: -1 } } }, { deed: 'Paid for the doctor’s tent at a checkpoint.', rep: { racers: 1 } }],
+    water: [{ deed: 'Slept at a relief station.' }, { deed: 'Posed for the papers at a relief station.', rep: { racers: 1 } }, { deed: 'Skipped the relief station to gain time.' }],
+    search: [{ deed: 'Let the President’s men search your saddlebags.', fail: { deed: 'The President’s men found a Corpse part in your saddlebags.', rep: { president: -2 } } }, { deed: 'Bribed a race official at an inspection.', rep: { law: -1 } }, { deed: 'Rode straight through an inspection.', rep: { law: -1, president: -1 }, fail: { deed: 'Was dragged off your horse at an inspection.', rep: { president: -1 } } }],
+    penalty: [{ deed: 'Paid a fine for a rival’s protest.' }, { deed: 'Argued down a rival’s protest.', rep: { racers: 1 }, fail: { deed: 'Lost a protest and took a time penalty.' } }, { deed: 'Took a time penalty without a fight.' }],
+    press: [{ deed: 'Praised your rivals to the press.', rep: { racers: 2 } }, { deed: 'Told the papers the President was buying the race.', rep: { president: -2, law: 1 } }, { deed: 'Sold the papers a made-up story.', rep: { racers: -1 } }],
+  };
+  Object.entries(CONS).forEach(([k, list]) => list.forEach((c, i) => {
+    SBR.CONSEQ[`checkpoint_${k}:${i}`] = { deed: c.deed, rep: c.rep };
+    if (c.fail) SBR.CONSEQ[`checkpoint_${k}:${i}:fail`] = c.fail;
+  }));
+  /** returns an event for the start of act n, or null when there is no checkpoint this time */
+  SBR.checkpointEvent = n => {
+    const chance = 0.45 + (SBR.threatTier ? SBR.threatTier() * 0.08 : 0);
+    if (Math.random() > chance) return null;
+    const pool = ['toll', 'toll', 'water', 'water', 'search', 'penalty', 'press'];
+    const k = SBR.util.pick(pool);
+    return Object.assign({ id: 'checkpoint_' + k, key: 'checkpoint_' + k }, V[k](n));
+  };
+  SBR.CHECKPOINTS = V;
+})();

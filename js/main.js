@@ -141,7 +141,7 @@ SBR.game = (() => {
     hasAlly: id => !!findMember(id) || (SBR.run.gone || []).includes(id),
     money(n) {
       const r = SBR.run;
-      const v = n > 0 ? Math.round(n * (1 + (SBR.bonus().money || 0)) * SBR.riskMul()) : n;
+      const v = n > 0 ? Math.max(1, Math.round(n * SBR.EARN * (1 + (SBR.bonus().money || 0)) * SBR.riskMul())) : n;
       r.money = Math.max(0, r.money + v);
       if (r.money >= 400) achieve('rich');
       if (v) SBR.toast(`${art.icon('coin', 20)} ${v > 0 ? '+' : ''}${fmtMoney(v)}`, v > 0 ? 'good' : 'bad');
@@ -291,7 +291,7 @@ SBR.game = (() => {
     SBR.saveRun();
     await actCard(n);
     await playScene(SBR.ACTS[n].intro);
-    if (n > 1 && !r.area) { const ev = SBR.checkpointEvent(n); const ch = await ui.eventPanel(ev); await resolveChoice(ch, 'checkpoint:' + ev.choices.indexOf(ch)); }
+    if (n > 1 && !r.area) { const ev = SBR.checkpointEvent(n); if (ev) { const ch = await ui.eventPanel(ev); await resolveChoice(ch, (ev.key || 'checkpoint') + ':' + ev.choices.indexOf(ch)); } }
     if (n === 6 && r.party.length < 2) G.recruit('pocoloco');
     SBR.saveRun();
     showStage();
@@ -623,7 +623,7 @@ SBR.game = (() => {
     if (b.postHeal) r.party.forEach(m => { m.hp = Math.min(m.maxHp, m.hp + b.postHeal); });
     const rm = SBR.riskMul();
     const xp = Math.round(combat.loot.xp * (1 + (b.xp || 0)) * rm);
-    const money = Math.round(combat.loot.money * (1 + (b.money || 0)) * rm);
+    const money = Math.round(combat.loot.money * SBR.EARN * (1 + (b.money || 0)) * rm);
     r.money += money;
     if (r.money >= 400) achieve('rich');
     const loot = [];
@@ -778,7 +778,7 @@ SBR.game = (() => {
     res.order.forEach((k, i) => { r.points[k] = (r.points[k] || 0) + (SBR.POINTS[i] || 3); });
     Object.keys(SBR.RIVALS).forEach(k => { if (SBR.RIVALS[k].out && SBR.RIVALS[k].out(r)) return; if (!res.order.includes(k)) r.points[k] = (r.points[k] || 0) + randInt(0, 12); });
     const C = SBR.curCondition && SBR.curCondition();
-    const money = Math.round(([110, 70, 45, 30, 20, 15][res.place - 1] || 10) * (C && C.sprintMoney || 1) * (r.flags.advert ? 1.5 : 1)); r.flags.advert = false;
+    const money = Math.round(([110, 70, 45, 30, 20, 15][res.place - 1] || 10) * SBR.EARN * (C && C.sprintMoney || 1) * (r.flags.advert ? 1.5 : 1)); r.flags.advert = false;
     if (res.place <= 3) G.threat(1);
     r.money += money;
     if (res.place === 1) { SBR.meta.stats.sprintsWon++; achieve('sprint1'); }
