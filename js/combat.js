@@ -440,7 +440,7 @@ SBR.Combat = class Combat {
     if (mid) {
       this.push({ t: 'dialogue', id: mid });
       const flag = { tusk_awaken: 'tusk1', tusk2_awaken: 'tusk2' }[mid];
-      if (flag) this.unlockFlag(flag);
+      if (flag && this.party().some(p => p.id === 'johnny')) this.unlockFlag(flag);
     }
     this.enemies().forEach(u => { const h = u.def.hooks; if (h && h.roundStart) h.roundStart(this.ctx(u, null)); });
     { const C = SBR.curCondition && SBR.curCondition(); const sun = this.opts.hazard === 'heat' || (C && ['drought', 'sandstorm'].includes(SBR.run.conditions[SBR.run.act])); if (sun) this.alive('party').filter(u => this.eq(u, 'sunburn') > 0).forEach(u => { this.push({ t: 'float', uid: u.uid, text: 'SUNLIGHT', cls: 'debuff' }); this.typedHp(u, Math.max(2, Math.round(u.maxHp * 0.03)), 'holy', 'SUN'); }); }

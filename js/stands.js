@@ -517,7 +517,7 @@ SBR.stands = (() => {
   function keyFor(u, abilityId) {
     if (u.side === 'party') {
       if (u.id === 'gyro') return abilityId === 'ball_breaker' ? 'ballbreaker' : null;
-      if (u.id === 'custom') { const P = SBR.pathOf && SBR.pathOf(u.ref); return P && P.line === 'stand' && DEFS[P.stand] ? P.stand : null; }
+      if (u.id === 'custom' || u.id === 'sukuna') { const P = SBR.pathOf && SBR.pathOf(u.ref); return P && P.line === 'stand' && DEFS[P.stand] ? P.stand : u.id === 'sukuna' ? 'shrine' : null; }
       if (u.id === 'johnny') { const f = SBR.run.flags; return f.tusk4 ? 'tusk4' : f.tusk3 ? 'tusk3' : f.tusk2 ? 'tusk2' : f.tusk1 ? 'tusk1' : null; }
       return PARTY[u.id] || null;
     }

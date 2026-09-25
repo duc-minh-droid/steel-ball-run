@@ -188,6 +188,7 @@ SBR.art = (() => {
     balloon: () => `<g><ellipse cx="86" cy="24" rx="8" ry="10" fill="#e8508a" stroke="${INK}" stroke-width="1.6"/><path d="M86 34 Q82 50 88 64" stroke="${INK}" stroke-width="1" fill="none"/><ellipse cx="14" cy="40" rx="6" ry="8" fill="#3fb8a9" stroke="${INK}" stroke-width="1.4"/></g>`,
     shades: () => `<rect x="35" y="51" width="12" height="6" rx="2" fill="${INK}"/><rect x="53" y="51" width="12" height="6" rx="2" fill="${INK}"/><path d="M47 54 L53 54" stroke="${INK}" stroke-width="1.4"/>`,
     scar: () => `<path d="M60 48 L66 64" stroke="#8a2a2a" stroke-width="1.6"/>`,
+    sukuna: () => `<g stroke="#1a1020" stroke-width="1.6" fill="none" stroke-linecap="round"><path d="M37 63 q4-2.4 7 0M56 63 q4-2.4 7 0"/><path d="M36 67 l7 1.6M64 67 l-7 1.6"/><path d="M44 40 l3 3 3-3 3 3 3-3"/><path d="M49 80 h2"/></g><circle cx="40.5" cy="63.4" r="1" fill="#c8323c"/><circle cx="59.5" cy="63.4" r="1" fill="#c8323c"/>`,
     tattoo: () => `<g fill="none" stroke="#c8323c" stroke-width="1.4"><path d="M36 60 q4 -4 8 0 M56 60 q4 -4 8 0"/><text x="50" y="112" font-family="Bangers" font-size="11" text-anchor="middle" fill="#c8323c" stroke="none">YOU!</text></g>`,
   };
 

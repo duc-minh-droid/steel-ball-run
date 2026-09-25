@@ -129,7 +129,7 @@ SBR.game = (() => {
     /** Paths (subclasses) */
     canTakePath(charId) { const m = SBR.run.party.find(x => x.id === charId); return !!m && !m.path; },
     takePath(pathId) {
-      const P = SBR.PATHS[pathId], m = findMember(P.char);
+      const P = SBR.PATHS[pathId], m = findMember(P.char) || (P.char === 'custom' ? findMember('sukuna') : null);
       if (!m || m.path) return;
       m.path = pathId;
       if (P.bonus && P.bonus.maxHp) { m.maxHp += P.bonus.maxHp; m.hp += P.bonus.maxHp; }
@@ -244,12 +244,12 @@ SBR.game = (() => {
     SBR.run = {
       version: 1, act: 0, stage: 0, horse, starter, lead, tech: SBR.meta.equippedTech.slice(),
       party: [], reserve: [], money: 30, items: ['canteen'], flags: {}, pace: 50,
-      points: {}, usedEvents: [], mats: {}, gear: [], trinkets: [], stageCards: null, rp: 0, battles: 0, started: Date.now(), solo: lead === 'custom',
+      points: {}, usedEvents: [], mats: {}, gear: [], trinkets: [], stageCards: null, rp: 0, battles: 0, started: Date.now(), solo: SBR.isPU(lead),
     };
     SBR.run.party.push(makeMember(lead));
     if (lead !== 'johnny' && !SBR.run.solo) SBR.run.party.push(makeMember('johnny'));
     // the custom rider decides on the road whether to ride with Johnny and Gyro
-    if (lead === 'custom') SBR.campaign.later('cust_companions', 0, 0);
+    if (SBR.isPU(lead)) SBR.campaign.later('cust_companions', 0, 0);
     G.relic(starter);
     const si = SBR.run.gear.indexOf(starter);
     if (si >= 0) equip(SBR.run.party[0], freeSlot(SBR.run.party[0], SBR.EQUIPMENT[starter].slot), si);
@@ -582,7 +582,7 @@ SBR.game = (() => {
     combat.party().forEach(u => {
       const m = u.ref;
       if (u.removed) return;
-      if (u.dead) { m.exhaustion = (m.exhaustion || 0) + 1; m.hp = Math.max(1, Math.round(m.maxHp * 0.1)); u._fell = true; if (m.id === 'custom') r.flags.customFell = true; }
+      if (u.dead) { m.exhaustion = (m.exhaustion || 0) + 1; m.hp = Math.max(1, Math.round(m.maxHp * 0.1)); u._fell = true; if (SBR.isPU(m.id)) r.flags.customFell = true; }
       else m.hp = Math.max(1, Math.min(m.maxHp, u.hp));
     });
     if (result !== 'win') { await gameOver(); return false; }
@@ -975,10 +975,10 @@ SBR.game = (() => {
         box.appendChild(el('div', { class: 'setup-head', html: `<div class="setup-port">${art.portrait(L.portrait)}</div><div><div class="lh-title">Registration</div><p>Lead rider: <b>${L.name}</b> — ${L.title}. ${lead === 'johnny' ? '' : 'Johnny rides with you from the start. '}Choose your horse and one item to bring.</p></div>` }));
         box.appendChild(el('div', { class: 'cs-sub' }, 'CHOOSE YOUR LEAD RIDER'));
         const lg = el('div', { class: 'lead-grid' });
-        SBR.LEADS.forEach(k => {
-          const C = SBR.CHARS[k], un = k === 'custom' || SBR.meta.unlockedLeads.includes(k);
+        SBR.LEADS.filter(k => k !== 'sukuna' || SBR.meta.devSukuna).forEach(k => {
+          const C = SBR.CHARS[k], un = k === 'custom' || k === 'sukuna' || SBR.meta.unlockedLeads.includes(k);
           const ach = Object.values(SBR.ACHIEVEMENTS).find(a => a.unlockLead === k);
-          const paths = k === 'custom' ? [['Hamon', '#f2c14e'], ['Vampire', '#8a1a2a'], ['Cyborg', '#8a8aa0'], ['12 Stands', '#7a5ad0']].map(([n, c]) => `<span class="lead-path" style="--pc:${c}">${n}</span>`).join('') : SBR.pathsFor(k).map(pid => `<span class="lead-path" style="--pc:${SBR.PATHS[pid].color}">${SBR.PATHS[pid].name}</span>`).join('');
+          const paths = k === 'sukuna' ? '<span class="lead-path" style="--pc:#c8323c">DEV · Shrine</span>' : k === 'custom' ? [['Hamon', '#f2c14e'], ['Vampire', '#8a1a2a'], ['Cyborg', '#8a8aa0'], ['12 Stands', '#7a5ad0']].map(([n, c]) => `<span class="lead-path" style="--pc:${c}">${n}</span>`).join('') : SBR.pathsFor(k).map(pid => `<span class="lead-path" style="--pc:${SBR.PATHS[pid].color}">${SBR.PATHS[pid].name}</span>`).join('');
           const c = el('div', { class: 'lead-card' + (un ? '' : ' locked') + (k === lead ? ' selected' : '') }, el('div', { class: 'lead-port', html: art.portrait(C.portrait) }), el('div', { class: 'lead-info', html: `<b>${un ? C.name : '???'}</b><small>${un ? C.stand : art.icon('lock', 12) + ' ' + (ach ? ach.desc : '')}</small>${un ? `<div class="lead-paths">${paths}</div>` : ''}` }));
           if (un) { c.onclick = () => { SBR.audio.play('select'); lead = k; render(); }; SBR.tip.bind(c, () => `<b>${C.name}</b><br>${C.passive.name}: ${C.passive.desc}<br><i>Paths: ${SBR.pathsFor(k).map(pid => SBR.PATHS[pid].name).join(' · ')}</i>`); }
           lg.appendChild(c);
@@ -1045,7 +1045,7 @@ SBR.game = (() => {
   });
 
   const _debug = { rerollCards, resumeRun, newRun, startAct, fight, bossStage, playScene, showStage, actFinish, resolveCard, advanceStage, ending, gameOver, applySprint, drawCards, G };
-  return { canCraft, craft, reinforce, salvage, sell, findOwned, rerollCards, equip, unequip, freeSlot, _debug, makeMember, memberAbilities, xpToNext, autoAssign, beltSize, achieve, standings, playerRank, G, bestFor, checkMod, fieldUseItem, toTitle, titleScreen, lobbyScreen };
+  return { canCraft, craft, reinforce, salvage, sell, findOwned, rerollCards, equip, unequip, freeSlot, _debug, makeMember, memberAbilities, xpToNext, autoAssign, beltSize, achieve, standings, playerRank, G, bestFor, checkMod, fieldUseItem, toTitle, titleScreen, lobbyScreen, setupScreen };
 })();
 
 /* boot */

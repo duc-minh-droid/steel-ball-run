@@ -847,7 +847,7 @@ SBR.ui = (() => {
     const P = SBR.pathOf(m);
     const opts = SBR.pathsFor(m.id);
     if (!opts.length) return row;
-    if (!P && m.id === 'custom') {
+    if (!P && SBR.isPU(m.id)) {
       row.appendChild(el('div', { class: 'cs-sub' }, 'POWER — none yet'));
       row.appendChild(el('p', { class: 'muted path-hint', html: 'Find one on the road: a <b style="color:#f2c14e">Hamon</b> master, a <b style="color:#8a1a2a">Stone Mask</b>, <b style="color:#8a8aa0">German field surgeons</b> (only for the badly hurt), or the <b style="color:#7a5ad0">Stand Arrow</b>, if you can find out where it is. You only ever get one.' }));
       return row;

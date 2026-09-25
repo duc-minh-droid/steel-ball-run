@@ -183,13 +183,14 @@ SBR.sprint = (() => {
     vamp:      { name: 'Inhuman Speed', glyph: '血', color: '#8a1a2a', desc: 'Vampire legs: +50% speed for 5s.', use: A => { A.S.boostT = 5; } },
     chestgun:  { name: 'Chest Machine Gun', glyph: '銃', color: '#8a8aa0', desc: 'Spray the road ahead: two riders stall.', use: A => A.rivals().filter(x => x.pos > A.me.pos).sort((a, b) => a.pos - b.pos).slice(0, 2).forEach(x => { x.stun = 1.5; }) },
   };
+  POWER.dismantle = { name: 'Dismantle', glyph: '解', color: '#c8323c', desc: 'Invisible slashes carve the road: every rival stalls 3s and falls back.', use: A => { A.rivals().forEach(x => { x.stun = 3; x.pos -= 25; }); A.freeze(1.2, '「DISMANTLE」'); } };
   const PATH_POWER = { star_platinum: 'timestop', king_crimson: 'crimson', magicians_red: 'fire', hierophant: 'emerald', silver_chariot: 'armoroff', crazy_diamond: 'restore', killer_queen: 'bomb', the_hand: 'erase', gold_experience: 'life', sticky_fingers: 'zipper', stone_free: 'string', whitesnake: 'disc', hamon: 'ripple', vampire: 'vamp', cyborg: 'chestgun' };
   const ALLY_POWER = { gyro: 'steelball', hotpants: 'cream', mountaintim: 'lasso', pocoloco: 'heyya', wekapipo: 'wrecking', lucy: 'ticket' };
   SBR.racePowers = r => {
     const out = [];
     r.party.filter(m => m.hp > 0).forEach(m => {
       let k = null;
-      if (m.id === 'custom') k = PATH_POWER[m.path];
+      if (m.id === 'custom' || m.id === 'sukuna') k = PATH_POWER[m.path] || (m.id === 'sukuna' ? 'dismantle' : null);
       else if (m.id === 'johnny') k = r.flags.tusk1 ? 'nails' : null;
       else k = ALLY_POWER[m.id];
       if (k && !out.some(o => o.id === k)) out.push(Object.assign({ id: k, who: m.id }, POWER[k]));

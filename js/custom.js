@@ -1,8 +1,9 @@
+'use strict';
+SBR.isPU = id => id === 'custom' || id === 'sukuna';
 /* The custom rider: a racer you name and draw yourself. They start with nothing but a gun and a fist, and can earn one
    power on the road, borrowed from the other parts of JoJo: Hamon breathing, a Stone Mask, German science, or the
    Stand Arrow (12 famous Stands from Parts 3-6). Hamon and Vampire riders can go further with the Red Stone of Aja.
    Each power is a Path with char 'custom', so it reuses the Path system (takePath, pathAbilities, emblems). */
-'use strict';
 
 /* ---------------- 1. The rider ---------------- */
 SBR.CUSTOM_DEFAULT = {
@@ -22,7 +23,7 @@ SBR.applyCustom = () => {
     passive: { name: 'Nobody Special', desc: 'Learns fast: +10% XP until they find a power. Every power in this world can be theirs, if they survive it.' },
     bio: `${c.name}. Nobody knows where they came from, and they aren't saying. They signed up for the Steel Ball Run with a borrowed horse and a very old gun.`,
   });
-  if (!Object.getOwnPropertyDescriptor(SBR.CHARS.custom, 'stand')) Object.defineProperty(SBR.CHARS.custom, 'stand', { get: () => { const m = SBR.run && SBR.run.party.concat(SBR.run.reserve || []).find(x => x.id === 'custom'); const P = m && SBR.pathOf(m); return P ? P.name : 'None, yet'; } });
+  if (!Object.getOwnPropertyDescriptor(SBR.CHARS.custom, 'stand')) Object.defineProperty(SBR.CHARS.custom, 'stand', { get: () => { const m = SBR.run && SBR.run.party.concat(SBR.run.reserve || []).find(x => SBR.isPU(x.id)); const P = m && SBR.pathOf(m); return P ? P.name : 'None, yet'; } });
 };
 SBR.applyCustom();
 if (!SBR.LEADS.includes('custom')) SBR.LEADS.push('custom');
@@ -175,14 +176,14 @@ SBR.CUSTOM_STANDS = Object.keys(SBR.PATHS).filter(k => SBR.PATHS[k].line === 'st
   const base = SBR.equipBonus;
   SBR.equipBonus = m => {
     const out = base(m);
-    if (m.id !== 'custom' || !SBR.run) return out;
+    if (!SBR.isPU(m.id) || !SBR.run) return out;
     const f = SBR.run.flags, add = (k, v) => { out.bonus[k] = (out.bonus[k] || 0) + v; };
     if (f.ajaHamon) { add('holyDmg', 0.4); add('regen', 1); }
     if (f.ajaVampire) { add('sunburn', -1); add('dmg', 0.15); add('regen', 2); out.bonus.res = Object.assign({}, out.bonus.res); out.bonus.res.holy = (out.bonus.res.holy || 0) - 0.5; out.bonus.res.spin = (out.bonus.res.spin || 0) - 0.25; }
     return out;
   };
   const bonus = SBR.bonus;
-  SBR.bonus = () => { const b = bonus(); const r = SBR.run; if (r && r.lead === 'custom') { const m = r.party.find(x => x.id === 'custom'); if (m && !m.path) b.xp = (b.xp || 0) + 0.1; } return b; };
+  SBR.bonus = () => { const b = bonus(); const r = SBR.run; if (r && SBR.isPU(r.lead)) { const m = r.party.find(x => SBR.isPU(x.id)); if (m && !m.path) b.xp = (b.xp || 0) + 0.1; } return b; };
 })();
 /* undead enemies: Hamon and every Holy hit does double to them */
 ['ghost', 'dust_wraith', 'mask_zombie', 'dino_horse'].forEach(id => { if (SBR.ENEMIES[id]) SBR.ENEMIES[id].undead = true; });
@@ -230,7 +231,7 @@ Object.assign(SBR.TRINKETS, {
 
 /* ---------------- 7. Encounters: how each power is found ---------------- */
 (() => {
-  const isCustom = g => SBR.run.lead === 'custom' && g.canTakePath('custom');
+  const isCustom = g => SBR.isPU(SBR.run.lead) && g.canTakePath(SBR.run.lead);
   const E = [];
   const ev = (o, C) => { E.push(Object.assign({ type: 'event', icon: 'star', weight: 4, once: true, pace: -3 }, o)); C.forEach((c, i) => { if (!c) return; const { fail, ...ok } = c; SBR.CONSEQ[o.id + ':' + i] = ok; if (fail) SBR.CONSEQ[o.id + ':' + i + ':fail'] = fail; }); };
   const html = (text, pid) => { const P = SBR.PATHS[pid]; return `${text}<span class="ev-path" style="--pc:${P.color}"><b>Power: ${P.name}</b> — ${P.desc}<br><i>${P.passive}</i><br><small>You can only ever carry one power. Taking it closes the others.</small></span>`; };
@@ -241,7 +242,7 @@ Object.assign(SBR.TRINKETS, {
     choices: [
       { label: 'Climb the pole and breathe with him (RESOLVE)', check: { stat: 'res', dc: 13, who: 'custom' }, ok: { text: 'Hours pass. Your breath and your heartbeat fall into a rhythm, and your fingers glow. The Ripple.', fx: g => g.takePath('hamon') }, fail: { text: 'You fall off the pole. His student laughs, then offers to knock the breath into you instead.', fight: { enemies: ['t_hamon'], elite: true, after: g => g.takePath('hamon') } } },
       { label: 'Fight his student', ok: { text: '"Learn it the hard way, then."', fight: { enemies: ['t_hamon'], elite: true, after: g => g.takePath('hamon') } } },
-      { label: 'Just ask for a breathing lesson', ok: { text: 'He teaches you to breathe out the pain. It helps. (Party heals 40%, lead +1 RESOLVE.)', fx: g => { g.healAll(0.4); g.statUp('custom', 'res', 1); } } },
+      { label: 'Just ask for a breathing lesson', ok: { text: 'He teaches you to breathe out the pain. It helps. (Party heals 40%, lead +1 RESOLVE.)', fx: g => { g.healAll(0.4); g.statUp(SBR.run.lead, 'res', 1); } } },
     ] }, [
     { deed: 'Learned the Ripple from the Breathing Man.', rep: { naples: 1 }, fail: { deed: 'Fell off the Breathing Man\'s pole, and learned the Ripple from his student\'s fists.' } },
     { deed: 'Beat the Breathing Man\'s student, and learned the Ripple.', rep: { naples: 1 } },
@@ -260,7 +261,7 @@ Object.assign(SBR.TRINKETS, {
     { deed: 'Smashed a Stone Mask.', rep: { vatican: 2 } },
   ]);
   ev({ id: 'cust_surgeons', acts: [2, 3, 4, 5], title: 'The Field Surgeons', blurb: 'German doctors with a wagon full of steel parts.', icon: 'heart', art: 'surgeon', weight: 6,
-    cond: g => isCustom(g) && (SBR.run.flags.customFell || (() => { const m = SBR.run.party.find(x => x.id === 'custom'); return m && m.hp < m.maxHp * 0.3; })()),
+    cond: g => isCustom(g) && (SBR.run.flags.customFell || (() => { const m = SBR.run.party.find(x => SBR.isPU(x.id)); return m && m.hp < m.maxHp * 0.3; })()),
     text: 'You are in bad shape. A wagon stops beside you, and a man in a Prussian cap and a monocle looks down. "Ja. This one is broken in a very interesting way. Colonel von Stroheim would approve. We can rebuild you. Better."',
     get html() { return html(this.text, 'cyborg'); },
     choices: [
@@ -297,11 +298,11 @@ Object.assign(SBR.TRINKETS, {
     { deed: 'Walked away from the Stand Arrow.' },
   ]);
   ev({ id: 'cust_aja', acts: [3, 4, 5], title: 'The Red Stone of Aja', blurb: 'A jeweller with a red stone he won\'t sell.', icon: 'star', art: 'cardsharp', weight: 2,
-    cond: g => { const m = SBR.run.party.find(x => x.id === 'custom'); return SBR.run.lead === 'custom' && m && ['hamon', 'vampire'].includes(m.path) && !(SBR.run.trinkets || []).includes('aja_stone'); },
+    cond: g => { const m = SBR.run.party.find(x => SBR.isPU(x.id)); return SBR.isPU(SBR.run.lead) && m && ['hamon', 'vampire'].includes(m.path) && !(SBR.run.trinkets || []).includes('aja_stone'); },
     text: 'A jeweller in a railroad town keeps a red stone in a velvet box. When sunlight touches it, a beam of red light burns a hole in the wall. "The Red Stone of Aja," he says. "From Rome. It is not for sale." Then he sees your eyes, and names a price.',
     choices: [
-      { label: 'Buy it ($280)', cost: { money: 280 }, ok: { text: 'The stone is warm in your hand. Something in your blood answers it.', fx: g => { g.trinket('aja_stone'); g.flag(SBR.run.party.find(x => x.id === 'custom').path === 'hamon' ? 'ajaHamon' : 'ajaVampire'); } } },
-      { label: 'Steal it (LUCK)', check: { stat: 'luck', dc: 16 }, ok: { text: 'Out of the window, stone in hand, before the jeweller has finished shouting.', fx: g => { g.trinket('aja_stone'); g.flag(SBR.run.party.find(x => x.id === 'custom').path === 'hamon' ? 'ajaHamon' : 'ajaVampire'); } }, fail: { text: 'His guards have shotguns.', fight: { enemies: ['casino_thug', 'casino_thug', 'outlaw'], elite: true } } },
+      { label: 'Buy it ($280)', cost: { money: 280 }, ok: { text: 'The stone is warm in your hand. Something in your blood answers it.', fx: g => { g.trinket('aja_stone'); g.flag(SBR.run.party.find(x => SBR.isPU(x.id)).path === 'hamon' ? 'ajaHamon' : 'ajaVampire'); } } },
+      { label: 'Steal it (LUCK)', check: { stat: 'luck', dc: 16 }, ok: { text: 'Out of the window, stone in hand, before the jeweller has finished shouting.', fx: g => { g.trinket('aja_stone'); g.flag(SBR.run.party.find(x => SBR.isPU(x.id)).path === 'hamon' ? 'ajaHamon' : 'ajaVampire'); } }, fail: { text: 'His guards have shotguns.', fight: { enemies: ['casino_thug', 'casino_thug', 'outlaw'], elite: true } } },
       { label: 'Leave it', ok: { text: 'Some power is not meant to be held.', fx: g => g.xp(10) } },
     ] }, [
     { deed: 'Bought the Red Stone of Aja.', rep: { racers: 0 } },
@@ -313,13 +314,13 @@ Object.assign(SBR.TRINKETS, {
 })();
 
 /* The Arrow Chooses: a follow-up card that arrives the stage after you get the Arrow */
-SBR.CAMPAIGN_EVENTS.push({ id: 'arrow_chooses', type: 'event', title: 'The Arrow Chooses', blurb: 'The arrowhead is humming in your saddlebag.', icon: 'star', art: 'custom', reveals: 'The Arrow made its choice.',
-  cond: g => SBR.run.lead === 'custom' && (SBR.run.trinkets || []).includes('stand_arrow') && g.canTakePath('custom'),
+SBR.CAMPAIGN_EVENTS.push({ id: 'arrow_chooses', type: 'event', title: 'The Arrow Chooses', blurb: 'The arrowhead is humming in your saddlebag.', icon: 'star', get art() { return SBR.run ? SBR.run.lead : 'custom'; }, reveals: 'The Arrow made its choice.',
+  cond: g => SBR.isPU(SBR.run.lead) && (SBR.run.trinkets || []).includes('stand_arrow') && g.canTakePath(SBR.run.lead),
   text: 'At night the arrowhead hums louder, and it points. Always at you. You know what it wants. Most of the people it cuts, it kills.',
   choices: [
     { label: 'Cut yourself with the Arrow (RESOLVE)', check: { stat: 'res', dc: 15, who: 'custom' },
       ok: { text: 'The Arrow goes in, and something comes out. A figure stands behind you, and it moves when you think.', fx: g => g.defer(() => SBR.standPick(g)) },
-      fail: { text: 'The Arrow rejects you. You wake up bleeding in the dirt, alive, barely. It is still humming. It will ask again.', fx: g => { const m = SBR.run.party.find(x => x.id === 'custom'); if (m) m.hp = Math.max(1, Math.round(m.hp - m.maxHp * 0.4)); g.exhaust('custom'); SBR.campaign.world().keys['done:arrow_chooses'] = false; g.later('arrow_chooses', 4, 7); } } },
+      fail: { text: 'The Arrow rejects you. You wake up bleeding in the dirt, alive, barely. It is still humming. It will ask again.', fx: g => { const m = SBR.run.party.find(x => SBR.isPU(x.id)); if (m) m.hp = Math.max(1, Math.round(m.hp - m.maxHp * 0.4)); g.exhaust(SBR.run.lead); SBR.campaign.world().keys['done:arrow_chooses'] = false; g.later('arrow_chooses', 4, 7); } } },
     { label: 'Not yet', ok: { text: 'You wrap it in three layers of cloth. It keeps humming.', fx: g => { SBR.campaign.world().keys['done:arrow_chooses'] = false; g.later('arrow_chooses', 3, 6); } } },
   ] });
 Object.assign(SBR.CONSEQ, {
@@ -330,7 +331,7 @@ Object.assign(SBR.CONSEQ, {
 /** the Arrow shows three Stands; the rider takes one */
 SBR.standPick = g => {
   const pool = SBR.util.shuffle(SBR.CUSTOM_STANDS.slice()).slice(0, 3);
-  const ev = { title: 'Your Stand', art: 'custom', text: 'Three shapes flicker behind you, one after another. Only one of them will stay.',
+  const ev = { title: 'Your Stand', art: SBR.run.lead, text: 'Three shapes flicker behind you, one after another. Only one of them will stay.',
     html: 'Three shapes flicker behind you, one after another. Only one of them will stay.' + pool.map(id => { const P = SBR.PATHS[id]; return `<span class="ev-path" style="--pc:${P.color}"><b>${P.name}</b> (Part ${P.part}): ${P.desc}<br><i>${P.passive}</i></span>`; }).join(''),
     choices: pool.map(id => ({ label: `「${SBR.PATHS[id].name}」`, id })) };
   return SBR.ui.eventPanel(ev).then(ch => {
@@ -342,7 +343,7 @@ SBR.standPick = g => {
 /* the Arrow can also turn up at the heart of a detour, once you know it exists */
 Object.values(SBR.AREAS).forEach(A => {
   const rw = A.reward;
-  A.reward = g => { rw(g); const r = SBR.run; if (r.lead === 'custom' && r.flags.arrowRumour && !r.flags.arrowGone && !(r.trinkets || []).includes('stand_arrow') && g.canTakePath('custom') && Math.random() < 0.4) { g.trinket('stand_arrow'); g.later('arrow_chooses', 1, 2); } };
+  A.reward = g => { rw(g); const r = SBR.run; if (SBR.isPU(r.lead) && r.flags.arrowRumour && !r.flags.arrowGone && !(r.trinkets || []).includes('stand_arrow') && g.canTakePath(SBR.run.lead) && Math.random() < 0.4) { g.trinket('stand_arrow'); g.later('arrow_chooses', 1, 2); } };
 });
 
 /* ---------------- 8. Character creator ---------------- */
@@ -409,7 +410,7 @@ SBR.customUI = (() => {
 /* ---------------- 9. Story: the custom rider's own opening ---------------- */
 (() => {
   const S = SBR.STORY;
-  const wrapVar = (id, fn) => { const s = S[id]; if (!s) return; const prev = s.variants; s.variants = () => { const r = SBR.run; const v = r && r.lead === 'custom' ? fn(r) : null; return v || (prev ? prev() : null); }; };
+  const wrapVar = (id, fn) => { const s = S[id]; if (!s) return; const prev = s.variants; s.variants = () => { const r = SBR.run; const v = r && SBR.isPU(r.lead) ? fn(r) : null; return v || (prev ? prev() : null); }; };
   const me = () => SBR.CHARS.custom.short;
   wrapVar('act1_intro', r => r.solo ? [
     { narr: 'Gyro took the 1st Stage, and was immediately penalised for endangering Sandman. The 2nd Stage stretches 1,200 kilometres across the Arizona Desert.' },
@@ -431,14 +432,14 @@ SBR.RIVALS.johnny = { name: 'Johnny Joestar', portrait: 'johnny', speed: 0.9, ou
 (() => {
   // the opening scene is the same either way now; the choice comes on the road
   const S = SBR.STORY.act1_intro, prev = S.variants;
-  S.variants = () => { const r = SBR.run; if (r && r.lead === 'custom') return [
+  S.variants = () => { const r = SBR.run; if (r && SBR.isPU(r.lead)) return [
     { narr: 'Gyro took the 1st Stage, and was immediately penalised for endangering Sandman. The 2nd Stage stretches 1,200 kilometres across the Arizona Desert.' },
-    { narr: `${SBR.CHARS.custom.short} rides alone into the heat. Somewhere ahead, a man with steel balls and a boy on a black horse are riding together.` },
-    { who: 'custom', text: 'Fifty million dollars. Nobody\'s going to hand it to me.' },
+    { narr: `${SBR.CHARS[r.lead].short} rides alone into the heat. Somewhere ahead, a man with steel balls and a boy on a black horse are riding together.` },
+    { who: r.lead, text: r.lead === 'sukuna' ? 'A horse race. How quaint. Entertain me, then.' : 'Fifty million dollars. Nobody\'s going to hand it to me.' },
   ]; return prev ? prev() : null; };
   const join = g => { SBR.run.solo = false; g.recruit('johnny'); g.recruit('gyro'); };
   SBR.CAMPAIGN_EVENTS.push({ id: 'cust_companions', acts: [1], type: 'event', title: 'Two Riders at the Well', blurb: 'A man with steel balls and a boy on a black horse.', icon: 'recruit', art: 'gyro',
-    cond: g => SBR.run.lead === 'custom' && SBR.run.solo && !SBR.run.flags.companionsChosen,
+    cond: g => SBR.isPU(SBR.run.lead) && SBR.run.solo && !SBR.run.flags.companionsChosen,
     text: 'At a well in the Arizona desert, a man in a strange hat is juggling steel balls for no one. The boy beside him sits on a black horse with his legs strapped to the saddle. "Johnny Joestar," the boy says. "That\'s Gyro. He says the desert kills people who ride it alone." Gyro grins, gold teeth spelling GO GO ZEPPELI. "Nyo-ho~. I said it kills idiots. It\'s not the same thing."',
     choices: [
       { label: 'Ride with them', ok: { text: 'Three riders leave the well together. Gyro complains about it for the rest of the day.', fx: g => { SBR.run.flags.companionsChosen = true; join(g); } } },

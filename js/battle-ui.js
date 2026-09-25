@@ -393,7 +393,7 @@ SBR.battle = (() => {
       }
       case 'say': speech(e.uid, e.text); await sleep(500); break;
       case 'log': addLog(e.text, e.kind); break;
-      case 'dialogue': await ui.dialogue(e.id); break;
+      case 'dialogue': { const sc = SBR.STORY[e.id]; const inFight = id => c.party().some(p => p.id === id && !p.removed); const absent = sc && (sc.lines || []).some(l => ['johnny', 'gyro'].includes(l.who) && !inFight(l.who)); if (!absent) await ui.dialogue(e.id); break; }
       case 'abilities': c.party().forEach(p => updateCompanion(p)); if (inputResolve && activeUid) showActions(c.unit(activeUid)); break;
       case 'fx': {
         const pt = center(e.uid);
