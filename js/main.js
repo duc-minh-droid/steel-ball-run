@@ -342,7 +342,7 @@ SBR.game = (() => {
     if (r.area) return drawAreaCards();
     const act = SBR.ACTS[r.act];
     const plan = SBR.actPlan(r.act);
-    if (r.stage === act.stages) return [{ id: 'boss', type: 'boss', title: plan.boss.name, blurb: 'The stage\'s final obstacle. There is no way around.', icon: 'crown', forced: true, art: SBR.ENEMIES[act.boss.enemies[0]].art.key }];
+    if (r.stage === act.stages) return [{ id: 'boss', type: 'boss', title: plan.boss.name, blurb: 'The stage\'s final obstacle. There is no way around.', icon: 'crown', forced: true, art: (SBR.ENEMIES[plan.boss.enemies[0]] || SBR.ENEMIES[act.boss.enemies[0]]).art.key }];
     const storyId = plan.story[r.stage];
     let storyCard = null;
     if (storyId && !(SBR.STORY[storyId].leadSkip || []).includes(r.lead) && !(r.flags['skipped_' + storyId]) && !SBR.jgCentric(storyId)) {
