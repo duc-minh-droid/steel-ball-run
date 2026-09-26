@@ -336,8 +336,8 @@ SBR.TECHNIQUES = {
 
 /* ---------------- Achievements ---------------- */
 SBR.ACHIEVEMENTS = {
-  first_blood: { name: 'The First 15,000 Meters', desc: 'Win your first battle.', rp: 5 },
-  act1:        { name: 'Devil\'s Palm', desc: 'Clear Act I: The West.', rp: 20, unlockHorse: 'ironhoof' },
+  first_blood: { name: 'The First 15,000 Meters', desc: 'Win your first battle.', rp: 5, unlockHorse: 'mustang' },
+  act1:        { name: 'Devil\'s Palm', desc: 'Clear Act I: The West.', rp: 20, unlockHorse: 'ironhoof', unlockLead: 'gyro' },
   act2:        { name: 'Scary Monsters', desc: 'Clear Act II: The Rockies.', rp: 25, unlockItem: 'spareballs', unlockLead: 'mountaintim' },
   act3:        { name: 'Silent Way', desc: 'Clear Act III: The Midwest.', rp: 30, unlockHorse: 'desertrose', unlockLead: 'hotpants' },
   act4:        { name: 'Civil War', desc: 'Clear Act IV: The North.', rp: 35 },
@@ -361,7 +361,7 @@ SBR.ACHIEVEMENTS = {
   crit_big:    { name: 'Recursive Rotation', desc: 'Deal 40+ damage in a single hit.', rp: 10 },
   nat20:       { name: 'Natural Talent', desc: 'Roll a natural 20 on a skill check.', rp: 5 },
   nat1:        { name: 'Deliberately Difficult', desc: 'Roll a natural 1 on a skill check.', rp: 5 },
-  wipe:        { name: 'The Journey Is the Shortest Path', desc: 'Lose a run.', rp: 5 },
+  wipe:        { name: 'The Journey Is the Shortest Path', desc: 'Lose a run. Every drifter starts out as a loser.', rp: 5, unlockLead: 'custom' },
 };
 
 /* Innate resistances of a party member: their horse (the race in AAC terms) plus their Path */

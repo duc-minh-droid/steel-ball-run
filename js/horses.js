@@ -92,6 +92,10 @@
   const M = SBR.meta;
   let grew = false;
   Object.entries(SBR.ACHIEVEMENTS).forEach(([id, a]) => { if (a.unlockHorse && M.achievements[id] && !M.unlockedHorses.includes(a.unlockHorse)) { M.unlockedHorses.push(a.unlockHorse); grew = true; } });
+  // riders come from quests too; earlier saves that already made a custom rider keep the Drifter
+  M.unlockedLeads = M.unlockedLeads || ['johnny'];
+  Object.entries(SBR.ACHIEVEMENTS).forEach(([id, a]) => { if (a.unlockLead && M.achievements[id] && !M.unlockedLeads.includes(a.unlockLead)) { M.unlockedLeads.push(a.unlockLead); grew = true; } });
+  if (M.custom && !M.unlockedLeads.includes('custom')) { M.unlockedLeads.push('custom'); grew = true; }
   if (grew) SBR.saveMeta();
 
   /* ---------- changing horses mid-run ---------- */

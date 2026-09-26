@@ -73,7 +73,7 @@ Between runs, spend **Race Points** in the Saloon on Techniques, horses, startin
 ## How a run plays
 
 1. **Choose a lead rider, a horse and a starting item.**
-   - Johnny and Gyro are available from the start. Mountain Tim unlocks when you clear Act II, and Hot Pants when you clear Act III.
+   - Only Johnny and Slow Dancer are available at first. Every other rider and horse is earned by a quest (an achievement): Gyro when you clear Act I, the Drifter when you lose your first run, Mountain Tim when you clear Act II, Hot Pants when you clear Act III. A locked card shows its quest.
    - Johnny and Gyro join the story whoever you pick. The custom rider can turn them down at the well; after that their lines are left out, and story beats that only make sense with them are not offered.
    - Your lead never leaves the party. Story departures become wounds or changes of heart instead.
 2. **Ride through six acts.** They follow the real race legs: the Arizona desert, the Rockies, the Midwest, the frozen north, Philadelphia and New York.
@@ -124,7 +124,7 @@ Between runs, spend **Race Points** in the Saloon on Techniques, horses, startin
    - **Enemies think.** From Act III on, enemies weigh what each move would actually do: they finish off wounded riders, avoid hitting into Guard, Evasive or shields, stun riders sitting on Energy, heal and shield allies only when it matters, skip statuses the target already has, and share a focus target. Act I–II enemies are still mostly instinct; elites, bosses and Strange Auras play sharpest. Taunt still works, and they only use what you can see.
    - **Enemies learn new moves as the race goes on.** Regular enemies and elites get extra moves on top of their own: none in Act I (one late in the act), one in Act II, two by Act IV and three in Act VI, plus one more for elites. The moves fit the enemy: gunmen fan the hammer and kneecap, brawlers throw haymakers and rally the gang, beasts rend and pounce, Stand users barrage and guard. From Act IV any of them may mark a rider for the others, go for the throat of a wounded one, or shield an ally. Hover an enemy to see its full move list.
    - **No two late fights look the same.** From Act III, a regular fight may be a man short or bring one or two extra enemies, and every regular enemy rolls bonus HP (up to about 2.4x in Act VI, more when the group is small).
-9. **Build up across runs.** Race Points buy permanent Techniques, and unlock horses (about 70–110 RP) and starting items (45–90 RP) from the Stable or the setup screen. Achievements unlock lead riders and Techniques, and still unlock their horse or item for free.
+9. **Build up across runs.** Race Points buy permanent Techniques and starting items (45–90 RP). Riders and horses can't be bought: each one is unlocked by its quest, and achievements also unlock Techniques and give their starting item for free.
    - Some Techniques change the rules instead of adding numbers, each with a catch: **Requiem** (+35% damage, fight at 70% HP), **Golden Rectangle Discipline** (no natural Energy; free attacks give +2), **D'Arby's Wager** (roll checks twice, but failures cost HP), **Lone Wolf** (a lone lead gets +60% damage, Energy and dodge), **Wanted Poster** (+2 Threat from the start, +40% money and XP), **Express Rider** (one fewer card, more pace and XP), **Stone Mask Pact** (half healing, but hits heal you) and **THE WORLD's Opening** (enemies lose their first turn, you start with less Energy).
 
 ## Legacy skill trees

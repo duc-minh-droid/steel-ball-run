@@ -78,9 +78,9 @@ SBR.store = {
 
 SBR.defaultMeta = () => ({
   rp: 0, totalRp: 0,
-  unlockedHorses: ['slowdancer', 'mustang'],
+  unlockedHorses: ['slowdancer'],
   unlockedItems: ['colt', 'horseshoe', 'provisions'],
-  unlockedLeads: ['johnny', 'gyro'],
+  unlockedLeads: ['johnny'],
   unlockedTech: [],
   equippedTech: [],
   achievements: {},

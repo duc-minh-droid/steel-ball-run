@@ -52,7 +52,7 @@ SBR.game = (() => {
     SBR.meta.rp += a.rp; SBR.meta.totalRp += a.rp;
     let extra = '';
     if (a.unlockHorse && !SBR.meta.unlockedHorses.includes(a.unlockHorse)) { SBR.meta.unlockedHorses.push(a.unlockHorse); extra = `<br>Horse unlocked: <b>${SBR.HORSES[a.unlockHorse].name}</b>`; }
-    SBR.meta.unlockedLeads = SBR.meta.unlockedLeads || ['johnny', 'gyro'];
+    SBR.meta.unlockedLeads = SBR.meta.unlockedLeads || ['johnny'];
     if (a.unlockLead && !SBR.meta.unlockedLeads.includes(a.unlockLead)) { SBR.meta.unlockedLeads.push(a.unlockLead); extra += `<br>Lead rider unlocked: <b>${SBR.CHARS[a.unlockLead].name}</b>`; }
     if (a.unlockItem && !SBR.meta.unlockedItems.includes(a.unlockItem)) { SBR.meta.unlockedItems.push(a.unlockItem); extra += `<br>Starting item unlocked: <b>${SBR.EQUIPMENT[a.unlockItem].name}</b>`; }
     Object.entries(SBR.TECHNIQUES).forEach(([k, t]) => { if (t.unlock === id && !SBR.meta.unlockedTech.includes(k)) { SBR.meta.unlockedTech.push(k); extra += `<br>Technique available: <b>${t.name}</b>`; } });
@@ -993,7 +993,7 @@ SBR.game = (() => {
     });
     body.appendChild(ig);
   }
-  /* ---------- Race Points buy locked horses and starting items (achievements still unlock them for free) ---------- */
+  /* ---------- Race Points buy locked starting items (achievements unlock them for free). Riders and horses come only from quests. ---------- */
   const unlockCost = (kind, k) => {
     if (kind === 'horse') { const h = SBR.HORSES[k]; return h.rp || Math.round((25 + ((h.speed || 5) + (h.stamina || 5)) * 4) / 5) * 5; }
     const R = SBR.EQUIPMENT[k]; return R.rp || ({ arimathea: 90, dotmap: 60, spareballs: 55 })[k] || 45;
@@ -1014,9 +1014,8 @@ SBR.game = (() => {
     c.innerHTML = `<div class="hc-art">${art.horse({ coat: un ? h.coat : '#3a3040', mane: un ? h.mane : '#1a1020', wrap: un ? h.wrap : '#3a3040', spots: un ? h.spots : null })}</div>
       <div class="hc-name">${un ? h.name : '???'}</div><div class="hc-breed">${un ? h.breed : 'Locked'}</div>
       <div class="hc-bars"><span>SPEED</span><div class="bar"><div style="width:${h.speed * 10}%"></div></div><span>STAMINA</span><div class="bar"><div style="width:${h.stamina * 10}%"></div></div></div>
-      <div class="hc-perk">${un ? h.perk : art.icon('lock', 14) + ' Or earn it: ' + (h.unlock || (ach && ach.desc) || '')}</div>${un && h.res ? `<div class="hc-res">${SBR.resChips(h.res)}</div>` : ''}`;
+      <div class="hc-perk">${un ? h.perk : art.icon('lock', 14) + ' <b>Quest:</b> ' + ((ach && ach.desc) || h.unlock || '')}</div>${un && h.res ? `<div class="hc-res">${SBR.resChips(h.res)}</div>` : ''}`;
     if (un && onPick) c.addEventListener('click', () => { SBR.audio.play('select'); onPick(k); });
-    if (!un && onBought) c.appendChild(buyBtn('horse', k, onBought));
     return c;
   }
   function achvTab(body) {
@@ -1062,8 +1061,8 @@ SBR.game = (() => {
 
   /* ---------- Setup (horse + item) ---------- */
   function setupScreen() {
-    SBR.meta.unlockedLeads = SBR.meta.unlockedLeads || ['johnny', 'gyro'];
-    let lead = SBR.meta.lastLead && (SBR.meta.lastLead === 'custom' || SBR.meta.unlockedLeads.includes(SBR.meta.lastLead)) ? SBR.meta.lastLead : 'johnny';
+    SBR.meta.unlockedLeads = SBR.meta.unlockedLeads || ['johnny'];
+    let lead = SBR.meta.lastLead && SBR.meta.unlockedLeads.includes(SBR.meta.lastLead) ? SBR.meta.lastLead : 'johnny';
     let horse = SBR.meta.lastHorse && SBR.meta.unlockedHorses.includes(SBR.meta.lastHorse) ? SBR.meta.lastHorse : 'slowdancer';
     let item = SBR.meta.lastItem && SBR.meta.unlockedItems.includes(SBR.meta.lastItem) ? SBR.meta.lastItem : 'colt';
     ui.transition(scr => {
@@ -1077,10 +1076,10 @@ SBR.game = (() => {
         box.appendChild(el('div', { class: 'cs-sub' }, 'CHOOSE YOUR LEAD RIDER'));
         const lg = el('div', { class: 'lead-grid' });
         SBR.LEADS.filter(k => k !== 'sukuna' || SBR.meta.devSukuna).forEach(k => {
-          const C = SBR.CHARS[k], un = k === 'custom' || k === 'sukuna' || SBR.meta.unlockedLeads.includes(k);
+          const C = SBR.CHARS[k], un = k === 'sukuna' || SBR.meta.unlockedLeads.includes(k);
           const ach = Object.values(SBR.ACHIEVEMENTS).find(a => a.unlockLead === k);
           const paths = k === 'sukuna' ? '<span class="lead-path" style="--pc:#c8323c">DEV · Shrine</span>' : k === 'custom' ? [['Hamon', '#f2c14e'], ['Vampire', '#8a1a2a'], ['Cyborg', '#8a8aa0'], [`${SBR.CUSTOM_STANDS.length} Stands`, '#7a5ad0']].map(([n, c]) => `<span class="lead-path" style="--pc:${c}">${n}</span>`).join('') : SBR.pathsFor(k).map(pid => `<span class="lead-path" style="--pc:${SBR.PATHS[pid].color}">${SBR.PATHS[pid].name}</span>`).join('');
-          const c = el('div', { class: 'lead-card' + (un ? '' : ' locked') + (k === lead ? ' selected' : '') }, el('div', { class: 'lead-port', html: art.portrait(C.portrait) }), el('div', { class: 'lead-info', html: `<b>${un ? C.name : '???'}</b><small>${un ? C.stand : art.icon('lock', 12) + ' ' + (ach ? ach.desc : '')}</small>${un ? `<div class="lead-paths">${paths}</div>` : ''}` }));
+          const c = el('div', { class: 'lead-card' + (un ? '' : ' locked') + (k === lead ? ' selected' : '') }, el('div', { class: 'lead-port', html: art.portrait(C.portrait) }), el('div', { class: 'lead-info', html: `<b>${un ? C.name : '???'}</b><small>${un ? C.stand : art.icon('lock', 12) + ' Quest: ' + (ach ? ach.desc : '')}</small>${un ? `<div class="lead-paths">${paths}</div>` : ''}` }));
           if (un) { c.onclick = () => { SBR.audio.play('select'); lead = k; render(); }; SBR.tip.bind(c, () => `<b>${C.name}</b><br>${C.passive.name}: ${C.passive.desc}<br><i>Paths: ${SBR.pathsFor(k).map(pid => SBR.PATHS[pid].name).join(' · ')}</i>`); }
           lg.appendChild(c);
         });
