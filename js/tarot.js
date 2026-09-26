@@ -7,15 +7,15 @@
   const ARCANA = {
     star_platinum: ['XVII', 'THE STAR'], magicians_red: ['I', 'THE MAGICIAN'], hierophant: ['V', 'THE HIEROPHANT'], silver_chariot: ['VII', 'THE CHARIOT'],
   };
-  const PART_NAME = { 3: 'STARDUST CRUSADERS', 4: 'DIAMOND IS UNBREAKABLE', 5: 'GOLDEN WIND', 6: 'STONE OCEAN' };
-  const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+  const PART_NAME = { 3: 'STARDUST CRUSADERS', 4: 'DIAMOND IS UNBREAKABLE', 5: 'GOLDEN WIND', 6: 'STONE OCEAN', 8: 'JOJOLION' };
+  const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
   const LV = [1, 3, 5];
   const abIds = P => (P.abilities || []).map(a => (typeof a === 'string' ? a : a.id));
   const esc = s => String(s).replace(/</g, '&lt;');
 
   function cardFace(id, i) {
     const P = SBR.PATHS[id];
-    const [num, arc] = ARCANA[id] || [ROMAN[P.part] || '?', PART_NAME[P.part] || 'THE UNKNOWN'];
+    const [num, arc] = P.arcana || ARCANA[id] || [ROMAN[P.part] || '?', PART_NAME[P.part] || 'THE UNKNOWN'];
     const fig = SBR.stands && SBR.stands.svg(P.stand) || '';
     const moves = abIds(P).map((a, k) => { const A = SBR.ABILITIES[a]; return A ? `<li><em>Lv${LV[k] || k + 1}</em><b>${A.name}</b><span>${esc(A.desc(1))}</span></li>` : ''; }).join('');
     return `<div class="tc-inner" style="--tc:${P.color}">
@@ -24,7 +24,7 @@
         <div class="tc-top"><span class="tc-num">${num}</span><span class="tc-arc">${arc}</span></div>
         <div class="tc-art"><div class="tc-rays"></div><div class="tc-fig">${fig}</div><div class="tc-kana">ゴゴゴ</div></div>
         <div class="tc-name">「${P.name}」</div>
-        <div class="tc-part">PART ${ROMAN[P.part] || P.part}</div>
+        <div class="tc-part">PART ${ROMAN[P.part] || P.part}${P.rarity ? ` · ★ ${P.rarity}` : ''}</div>
         <div class="tc-desc">${esc(P.desc)}</div>
         <div class="tc-passive">${esc(P.passive)}</div>
         <ul class="tc-moves">${moves}</ul>
@@ -87,7 +87,7 @@
   SBR.tarotFate = id => reading([id], true);
 
   SBR.standPick = g => {
-    const pool = SBR.util.shuffle(SBR.CUSTOM_STANDS.slice()).slice(0, 3);
+    const pool = SBR.standDraw ? SBR.standDraw(3) : SBR.util.shuffle(SBR.CUSTOM_STANDS.slice()).slice(0, 3);
     return reading(pool).then(id => {
       const r = SBR.run; const i = (r.trinkets || []).indexOf('stand_arrow'); if (i >= 0) r.trinkets.splice(i, 1);
       r.flags.arrowGone = true;

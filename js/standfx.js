@@ -928,10 +928,10 @@ SBR.standfx = (() => {
     await wait(900);
   }
   async function knifeVolley(c) {
-    await timeStop(c, 'theworld', '#f2c14e', 'ザ・ワールド', 'THE WORLD · KNIVES', true);
+    await timeStop(c, c.stand || 'theworld', '#f2c14e', 'ザ・ワールド', 'THE WORLD · KNIVES', true);
   }
   async function zaWarudo(c) {
-    await timeStop(c, 'theworld', '#f2c14e', 'ザ・ワールド!', 'ZA WARUDO', c.power < 3);
+    await timeStop(c, c.stand || 'theworld', '#f2c14e', 'ザ・ワールド!', 'ZA WARUDO', c.power < 3);
     if (c.power >= 3) { const t = c.t0; const rr = dom('sfx-roller', rollerSvg(), { x: t.x, y: -120 }, 900); await wait(30); moveEl(rr, { x: t.x, y: t.y - 30 }, 260); await wait(270); F.boom(t.x, t.y); say('ロードローラーだッ!', { x: t.x, y: t.y - 120 }, { c: '#f2c14e', size: 40, cls: 'big' }); shake(true); await wait(300); }
   }
   const rollerSvg = () => `<svg viewBox="0 0 120 90"><rect x="10" y="10" width="80" height="44" rx="6" fill="#e8c84a" stroke="${K}" stroke-width="4"/><rect x="60" y="0" width="30" height="24" fill="#c8a830" stroke="${K}" stroke-width="4"/><rect x="4" y="50" width="112" height="36" rx="18" fill="#6a6a7a" stroke="${K}" stroke-width="4"/><text x="50" y="40" font-family="Oswald" font-size="14" font-weight="700" text-anchor="middle" fill="${K}">ROAD ROLLER</text></svg>`;

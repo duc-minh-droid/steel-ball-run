@@ -170,8 +170,15 @@ They start with nothing but an old six-shooter and a punch, and can earn **one**
 - **Hamon.** An old man balanced on a pole teaches the Ripple. It deals Holy damage, and double damage to the undead.
 - **Vampire.** Put on a Stone Mask. You get lifesteal and regeneration, but you are weak to Holy and Spin damage and you burn in scorching sun.
 - **German Cyborg.** Only badly hurt riders meet the field surgeons. You get armour, a chest machine gun and a UV lamp.
-- **A Stand**, from the Stand Arrow: a single encounter in Acts I–II. Cut yourself (a Resolve check: pass and three Stand tarot cards are dealt, and you choose one; fail and the Arrow either chooses for you or rejects you), take it from its keeper in a fight, or pay and let fate decide. The 12 Stands are Star Platinum, Magician's Red, Hierophant Green, Silver Chariot, Crazy Diamond, Killer Queen, The Hand, Gold Experience, Sticky Fingers, King Crimson, Stone Free and Whitesnake.
+- **A Stand**, from the Stand Arrow: a single encounter in Acts I–II. Cut yourself (a Resolve check: pass and three Stand tarot cards are dealt, and you choose one; fail and the Arrow either chooses for you or rejects you), take it from its keeper in a fight, or pay and let fate decide. The 22 Stands are Star Platinum, Magician's Red, Hierophant Green, Silver Chariot, Crazy Diamond, Killer Queen, The Hand, Gold Experience, Sticky Fingers, King Crimson, Stone Free and Whitesnake.
 - **The Red Stone of Aja.** It evolves a Hamon user into the Aja Amplifier, or a vampire into the Ultimate Life Form.
+
+
+**The Stand Arrow** now holds 22 Stands. Alongside the Part 3–6 classics are ten more: **The World**, **Hermit Purple** and **The Fool** from Part 3; **Echoes** and **Heaven's Door** from Part 4; **Purple Haze** and **Aerosmith** from Part 5; **Weather Report** and **Made in Heaven** from Part 6; and **Soft & Wet** from Part 8. Each has a passive and three techniques at levels 1, 3 and 5, drawn from the manga: stop time and drop a road roller, write a safety lock into someone's pages, spread a flesh-eating virus that doesn't care whose side you're on, pin a foe with THREE FREEZE, steal Energy with a bubble. The Arrow deals its three tarot cards by weight, so The World, Made in Heaven, Weather Report and Purple Haze turn up less often. Six of them also have a race power.
+
+## Strange travellers from Morioh
+
+Every Stand in Steel Ball Run is already on the Corpse Road, so stranger things walk it too: eight JoJolion Stand users turn up as rare side encounters, each with a portrait, a Stand figure and a mechanic. Wu Tomoki crumbles into gravel and seizes your bones (Doctor Wu). Tamaki Damo's handprints soften you until you melt (Vitamin C). Yotsuyu Yagiyama's touch makes flowerpots and milk churns fly at you (I Am a Rock). Aisho's tornado follows whoever breathes hardest, so Brace to hold your breath (Doobie Wah!). Dolomite's walkers march in a line and their blood spreads the control (Blue Hawaii). Poor Tom's buried toy White House thins the air until it bursts (Ozon Baby). Urban Guerrilla's burr puzzles melt the fist that punches him (Brain Storm). Toru and Satoru Akefu punish anyone who pursues them with calamity; only a Spin that never stops gets through (Wonder of U).
 
 ## Materials, gear and money
 

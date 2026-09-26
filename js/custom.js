@@ -2,7 +2,7 @@
 SBR.isPU = id => id === 'custom' || id === 'sukuna';
 /* The custom rider: a racer you name and draw yourself. They start with nothing but a gun and a fist, and can earn one
    power on the road, borrowed from the other parts of JoJo: Hamon breathing, a Stone Mask, German science, or the
-   Stand Arrow (12 famous Stands from Parts 3-6). Hamon and Vampire riders can go further with the Red Stone of Aja.
+   Stand Arrow (22 famous Stands from Parts 3-6 and 8; the second ten live in js/stands2.js). Hamon and Vampire riders can go further with the Red Stone of Aja.
    Each power is a Path with char 'custom', so it reuses the Path system (takePath, pathAbilities, emblems). */
 
 /* ---------------- 1. The rider ---------------- */
@@ -330,7 +330,7 @@ Object.assign(SBR.CONSEQ, {
 });
 /** the Arrow shows three Stands; the rider takes one */
 SBR.standPick = g => {
-  const pool = SBR.util.shuffle(SBR.CUSTOM_STANDS.slice()).slice(0, 3);
+  const pool = SBR.standDraw ? SBR.standDraw(3) : SBR.util.shuffle(SBR.CUSTOM_STANDS.slice()).slice(0, 3);
   const ev = { title: 'Your Stand', art: SBR.run.lead, text: 'Three shapes flicker behind you, one after another. Only one of them will stay.',
     html: 'Three shapes flicker behind you, one after another. Only one of them will stay.' + pool.map(id => { const P = SBR.PATHS[id]; return `<span class="ev-path" style="--pc:${P.color}"><b>${P.name}</b> (Part ${P.part}): ${P.desc}<br><i>${P.passive}</i></span>`; }).join(''),
     choices: pool.map(id => ({ label: `「${SBR.PATHS[id].name}」`, id })) };
@@ -551,10 +551,10 @@ SBR.RIVALS.johnny = { name: 'Johnny Joestar', portrait: 'johnny', speed: 0.9, ou
   // the old three-step chain is retired
   ['cust_rumour', 'cust_collector'].forEach(id => { const e = SBR.EVENTS.find(x => x.id === id); if (e) e.cond = () => false; });
   const can = g => SBR.isPU(SBR.run.lead) && g.canTakePath(SBR.run.lead) && !SBR.run.flags.arrowGone;
-  const fate = g => { const id = SBR.util.pick(SBR.CUSTOM_STANDS); SBR.run.flags.arrowGone = true; g.takePath(id); if (SBR.tarotFate) g.defer(() => SBR.tarotFate(id)); return id; };
+  const fate = g => { const id = SBR.standDraw ? SBR.standDraw(1)[0] : SBR.util.pick(SBR.CUSTOM_STANDS); SBR.run.flags.arrowGone = true; g.takePath(id); if (SBR.tarotFate) g.defer(() => SBR.tarotFate(id)); return id; };
   const E = { id: 'cust_arrow', acts: [1, 2], type: 'event', title: 'The Meteorite Arrow', blurb: 'A man in a bowler hat, holding a golden arrowhead.', icon: 'star', art: 'collector', weight: 6, once: true, pace: -3, cond: can,
     text: 'At a crossroads a man in a bowler hat is turning a golden arrowhead over in his gloved fingers. "Cut from a meteorite," he says. "It gives some people a ghost that fights for them. It kills the rest." He holds it out, point first. "It hums near you. Interesting."',
-    html: 'At a crossroads a man in a bowler hat is turning a golden arrowhead over in his gloved fingers. "Cut from a meteorite," he says. "It gives some people a ghost that fights for them. It kills the rest." He holds it out, point first. "It hums near you. Interesting."<span class="ev-path" style="--pc:#7a5ad0"><b>The Stand Arrow</b>: a chance at one of 12 Stands from Parts 3-6 (Star Platinum, Killer Queen, Gold Experience, King Crimson...). You can only ever carry one power.</span>',
+    get html() { return 'At a crossroads a man in a bowler hat is turning a golden arrowhead over in his gloved fingers. "Cut from a meteorite," he says. "It gives some people a ghost that fights for them. It kills the rest." He holds it out, point first. "It hums near you. Interesting."<span class="ev-path" style="--pc:#7a5ad0"><b>The Stand Arrow</b>: a chance at one of ' + SBR.CUSTOM_STANDS.length + ' Stands from Parts 3-6 and 8 (Star Platinum, Killer Queen, The World, Made in Heaven...). You can only ever carry one power.</span>'; },
     choices: [
       { label: 'Cut yourself with the Arrow (RESOLVE)', check: { stat: 'res', dc: 11 },
         ok: { text: 'The point goes in. Something steps out of you, and three shapes flicker, waiting for you to choose.', fx: g => { SBR.run.flags.arrowGone = true; g.defer(() => SBR.standPick(g)); } },
