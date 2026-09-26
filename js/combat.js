@@ -703,21 +703,22 @@ SBR.Combat = class Combat {
     if (!opts.length) opts = [abl[abl.length - 1]];
     // smarter at higher threat: favour the costliest move it can afford, and AoE into a full party
     const smart = SBR.threatTier ? SBR.threatTier() : 0;
-    const ab = SBR.util.weighted(opts, a => (a.w || 1) * (1 + smart * 0.35 * cost(a)) * (a.target === 'allEnemies' && this.alive('party').length >= 3 ? 1 + smart * 0.3 : 1));
+    // enemyai.js may plug in a scored choice (aiChooseAbility / aiPickTarget / aiPickAlly); without it, weights alone decide
+    const ab = (this.aiChooseAbility && this.aiChooseAbility(u, opts, cost)) || SBR.util.weighted(opts, a => (a.w || 1) * (1 + smart * 0.35 * cost(a)) * (a.target === 'allEnemies' && this.alive('party').length >= 3 ? 1 + smart * 0.3 : 1));
     const idx = abl.indexOf(ab);
     if (ab.cd) u.cds['a' + idx] = ab.cd + 1;
     if (!free) u.energy = Math.max(0, (u.energy || 0) - cost(ab));
     let target = null, picks = null;
-    if (ab.target === 'enemy') target = this.pickPartyTarget();
+    if (ab.target === 'enemy') target = this.aiPickTarget ? this.aiPickTarget(u, ab) : this.pickPartyTarget();
     else if (ab.target === 'self') target = u;
-    else if (ab.target === 'ally') target = this.friends(u).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
+    else if (ab.target === 'ally') target = (this.aiPickAlly && this.aiPickAlly(u, ab)) || this.friends(u).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
     if (ab.pick > 1 && target && (ab.target === 'enemy' || ab.target === 'ally')) {
       // how many it spreads over: a coin flip between focusing and fanning out
       const n = Math.random() < 0.5 ? 1 : SBR.util.randInt(2, ab.pick);
       if (ab.target === 'enemy') {
         // further picks are drawn by aggro too, without repeats
         picks = [target];
-        while (picks.length < n) { const t = this.pickPartyTarget(picks); if (!t) break; picks.push(t); }
+        while (picks.length < n) { const t = this.aiPickTarget ? this.aiPickTarget(u, ab, picks) : this.pickPartyTarget(picks); if (!t) break; picks.push(t); }
       } else {
         const pool = this.friends(u).filter(t => t !== target).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
         picks = [target].concat(pool.slice(0, n - 1));
