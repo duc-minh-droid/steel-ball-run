@@ -383,7 +383,7 @@ SBR.game = (() => {
   function showStage() {
     const r = SBR.run;
     SBR.music.play(SBR.music.themeForStage());
-    if (!r.stageCards) { r.stageCards = drawCards(); SBR.saveRun(); }
+    if (!r.stageCards) { r.stageCards = drawCards(); if (SBR.extraCards) r.stageCards = SBR.extraCards(r.stageCards, G) || r.stageCards; SBR.saveRun(); }
     ui.stageScreen(r.stageCards, {
       reroll: () => rerollCards(),
       pick: card => resolveCard(card),
@@ -446,6 +446,8 @@ SBR.game = (() => {
     r.risk = card.stars || null;
     if (r.offeredStory && card.id !== r.offeredStory) { const sid = r.offeredStory; r.offeredStory = null; r.flags['skipped_' + sid] = true; if (SBR.onStorySkip) SBR.onStorySkip(sid, G); await flushPending(); }
     r.offeredStory = null;
+    // cards added by other files (js/superbosses.js): they resolve themselves with this API
+    if (card.custom && SBR.customCard) return SBR.customCard(card, { fight, G, flushPending, advanceStage, exitArea, showStage, resolveChoice });
     if (card.areaBoss) {
       const A = SBR.AREAS[r.area.id];
       const win = await fight(A.boss.enemies, { boss: true, bossName: A.boss.name });
@@ -892,7 +894,7 @@ SBR.game = (() => {
       const head = el('div', { class: 'lobby-head', html: `<div class="lh-title">The Starting Line Saloon</div><div class="lh-rp">${art.icon('trophy', 26)} <b>${SBR.meta.rp}</b> RP</div>` });
       const tabs = el('div', { class: 'lobby-tabs' });
       const body = el('div', { class: 'lobby-body' });
-      const TABS = [['saloon', 'Techniques', '技'], ['stable', 'Stable', '馬'], ['achievements', 'Achievements', '栄'], ['compendium', 'Compendium', '図']];
+      const TABS = [['saloon', 'Techniques', '技'], ['legacy', 'Legacy', '系'], ['stable', 'Stable', '馬'], ['achievements', 'Achievements', '栄'], ['compendium', 'Compendium', '図']];
       TABS.forEach(([k, label, kana]) => {
         const t = el('button', { class: 'lobby-tab' + (k === tab ? ' active' : ''), 'data-kana': kana }, label);
         t.onclick = () => { SBR.audio.play('click'); tab = k; tabs.querySelectorAll('.lobby-tab').forEach(x => x.classList.toggle('active', x === t)); renderBody(); };
@@ -900,7 +902,7 @@ SBR.game = (() => {
       });
       function renderBody() {
         body.innerHTML = '';
-        ({ saloon: techTab, stable: stableTab, achievements: achvTab, compendium: compTab })[tab](body, () => { head.querySelector('.lh-rp b').textContent = SBR.meta.rp; renderBody(); });
+        ({ saloon: techTab, legacy: (b, r) => SBR.trees.tab(b, r), stable: stableTab, achievements: achvTab, compendium: compTab })[tab](body, () => { head.querySelector('.lh-rp b').textContent = SBR.meta.rp; renderBody(); });
       }
       renderBody();
       const foot = el('div', { class: 'lobby-foot' });
@@ -1040,6 +1042,7 @@ SBR.game = (() => {
           lg.appendChild(c);
         });
         box.appendChild(lg);
+        { const tr = SBR.trees && SBR.trees.setupButton(lead, render); if (tr) box.appendChild(tr); }
         if (lead === 'custom') {
           const row = el('div', { class: 'solo-row' });
           row.appendChild(ui.btn('✎ Edit your rider: name and portrait', () => SBR.customUI.creator(render), 'btn-small btn-creator'));

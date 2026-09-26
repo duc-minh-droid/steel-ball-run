@@ -498,14 +498,15 @@ SBR.ui = (() => {
     });
   }
   function encounterCard(card, i, onPick) {
-    const typeLabel = { fight: 'Battle', elite: 'Elite', shop: 'Shop', event: 'Event', rest: 'Rest', trainer: 'Trainer', recruit: 'Ally', story: 'Story', boss: 'Boss', detour: 'Detour' }[card.type] || 'Event';
-    const hide = card.type !== 'boss' && !card.forced;
-    const c = el('div', { class: `enc-card type-${hide ? 'hidden' : card.type}`, tabindex: 0, role: 'button' });
-    const artHtml = card.art ? portraitOf(card.art) : SBR.art.cardArt(hide ? 'event' : card.type);
+    const secret = !!card.secret; // a hidden superboss (js/superbosses.js): shown face up, 7 stars
+    const typeLabel = secret ? '??? Strange Aura' : { fight: 'Battle', elite: 'Elite', shop: 'Shop', event: 'Event', rest: 'Rest', trainer: 'Trainer', recruit: 'Ally', story: 'Story', boss: 'Boss', detour: 'Detour' }[card.type] || 'Event';
+    const hide = !secret && card.type !== 'boss' && !card.forced;
+    const c = el('div', { class: `enc-card type-${hide ? 'hidden' : card.type}${secret ? ' secret' : ''}`, tabindex: 0, role: 'button' });
+    const artHtml = card.art ? portraitOf(card.art) : SBR.art.cardArt(secret ? 'secret' : hide ? 'event' : card.type);
     const stars = card.stars || 0;
     c.innerHTML = `
       <div class="enc-type">${hide ? '???' : typeLabel}</div>
-      ${stars ? `<div class="enc-stars s${stars}" title="Danger ${stars}/5: harder, and pays more">${'★'.repeat(stars)}${'☆'.repeat(5 - stars)}</div>` : ''}
+      ${stars ? `<div class="enc-stars s${stars}" title="Danger ${stars}/${Math.max(5, stars)}: harder, and pays more">${'★'.repeat(stars)}${'☆'.repeat(Math.max(0, 5 - stars))}</div>` : ''}
       <div class="enc-art">${artHtml}</div>
       <div class="enc-title">${card.title}</div>
       <div class="enc-blurb">${card.blurb}</div>

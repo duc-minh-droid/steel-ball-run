@@ -55,7 +55,7 @@ SBR.fx = (() => {
     square: (p, k) => { ctx.globalAlpha = 1 - k; ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = p.c; ctx.strokeStyle = INK; ctx.lineWidth = 1.6; ctx.fillRect(-p.r, -p.r, p.r * 2, p.r * 2); ctx.strokeRect(-p.r, -p.r, p.r * 2, p.r * 2); },
     smoke: (p, k) => { ctx.globalAlpha = (1 - k) * (p.a || 0.5); ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (1 + k * 1.6), 0, TAU); ctx.fill(); },
     star: (p, k) => { ctx.globalAlpha = 1 - k; ctx.translate(p.x, p.y); ctx.rotate(p.rot || 0); ctx.fillStyle = p.c; ctx.strokeStyle = INK; ctx.lineWidth = 1.4; const r = p.r * (p.grow ? 0.4 + k : 1); ctx.beginPath(); for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, rr = i % 2 ? r * 0.35 : r; ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); } ctx.closePath(); ctx.fill(); ctx.stroke(); },
-    ring: (p, k) => { const e = 1 - Math.pow(1 - k, 3); ctx.globalAlpha = 1 - k; ctx.strokeStyle = p.c; ctx.lineWidth = (p.w || 6) * (1 - k * 0.7); ctx.beginPath(); ctx.arc(p.x, p.y, (p.r0 || 4) + (p.r - (p.r0 || 4)) * e, 0, TAU); ctx.stroke(); },
+    ring: (p, k) => { const e = 1 - Math.pow(1 - k, 3); ctx.globalAlpha = 1 - k; ctx.strokeStyle = p.c; ctx.lineWidth = (p.w || 6) * (1 - k * 0.7); ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(0.1, (p.r0 || 4) + (p.r - (p.r0 || 4)) * e), 0, TAU); ctx.stroke(); },
     burst: (p, k) => { const e = 1 - Math.pow(1 - k, 2); ctx.globalAlpha = 1 - k; ctx.translate(p.x, p.y); ctx.fillStyle = p.c; ctx.strokeStyle = INK; ctx.lineWidth = 2.5; ctx.beginPath(); const n = p.n || 12; for (let i = 0; i < n * 2; i++) { const a = i * Math.PI / n + (p.rot || 0); const rr = (i % 2 ? p.r * 0.45 : p.r) * (0.3 + e * 0.9); ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); } ctx.closePath(); ctx.fill(); ctx.stroke(); },
     lines: (p, k) => { ctx.globalAlpha = (1 - k) * 0.9; ctx.strokeStyle = p.c; ctx.lineWidth = 3; for (let i = 0; i < p.n; i++) { const a = p.seed[i]; const r1 = p.r * (0.3 + k * 0.6), r2 = r1 + p.r * 0.5; ctx.beginPath(); ctx.moveTo(p.x + Math.cos(a) * r1, p.y + Math.sin(a) * r1); ctx.lineTo(p.x + Math.cos(a) * r2, p.y + Math.sin(a) * r2); ctx.stroke(); } },
     slash: (p, k) => {
@@ -269,10 +269,14 @@ SBR.fx = (() => {
     meta = Object.assign({}, meta, { tier, dcol, v: (meta.variant | 0) >>> 0 });
     if (!tos.length) tos = [from];
     const mid = { x: tos.reduce((s, t) => s + t.x, 0) / tos.length, y: tos.reduce((s, t) => s + t.y, 0) / tos.length };
+    // per-ability Stand choreography (js/standfx.js), keyed by meta.abId or, for enemies, the move's name
+    const ov = SBR.standfx && !meta.noStandFx ? SBR.standfx.lookup(kind, meta) : null;
+    if (ov && ov.kana && !meta.kana) meta.kana = ov.kana;
     try {
+      if (ov && ov.own) { await ov.fn(from, tos, meta); if (!meta.self && dt) tos.forEach((t, i) => accent(dt, from, t, meta, i)); return; }
       if (tier >= 3 && kind !== 'act4' && kind !== 'ballbreaker') await cinematic(from, meta);
       else if (tier === 2) { ring(from.x, from.y, dcol, 12, 5, 0.3, 110); sparks(from.x, from.y, dcol, 8, 4, 2); }
-      const mv = MOVES[kind];
+      const mv = ov ? ov.fn : MOVES[kind];
       const handled = mv ? (await mv(from, tos, meta), true) : await baseMove(kind, from, tos, meta);
       if (!handled) await generic(from, tos, meta);
       // damage-type accent on every struck target
@@ -642,5 +646,7 @@ SBR.fx = (() => {
   function summon(pt) { ring(pt.x, pt.y, '#b070ff', 90, 8, 0.5); smoke(pt.x, pt.y, '#6a3a8a', 10, 0.5, -20); stars(pt.x, pt.y, '#c8a0ff', 8, 200); }
   function dust(pt, n = 16) { for (let i = 0; i < n; i++) { const a = rnd(Math.PI * 0.9, Math.PI * 2.1); add({ x: pt.x + rnd(-60, 60), y: pt.y, vx: Math.cos(a) * rnd(80, 260), vy: Math.sin(a) * rnd(20, 120) - 30, r: rnd(8, 18), c: '#e8d0a0', a: 0.55, life: rnd(0.6, 1.1), draw: D.smoke, drag: 0.93 }); } }
 
-  return { init, play, impact, flames, shards, gems, petals, pillar, cross, clock, beam, kana, menace, invert, dot, regen, death, summon, sparks, blood, debris, smoke, stars, ring, starBurst, speedLines, slash, spiral, goldRect, glyph, flash, boom, dust, lightning };
+  // internals shared with js/standfx.js (per-Stand choreography)
+  const kit = { add, D, INK, get ctx() { init(); return ctx; }, get W() { return W; }, get H() { return H; }, projectile, overlay, grade, radialLines, zoomPunch, streak, hexShield, checker, arrows, bubbles, cinematic, rnd };
+  return { kit, MOVES, init, play, impact, flames, shards, gems, petals, pillar, cross, clock, beam, kana, menace, invert, dot, regen, death, summon, sparks, blood, debris, smoke, stars, ring, starBurst, speedLines, slash, spiral, goldRect, glyph, flash, boom, dust, lightning };
 })();

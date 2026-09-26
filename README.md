@@ -25,8 +25,8 @@ Then open <http://localhost:5178>. Progress saves in your browser's local storag
 | ![Encounter cards](docs/media/cards.jpg) **Encounter cards.** Every card type has its own drawn illustration, and each deal is announced by a slashing "ENCOUNTER!" banner. | ![Battle](docs/media/battle.jpg) **Stand battles.** Stands appear when their abilities fire, and some hover beside their user for the whole fight. |
 | ![Cut-in](docs/media/cutin.jpg) **Manga cut-ins.** Big moves slam a diagonal panel across the screen with the attacker and the move's name. | ![Boss intro](docs/media/bossintro.jpg) **Boss intros.** Each Stand user explains their mechanic before the fight. |
 | ![Lead riders](docs/media/setup.jpg) **Lead riders and horses.** Pick your lead, a horse and a starting item. The horse gives resistances the way a race does in AAC. | ![Paths](docs/media/paths.jpg) **Paths.** Each lead has three subclasses, learned from trainers on the road. |
-| ![Detours](docs/media/detours.jpg) **Detour areas.** Four optional regions, each with its own hazard, enemies, materials and boss. | ![Resistances](docs/media/resist.jpg) **Damage types.** Every hit has a type, and every enemy has its own resistances and weaknesses. |
-| ![Gear](docs/media/gear.jpg) **Six gear slots.** Weapon, hat, coat, boots and two charms. Charms of the same family don't stack. | ![Sprint](docs/media/sprint.jpg) **Stage sprints.** Time your presses to the golden zone while rivals attack you and each other. Numbered nobodies fill out the pack, and the trail kills more of them every stage. Only Stands that help someone ride work in a race, and your horse has its own once-per-race trick. The winner gets an announcer's splash and a manga page. |
+| ![Detours](docs/media/detours.jpg) **Detour areas.** Five optional regions, each with its own hazard, enemies, materials and boss. | ![Resistances](docs/media/resist.jpg) **Damage types.** Every hit has a type, and every enemy has its own resistances and weaknesses. |
+| ![Gear](docs/media/gear.jpg) **Six gear slots.** Weapon, hat, coat, boots and two charms. Charms of the same family don't stack. | ![Sprint](docs/media/sprint.jpg) **Stage sprints.** Time your presses to the golden zone while rivals attack you and each other. Numbered nobodies fill out the pack, and the trail kills more of them every stage. Only Stands that help someone ride work in a race, and your horse has its own once-per-race trick, announced with a galloping cut-in and drawn on the track (speed streaks, a shield bubble, golden rhythm notes, dust clouds on the riders it stalls). The winner gets an announcer's splash and a manga page. |
 
 ## How a run plays
 
@@ -52,6 +52,11 @@ Then open <http://localhost:5178>. Progress saves in your browser's local storag
    | The Silver Mine | Cave-ins | A dinosaurified fossil colossus |
    | Frozen Lake Michigan | Blizzard | The White Alpha and its pack |
    | Philadelphia Rail Yard | Crowded train cars | Tattoo You!'s eleven men acting as one |
+   | The Pillar Tomb (Acts II–III) | No sunlight: the undead regenerate and resist Holy | Wamuu and Esidisi, two Pillar Men who fight as a pair |
+
+   - Each detour has 2–3 story events (every choice leaves a mark in the Chronicle), its own regular enemies and an elite: a heat-haze racer, a dinosaurified shift boss, drowned racers, a Pinkerton, and a Black Knight.
+   - Detours drop exclusive gear, crafted from their materials: the Pilgrim's Rosary, the Heat-Haze Veil, a Deep-Shaft Lamp Helmet, the White Album Suit, a Pinkerton Shield, Wamuu's Headdress and Esidisi's Heat Veins.
+   - Some detours end differently. Something might be waiting at the heart of the Palm instead of its Echo if you paid your respects on the way in, or if you carry enough of the Saint. An empty suit skates on Lake Michigan once somebody breaks it out of the ice.
 
 6. **Fight.** Every unit, ally or enemy, starts a battle with 1 Energy and gains 1 per turn.
    - Hits have one of nine damage types: Physical, Gunshot, Spin, Stand, Bleed, Cold, Sound, Holy and True.
@@ -59,6 +64,9 @@ Then open <http://localhost:5178>. Progress saves in your browser's local storag
    - Some moves let you pick 1 to 4 targets. A badge on the button (×2, ×3, ×4) shows how many. Click the cards you want, then press Go or Enter, or press Max to take the most. Split moves share their damage: two targets take 62% each, three take 46%, four take 38%. Buffs, heals and debuffs with a badge give every pick the full effect.
    - Area attacks hit every target at the same moment.
    - Enemies use picks too. Gunmen and packs spread their fire, and elite healers cover two allies.
+   - **Aggro.** Enemies choose single targets at random, weighted by aggro, as in AAC. Front-liners like Wekapipo and Mountain Tim draw more attention, and Lucy and Hot Pants draw less. GRIT raises aggro a little and RESOLVE lowers it. Heavy gear such as the Iron-Plated Vest raises it, and light gear such as Racing Silks lowers it. Big hits, heals and Stand moves raise it for a while, and taking hits lowers it. Evasive and **Lying Low** make you hard to notice. A badge on each party card shows your chance to be picked, and a red crosshair marks the most likely target. Hover the badge for the breakdown. At higher Threat, enemies also go after the wounded.
+   - **Taunt.** A taunting ally draws 85% of single-target attacks, which is what Tim's **Draw!**, Wekapipo's **Royal Challenge** and the custom rider's **Showboat** are for. Some elites and bosses taunt too (Stroheim, the Presidential Guard, Wekapipo, Honey-Mouth Ike). While one is taunting, your single-target moves can only pick the taunter.
+   - **Summons.** Some moves call help onto your side of the field. Summons act at the end of each round, can be hit, and vanish when their summoner falls or their rounds run out. They never count as party members. You get Tim's Longhorn Steers and rope Scarecrow, Gyro's Spinning Sentry, Johnny's wandering Nail Hole, Hot Pants' Flesh Double (a taunting decoy), two of Diego's raptors, Pocoloco's Hey Ya! cheerleader, and Killer Queen's Sheer Heart Attack. The Harvest Jar and Stray Cat in a Pot items summon too. Up to four can be on the field at once.
 7. **Gear up.** Enemies drop materials and Stand Remnants for the crafting bench.
    - Each rider wears a weapon, a hat, a coat, boots and two charms.
    - Charms belong to families, and two charms from the same family don't stack.
@@ -70,6 +78,18 @@ Then open <http://localhost:5178>. Progress saves in your browser's local storag
 9. **Build up across runs.** Race Points buy permanent Techniques, and unlock horses (about 70–110 RP) and starting items (45–90 RP) from the Stable or the setup screen. Achievements unlock lead riders and Techniques, and still unlock their horse or item for free.
    - Some Techniques change the rules instead of adding numbers, each with a catch: **Requiem** (+35% damage, fight at 70% HP), **Golden Rectangle Discipline** (no natural Energy; free attacks give +2), **D'Arby's Wager** (roll checks twice, but failures cost HP), **Lone Wolf** (a lone lead gets +60% damage, Energy and dodge), **Wanted Poster** (+2 Threat from the start, +40% money and XP), **Express Rider** (one fewer card, more pace and XP), **Stone Mask Pact** (half healing, but hits heal you) and **THE WORLD's Opening** (enemies lose their first turn, you start with less Energy).
 
+## Legacy skill trees
+
+Each lead rider (Johnny, Gyro, Mountain Tim and Hot Pants) has a permanent skill tree bought with Race Points, like the class trees in *An Average Campaign*. Open it from the Saloon's **Legacy** tab, or from the registration screen for the lead you've picked.
+
+- **Three branches per rider, seven nodes each.** Johnny has Tusk, Jockey and Spin. Gyro has Steel Ball, Zeppeli Medicine and Golden Rectangle. Mountain Tim has Oh! Lonesome Me, Sheriff and Rancher. Hot Pants has Cream Starter, Vatican and Corpse Hunter.
+- **Nodes branch.** Each branch splits into two arms, and the node where they meet needs only one of them. Costs rise from 10 to 70 RP, so a full tree costs 663 RP, which is several runs' worth.
+- **Minor nodes** give stats, damage by type, crit, dodge, block, starting Energy, Regen, resistances, battle HP, skill-check bonuses, or an ability early (Nail Bullet, Wormhole, Scan, Golden Spin, Rope Corral, Flesh Disguise).
+- **Capstones change how the rider fights.** Examples: Nail Storm (a volley at every enemy, and Johnny's basic attacks always leave a Nail Hole), Slow Dancer's Rhythm (a dodge gives Energy and a counter-nail), Twin Balls (Steel Ball throws a second ball), Zeppeli Surgery, Ball Breaker from the first stage, High Noon (Tim always draws first and his first shot always crits), Cattle Drive, Flesh Armour (overhealing becomes Shield), Vatican Rite (Holy revolver rounds) and Relic Sense.
+- **Bonuses apply whenever that rider is in the party,** whether they're the lead or an ally.
+- **Respec** refunds everything for a 10% fee (at least 10 RP).
+- **Legacy ranks.** Once a tree is complete, each of five ranks adds +3% damage and +4 battle HP (60–180 RP each).
+
 ## Risk, choices and variety
 
 - **Danger stars.** Every encounter card shows 1–5 stars. Higher stars mean bigger fights and harder checks, and much better pay: more money, XP and materials, and a chance of rare gear. What kind of card it is (fight, shop, trainer, event…) stays hidden until you pick it.
@@ -78,6 +98,19 @@ Then open <http://localhost:5178>. Progress saves in your browser's local storag
 - **Manga-panel scenes.** Bosses, elites, trainers and side encounters talk before, during and after their fights on drawn comic pages, with speech bubbles, speed lines and Stands.
 - **Side encounters.** Stand users from earlier parts (Emperor, Hanged Man, Yellow Temperance, Death 13, Bad Company, Sex Pistols, Aerosmith, Kraft Work, Moody Blues…), vampire nests, zombie horses, a Hamon monk and a Pillar Man.
 - **The Saint's Corpse matters to everyone.** Every part you carry gives your lead a battle ability. Holding 3, 5 or 7 parts blesses the party and adds a race power, but the President hunts you harder. Parts can also be offered to the Vatican, sold for a pardon, buried, or fused.
+
+## Strange Auras (secret superbosses)
+
+Like the hidden "Strange Aura" bosses of *An Average Campaign*, five superbosses from other parts of JoJo are hidden in the race. They are optional and very hard.
+
+- **How you know.** A Strange Aura shows up as a face-up **??? STRANGE AURA** card with seven stars (★★★★★★★). Picking it asks you first, because you can't run from the fight and losing it ends the run. You can back away.
+- **They scale.** Each one matches the act you meet it in, at roughly two to three times that act's boss. Each has several phases: extra lives, time that speeds up, time stops, rewinds, or a horde.
+- **Rewards.** A unique Soul (a recipe key for their legendary gear), the first legendary piece for free, and an achievement that unlocks a new Technique for every later run: *Ultimate Adaptation*, *Time Acceleration*, *Stopped-Time Knives*, *A Quiet Life* and *Dinosaur Kinetic Vision*.
+- **Where to look (hints).**
+  - Three of them wait below a detour's boss. A detour event opens the way down. Look for a door that wants something pressed into it, a skull with no eyes, and a passenger who notices your hands. A hard skill check works too, and so does carrying the right thing.
+  - One of them only walks the late race while you carry most of the Saint's bones.
+  - One of them only comes through D4C's doors when the President hunts you as hard as he can.
+- **Debugging.** `SBR.debug.superboss('sb_kars')` starts a fight straight away (the keys are `sb_kars`, `sb_pucci`, `sb_dio`, `sb_kira` and `sb_trex`). `SBR.debug.secret(key)` deals the secret card, or opens a detour's hidden deep stage.
 
 ## Your own rider
 
@@ -150,6 +183,24 @@ Every choice feeds a hidden world state, like a tabletop campaign. Nothing tells
 
 Press the backtick key (`` ` ``) or open `index.html?debug` for the debug panel. It jumps to any act, stage, side event, story scene, fight, boss lineup, detour, sprint or ending, with the lead, level, threat and faction standing you choose. The same jumps are scriptable from the console as `SBR.debug.*`.
 
+## Stand animations
+
+Every Stand move has its own animation, based on how it looks in the manga and anime. Examples: Star Platinum's afterimage fists and Star Finger; a grey frozen world with hanging fists for The World; Killer Queen's thumb click before a delayed blast; The Hand's void gouge; King Crimson's red void of erased frames; Crossfire Hurricane's ankh flames; Hierophant's 20 m string web; Tusk's spinning nails and holes; D4C's flag; Catch the Rainbow's frozen raindrops; In a Silent Way's solid lettering; Chocolate Disco's grid. Higher power tiers and upgrade levels mean more hits, bigger titles and longer beats. Every animation is divided by the game speed, and Reduced Motion drops the shakes, card jolts and flicker.
+
+- `js/standfx.js` holds the moves. `SBR.standfx.MOVES` is keyed by ability id. `SBR.standfx.NAMED` is keyed by the enemy move's name. `SBR.standfx.STYLE` holds each close-range Stand's default barrage.
+- `SBR.fx.play` and `SBR.strike.rush` check these tables first, so `battle-ui.js` needs no changes to add a move.
+- Try any move from the console: `SBR.standfx.play('time_erase', {x:300,y:300}, [{x:1000,y:300}], {tier:3, via:'rush', key:'king_crimson'})`.
+
+**Sprite sheets.** Everything is drawn in code. You can still drop in a PNG sprite sheet for a Stand's body, and it replaces the SVG wherever that Stand appears in a move:
+
+```js
+SBR.standfx.sprites.star_platinum = { src: 'sprites/star_platinum.png', frames: 8, cols: 4, fps: 14, loop: true };
+SBR.standfx.sprites['star_platinum.rush'] = { /* optional: used for close-range barrages */ };
+await SBR.standfx.loadSprites('sprites/manifest.json');   // or a JSON manifest { key: {src, frames, cols, fps, loop} }
+```
+
+Frames are read left to right, then top to bottom. Sheets from a generator such as sprite-gen fit this format once exported as a grid plus a frame count. Without a sheet, the procedural drawing is used.
+
 ## Music
 
 Every act, every detour, normal, elite and boss battles, the sprint and the saloon each have their own synthesized theme. Diego and Valentine get their own boss themes. Music volume is in Settings.
@@ -196,14 +247,19 @@ The theme keys are `title`, `act1` to `act6`, `devilspalm`, `silvermine`, `lakei
 | `js/sides.js` / `js/corpse.js` | Side Stand users, vampires and Hamon; the Saint’s Corpse for every lead |
 | `js/evscene.js`, `js/evs_a.js`–`js/evs_c.js` | Drawn encounter scenes: an opening panel for about 160 encounters and a follow-on panel for each choice |
 | `js/multi.js` | Moves that hit or buff several picked targets, and how they split damage |
+| `js/summons.js` | Aggro sources, Taunt, the party summons with their drawings, and the moves and items that call them |
 | `js/panels.js` | Manga-panel dialogue pages and before/mid/after fight talk |
 | `js/custom.js` | The custom rider, the creator, and the Hamon, Vampire, Cyborg, Stand and Aja powers with their encounters |
 | `js/economy.js` | The 16 materials, Souls, upgrades, reinforce, salvage, selling, trinkets, services, fees |
 | `js/campaign.js` | World state, factions, consequences, follow-up encounters, story branches, endings, the Chronicle |
+| `js/trees.js` | Legacy skill trees: nodes, capstone abilities and triggers, the Saloon tab |
 | `js/debug.js` | Debug panel and `SBR.debug` jump API |
 | `js/areas.js` | Detour areas, hazards, their enemies, bosses, events and gear |
+| `js/detours2.js` | More detour events, enemies, elites, exclusive gear and alternate bosses; the Pillar Tomb detour |
+| `js/superbosses.js` | The Strange Aura superbosses: their mechanics, secret cards, Souls, legendary gear and Techniques |
 | `js/combat.js` | Combat engine: pure state plus an event log |
 | `js/fx.js` | Canvas VFX: projectiles, slashes, spirals, damage-over-time effects |
+| `js/standfx.js`, `css/standfx.css` | Per-move Stand choreography (time stop, ORA barrages, zippers, erased space, ankh flames...), routed by ability id or enemy move name |
 | `js/battle-ui.js` | Replays combat events as animations and handles input |
 | `js/sprint.js` | The stage-finish race |
 | `js/ui.js` / `js/main.js` | Screens, drawers and dialogue; game flow and the event API |

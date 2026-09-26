@@ -92,7 +92,9 @@ SBR.Combat = class Combat {
   }
 
   /* ---------- queries ---------- */
-  party() { return this.units.filter(u => u.side === 'party' && !u.removed); }
+  /** the riders only: summons fight on the party side but are never party members (HP/XP sync, revives, game over) */
+  party() { return this.units.filter(u => u.side === 'party' && !u.removed && !u.summon); }
+  summons(owner) { return this.units.filter(u => u.summon && !u.dead && !u.removed && (!owner || u.owner === owner.uid)); }
   enemies() { return this.units.filter(u => u.side === 'enemy' && !u.dead); }
   alive(side) { return this.units.filter(u => u.side === side && !u.dead && !u.removed); }
   unit(uid) { return this.units.find(u => u.uid === uid); }
@@ -162,6 +164,7 @@ SBR.Combat = class Combat {
   }
   dodgeChance(u) {
     if (this.has(u, 'marked') || this.has(u, 'stun') || this.has(u, 'timestop')) return 0;
+    if (u.summon) return SBR.util.clamp((u.def.dodge || 0.03) + this.statMod(u, 'dodge'), 0, 0.6);
     let d = 0.04 + u.stats.ride * 0.006 + this.statMod(u, 'dodge');
     if (u.side === 'party') {
       d += (this.bonus.dodge || 0) + this.eq(u, 'dodge');
@@ -173,6 +176,7 @@ SBR.Combat = class Combat {
   }
   blockChance(u) {
     if (u.id === 'johnny') return 0;
+    if (u.summon) return SBR.util.clamp((u.def.block || 0.05) + this.statMod(u, 'block'), 0, 0.75);
     let b = 0.05 + u.stats.grit * 0.006 + this.statMod(u, 'block');
     if (u.side === 'party') { b += (this.bonus.block || 0) + this.eq(u, 'block'); if (u.id === 'mountaintim') b += 0.1; }
     return SBR.util.clamp(b, 0, 0.75);
@@ -316,6 +320,9 @@ SBR.Combat = class Combat {
     amount = Math.max(1, Math.round(amount));
     if (src && this.has(tgt, 'reflect') && src !== tgt) { const back = Math.max(1, Math.round(amount * 0.4)); this.push({ t: 'float', uid: tgt.uid, text: 'REFLECTED', cls: 'block' }); this.applyHp(src, back, false, 'GRID', null); }
     const res = this.applyHp(tgt, amount, crit, opts.label, src, blocked, { dtype, eff });
+    // notoriety: big hits draw eyes, taking hits makes you look like less of a threat
+    if (src && src.side === 'party' && src !== tgt) this.notoriety(src, SBR.util.clamp(amount / 40, 0.02, 0.35));
+    if (src && tgt.side === 'party' && src.side !== 'party') this.notoriety(tgt, -0.08);
     if (src && src.side === 'party' && this.eq(src, 'lifesteal') && !src.dead) this.heal(null, src, Math.max(1, Math.round(amount * this.eq(src, 'lifesteal'))));
     if (SBR.traitHooks && (src && src.traits || tgt.traits)) SBR.traitHooks.hit(this, src, tgt);
     // magnet share
@@ -350,6 +357,7 @@ SBR.Combat = class Combat {
     const before = tgt.hp;
     tgt.hp = Math.min(tgt.maxHp, tgt.hp + amt);
     this.push({ t: 'heal', uid: tgt.uid, amount: tgt.hp - before, hp: tgt.hp });
+    if (src && src.side === 'party' && tgt.hp > before) this.notoriety(src, Math.min(0.2, (tgt.hp - before) / 60));
     return tgt.hp - before;
   }
 
@@ -367,6 +375,12 @@ SBR.Combat = class Combat {
       if (SBR.traitHooks) SBR.traitHooks.death(this, u);
       SBR.meta.stats.kills++;
       this.push({ t: 'death', uid: u.uid });
+    } else if (u.summon) {
+      // summons just break apart: never a party death, never a revive target
+      const h = u.def.onDeath;
+      this.dismissSummon(u, null);
+      if (h) h(this.ctx(u, src && !src.dead ? src : null), src);
+      return;
     } else {
       if (this.eq(u, 'selfRewind') && !u.rewound) {
         u.rewound = true;
@@ -394,6 +408,7 @@ SBR.Combat = class Combat {
       u.dead = true;
       u.statuses = [];
       this.push({ t: 'death', uid: u.uid });
+      this.summons(u).forEach(s => this.dismissSummon(s, 'GONE'));
     }
     this.checkEnd();
   }
@@ -409,7 +424,7 @@ SBR.Combat = class Combat {
   checkEnd() {
     if (this.result) return;
     if (!this.alive('enemy').length) this.result = 'win';
-    else if (!this.alive('party').length) {
+    else if (!this.alive('party').some(p => !p.summon)) {
       if (this.bonus.dojyaan && !SBR.run.dojyaanUsed) {
         SBR.run.dojyaanUsed = true;
         this.push({ t: 'banner', text: 'DOJYAAAN~', sub: 'A parallel you steps in.' });
@@ -452,6 +467,7 @@ SBR.Combat = class Combat {
   beginTurn(u) {
     this.push({ t: 'turn', uid: u.uid });
     u.usedItem = false;
+    if (u.noto) { u.noto *= 0.7; if (Math.abs(u.noto) < 0.02) u.noto = 0; }
     for (const k in u.cds) if (u.cds[k] > 0) u.cds[k]--;
     // Energy: every unit gains 1 per turn naturally, modified by effects
     {
@@ -465,7 +481,7 @@ SBR.Combat = class Combat {
       if (this.has(u, 'goldenheart')) gain++;
       u.energy = Math.min(u.maxEnergy || 6, (u.energy || 0) + gain);
     }
-    if (u.side === 'party') {
+    if (u.side === 'party' && !u.summon) {
       const rg = (this.bonus.regen || 0) + this.eq(u, 'regen');
       if (rg) this.heal(null, u, rg);
     }
@@ -548,8 +564,17 @@ SBR.Combat = class Combat {
     u.energy -= ab.cost;
     if (ab.cd) u.cds[abId] = ab.cd + 1;
     // multi-pick abilities get a list of uids
-    const picks = Array.isArray(targetUid) ? targetUid.map(id => this.unit(id)).filter(t => t && !t.removed).slice(0, ab.pick || 1) : null;
+    let picks = Array.isArray(targetUid) ? targetUid.map(id => this.unit(id)).filter(t => t && !t.removed).slice(0, ab.pick || 1) : null;
     let target = picks ? picks[0] || null : targetUid ? this.unit(targetUid) : null;
+    // an enemy's Taunt: single-target attacks must go to a taunter
+    if (ab.target === 'enemy') {
+      const T = this.tauntersAgainst(u);
+      if (T.length) {
+        if (picks) { picks = picks.filter(t => T.includes(t)); if (!picks.length) picks = T.slice(0, ab.pick || 1); target = picks[0]; }
+        else if (!target || !T.includes(target)) target = T[0];
+      }
+    }
+    if (u.side === 'party') this.notoriety(u, 0.08 * ab.cost + ((ab.tags || []).includes('stand') && ab.cost ? 0.1 : 0));
     const tgtList = ab.target === 'allEnemies' ? this.foes(u).map(t => t.uid) : ab.target === 'allAllies' ? this.friends(u).map(t => t.uid) : picks ? picks.map(t => t.uid) : target ? [target.uid] : [];
     this.push({ t: 'act', uid: u.uid, name: ab.name, fx: ab.fx, targets: tgtList, cost: ab.cost, abId, pierce: !!ab.pierce, special: (ab.tags || []).includes('stand') || abId === 'ball_breaker' });
     if (!this.preAction(u)) { this.endTurn(u); return true; }
@@ -591,7 +616,8 @@ SBR.Combat = class Combat {
     if (idx < 0) return false;
     SBR.run.items.splice(idx, 1);
     u.usedItem = true;
-    const target = targetUid ? this.unit(targetUid) : null;
+    let target = targetUid ? this.unit(targetUid) : null;
+    if (it.target === 'enemy') { const T = this.tauntersAgainst(u); if (T.length && !T.includes(target)) target = T[0]; }
     this.push({ t: 'act', uid: u.uid, name: it.name, fx: 'item', targets: target ? [target.uid] : [], item: true });
     it.use(this.ctx(u, target, { tags: [] }, 1));
     this.checkEnd();
@@ -610,20 +636,58 @@ SBR.Combat = class Combat {
     this.endTurn(u);
   }
 
-  /** Enemy AI */
-  pickPartyTarget() {
-    const cands = this.alive('party');
+  /* ---------- aggro (AAC-style): single-target enemy attacks pick a party unit weighted by aggro ---------- */
+  notoriety(u, d) {
+    if (!u || u.dead || u.side !== 'party' || !d) return;
+    u.noto = SBR.util.clamp((u.noto || 0) + d, -0.6, 1.5);
+  }
+  /** a unit's aggro and where it comes from: [{label, v, mul?}] */
+  aggroInfo(u) {
+    const parts = [];
+    const base = u.summon ? (u.def.aggro != null ? u.def.aggro : 1) : ((u.def && u.def.aggro) || 1);
+    parts.push({ label: u.summon ? 'Summon' : 'Rider', v: base });
+    let a = base;
+    if (!u.summon && u.stats) {
+      // GRIT makes you a presence on the field; RESOLVE keeps you composed and unremarkable
+      const s = SBR.util.clamp((u.stats.grit - 4) * 0.025 - (u.stats.res - 4) * 0.02, -0.25, 0.35);
+      if (Math.abs(s) >= 0.01) { parts.push({ label: 'GRIT / RESOLVE', v: s }); a += s; }
+    }
+    const g = this.eq(u, 'aggro') + (u.side === 'party' && !u.summon ? (this.bonus.aggro || 0) : 0);
+    if (g) { parts.push({ label: 'Gear', v: g }); a += g; }
+    a = Math.max(0.1, a);
+    if (u.noto) { parts.push({ label: u.noto > 0 ? 'Notoriety' : 'Overlooked', mul: 1 + u.noto }); a *= 1 + u.noto; }
+    for (const s of u.statuses) { const d = SBR.STATUS[s.id]; if (d && d.aggro && s.id !== 'taunt') { parts.push({ label: d.name, mul: d.aggro }); a *= d.aggro; } }
+    return { aggro: Math.max(0.05, a), parts };
+  }
+  aggroOf(u) { return u.dead ? 0 : this.aggroInfo(u).aggro; }
+  /** foes of u that are taunting it (party must hit these with single-target moves) */
+  tauntersAgainst(u) { return this.foes(u).filter(t => this.has(t, 'taunt')); }
+  /** how likely each living party unit is to be picked by a single-target enemy attack */
+  targetWeights(cands = this.alive('party')) {
     const smart = SBR.threatTier ? SBR.threatTier() : 0;
-    return SBR.util.weighted(cands, p => {
-      let w = 1;
-      // at higher threat enemies focus the wounded and the Scanned
-      if (smart) { w *= 1 + smart * 0.6 * (1 - p.hp / p.maxHp); if (this.has(p, 'marked')) w *= 1 + smart * 0.5; }
-      if (this.has(p, 'taunt')) w *= 5;
-      if (p.id === 'lucy') w *= 0.6;
+    const list = cands.map(p => {
+      let w = this.aggroOf(p);
+      // at higher threat enemies focus the wounded and the Scanned, and see through decoys
+      if (smart) { w *= 1 + smart * 0.6 * (1 - p.hp / p.maxHp); if (this.has(p, 'marked')) w *= 1 + smart * 0.5; if (p.summon && !this.has(p, 'taunt')) w /= 1 + smart * 0.15; }
       if (p.hp < p.maxHp * 0.4) w *= 1.3;
-      if (this.has(p, 'evasive')) w *= 0.8;
-      return w;
+      return { u: p, w: Math.max(0.001, w) };
     });
+    // Taunt: taunters draw 85% of single-target attacks between them
+    const T = list.filter(e => this.has(e.u, 'taunt')), N = list.filter(e => !this.has(e.u, 'taunt'));
+    if (T.length && N.length) {
+      const sT = T.reduce((s, e) => s + e.w, 0), sN = N.reduce((s, e) => s + e.w, 0);
+      const k = (sN * 0.85 / 0.15) / sT;
+      T.forEach(e => { e.w *= k; });
+    }
+    const tot = list.reduce((s, e) => s + e.w, 0) || 1;
+    list.forEach(e => { e.p = e.w / tot; });
+    return list;
+  }
+  /** Enemy AI */
+  pickPartyTarget(exclude = []) {
+    const list = this.targetWeights(this.alive('party').filter(p => !exclude.includes(p)));
+    if (!list.length) return null;
+    return SBR.util.weighted(list, e => e.w).u;
   }
   enemyAct(u, free = false) {
     const def = u.def;
@@ -646,9 +710,15 @@ SBR.Combat = class Combat {
     else if (ab.target === 'ally') target = this.friends(u).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
     if (ab.pick > 1 && target && (ab.target === 'enemy' || ab.target === 'ally')) {
       // how many it spreads over: a coin flip between focusing and fanning out
-      const pool = ab.target === 'enemy' ? SBR.util.shuffle(this.alive('party').filter(t => t !== target)) : this.friends(u).filter(t => t !== target).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
       const n = Math.random() < 0.5 ? 1 : SBR.util.randInt(2, ab.pick);
-      picks = [target].concat(pool.slice(0, n - 1));
+      if (ab.target === 'enemy') {
+        // further picks are drawn by aggro too, without repeats
+        picks = [target];
+        while (picks.length < n) { const t = this.pickPartyTarget(picks); if (!t) break; picks.push(t); }
+      } else {
+        const pool = this.friends(u).filter(t => t !== target).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp);
+        picks = [target].concat(pool.slice(0, n - 1));
+      }
       if (picks.length < 2) picks = null;
     }
     const tl = ab.target === 'allEnemies' ? this.alive('party').map(t => t.uid) : ab.target === 'allAllies' ? this.friends(u).map(t => t.uid) : picks ? picks.map(t => t.uid) : target ? [target.uid] : [];
@@ -670,6 +740,66 @@ SBR.Combat = class Combat {
     this.push({ t: 'summon', uid: u.uid });
     return u;
   }
+  /* ---------- party summons (SBR.SUMMONS in summons.js) ---------- */
+  /** owner calls a summon onto the party side. It acts at the end of each round (appended to the order). */
+  summonAlly(owner, key, o = {}) {
+    const D = SBR.SUMMONS && SBR.SUMMONS[key];
+    if (!D || !owner || owner.dead || this.result) return null;
+    const mine = this.summons().filter(s => s.key === key && s.owner === owner.uid);
+    if (mine.length >= (D.max || 1)) this.dismissSummon(mine[0], 'RECALLED');
+    const all = this.summons();
+    if (all.length >= (SBR.SUMMON_CAP || 4)) this.dismissSummon(all[0], 'RECALLED');
+    const lvl = (owner.ref && owner.ref.level) || 1;
+    const maxHp = Math.max(1, Math.round((D.hp || 10) * (1 + 0.05 * (lvl - 1)) * (o.hpMul || 1)));
+    const u = {
+      uid: SBR.util.uid('s'), id: 'sum_' + key, key, name: D.name, fullName: D.name, side: 'party', summon: true, owner: owner.uid, def: D, tier: 'summon',
+      art: { kind: 'summon', key }, stats: Object.assign({ spin: 0, aim: 0, grit: 0, ride: 0, res: 0, luck: 0 }, owner.stats), maxHp, hp: maxHp,
+      energy: 0, maxEnergy: 0, cds: {}, statuses: [], dead: false, baseRes: Object.assign({}, D.res), abilities: [], upgrades: {}, eqb: null,
+      life: o.life != null ? o.life : D.life || 0, lvl: o.lvl || 1, init: 0,
+    };
+    this.units.push(u);
+    this.order.push(u.uid);
+    this.push({ t: 'summon', uid: u.uid, ally: true });
+    if (D.taunt) this.addStatus(u, 'taunt', 0, D.taunt, true);
+    if (D.onSummon) D.onSummon(this.ctx(u, null, null, u.lvl));
+    return u;
+  }
+  dismissSummon(u, text) {
+    if (!u || u.removed) return;
+    if (text && !u.dead) this.push({ t: 'float', uid: u.uid, text, cls: 'miss' });
+    u.dead = true; u.removed = true; u.hp = 0; u.statuses = [];
+    this.push({ t: 'death', uid: u.uid, permanent: true, summon: true });
+  }
+  /** a summon's turn: its one move, then it ticks down if temporary */
+  summonAct(u) {
+    const D = u.def;
+    let target = null;
+    const foes = this.foes(u);
+    const T = this.tauntersAgainst(u);
+    const pool = T.length ? T : foes;
+    if (D.target === 'enemy' && pool.length) {
+      if (D.pick === 'lowest') target = pool.slice().sort((a, b) => a.hp - b.hp)[0];
+      else if (D.pick === 'highest') target = pool.slice().sort((a, b) => b.hp - a.hp)[0];
+      else if (D.pick === 'holed') target = pool.slice().sort((a, b) => this.stacks(b, 'holed') - this.stacks(a, 'holed') || a.hp - b.hp)[0];
+      else target = SBR.util.pick(pool);
+    } else if (D.target === 'owner') target = this.unit(u.owner);
+    else if (D.target === 'ally') {
+      const riders = this.alive('party').filter(p => !p.summon);
+      target = (D.prefer ? riders.filter(p => !this.has(p, D.prefer)) : []).concat(riders.slice().sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp))[0] || null;
+    }
+    const tl = D.target === 'allEnemies' ? foes.map(t => t.uid) : target ? [target.uid] : [];
+    if (D.target !== 'none' && !tl.length) { this.endTurn(u); return; }
+    this.push({ t: 'act', uid: u.uid, name: D.move || D.name, fx: D.fx || 'hit', targets: tl, cost: 0, summonAct: true });
+    if (this.preAction(u) && !u.dead) {
+      const x = this.ctx(u, target, { tags: D.tags || [], dtype: D.dtype }, u.lvl);
+      D.act(x);
+    }
+    if (!u.dead && u.life) {
+      u.life--;
+      if (u.life <= 0) { this.dismissSummon(u, D.fade || 'FADES'); this.push({ t: 'endTurn', uid: u.uid }); this.checkEnd(); return; }
+    }
+    this.endTurn(u);
+  }
   kill(u) { if (!u.dead) { u.hp = 0; this.push({ t: 'setHp', uid: u.uid, hp: 0 }); this.onDeathRaw(u); } }
   onDeathRaw(u) { u.dead = true; this.push({ t: 'death', uid: u.uid }); this.checkEnd(); }
   killAlly(id) {
@@ -677,6 +807,7 @@ SBR.Combat = class Combat {
     if (!u) return;
     u.dead = true; u.removed = true; u.hp = 0;
     this.push({ t: 'death', uid: u.uid, permanent: true });
+    this.summons(u).forEach(s => this.dismissSummon(s, 'GONE'));
   }
   unlockFlag(flag) {
     SBR.run.flags[flag] = true;
@@ -720,6 +851,9 @@ SBR.Combat = class Combat {
       log: text => c.log(text),
       say: (u, text) => u && c.push({ t: 'say', uid: u.uid, text }),
       summon: id => c.summon(id),
+      summonAlly: (key, o) => c.summonAlly(user.summon ? c.unit(user.owner) : user, key, Object.assign({ lvl }, o)),
+      get owner() { return user.summon ? c.unit(user.owner) : user; },
+      taunters: () => c.tauntersAgainst(user),
       kill: u => c.kill(u),
       killAlly: id => c.killAlly(id),
       revive: (t, pct) => c.revive(t, pct),

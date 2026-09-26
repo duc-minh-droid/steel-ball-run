@@ -1,0 +1,122 @@
+/* Stand choreography (js/standfx.js). Flat-ink manga look: #1a1020 outlines, kana SFX, screen tints. */
+#fx-layer > .fx-canvas { z-index: 5; }
+
+/* ---------- full-screen tints ---------- */
+.sfx-screen { position: absolute; inset: 0; pointer-events: none; z-index: 1; animation: sfxScreen var(--d, 1000ms) ease-in-out forwards; }
+.sfx-screen.out { animation: none; opacity: 0; transition: opacity .2s; }
+@keyframes sfxScreen { 0% { opacity: 0; } 12% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; } }
+/* time stop: the world goes grey and blue-ish */
+.sfx-screen.tw-stop { backdrop-filter: grayscale(1) contrast(1.25) brightness(.8); -webkit-backdrop-filter: grayscale(1) contrast(1.25) brightness(.8);
+  background: radial-gradient(circle at 50% 45%, rgba(120, 150, 255, .12), rgba(10, 10, 40, .45) 75%); animation: sfxScreen var(--d) linear forwards; }
+.sfx-screen.green { background: radial-gradient(circle, rgba(58, 208, 122, .05) 30%, rgba(10, 60, 30, .35)); }
+.sfx-screen.pink { background: radial-gradient(circle, rgba(232, 160, 200, .15) 20%, rgba(90, 20, 60, .45)); backdrop-filter: saturate(.6) hue-rotate(-20deg); -webkit-backdrop-filter: saturate(.6) hue-rotate(-20deg); }
+.sfx-screen.red { background: radial-gradient(circle, rgba(200, 50, 60, .12) 20%, rgba(60, 0, 10, .5)); backdrop-filter: sepia(.6) hue-rotate(-40deg) saturate(1.6); -webkit-backdrop-filter: sepia(.6) hue-rotate(-40deg) saturate(1.6); }
+.sfx-screen.sepia { backdrop-filter: sepia(.85) contrast(1.1); -webkit-backdrop-filter: sepia(.85) contrast(1.1); background: rgba(80, 50, 20, .15); }
+.sfx-screen.slowmo { backdrop-filter: saturate(.25) brightness(.9); -webkit-backdrop-filter: saturate(.25) brightness(.9); background: radial-gradient(circle, transparent 35%, rgba(40, 30, 0, .45)); }
+.sfx-screen.gold { background: radial-gradient(circle, rgba(255, 216, 74, .12) 25%, rgba(80, 50, 0, .5)); }
+.sfx-screen.gold::before, .sfx-screen.gold::after { content: ''; position: absolute; left: 0; right: 0; height: 10vh; background: #07030b; box-shadow: 0 0 0 2px #ffd84a; }
+.sfx-screen.gold::before { top: 0; } .sfx-screen.gold::after { bottom: 0; }
+.sfx-screen.rain { background: repeating-linear-gradient(100deg, transparent 0 18px, rgba(160, 200, 240, .18) 18px 19px), rgba(20, 30, 50, .3); }
+.sfx-screen.guilt { background: radial-gradient(circle, transparent 25%, rgba(60, 10, 25, .55)); backdrop-filter: saturate(.5); -webkit-backdrop-filter: saturate(.5); }
+.sfx-screen.light { background: linear-gradient(90deg, rgba(255, 250, 220, .0), rgba(255, 250, 220, .35) 50%, rgba(255, 250, 220, 0)); mix-blend-mode: screen; }
+.sfx-screen.accel { background: repeating-conic-gradient(from 0deg at 50% 45%, rgba(232, 240, 255, .12) 0 3deg, transparent 3deg 12deg); animation: sfxScreen var(--d) linear forwards, sfxSpin .5s linear infinite; }
+@keyframes sfxSpin { to { transform: rotate(12deg); } }
+/* rewind: scanlines rolling upward */
+.sfx-screen.rewind::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .09) 0 2px, transparent 2px 7px); animation: sfxRoll .25s linear infinite; }
+@keyframes sfxRoll { to { background-position: 0 -7px; } }
+/* King Crimson: the erased time, a red starry void with film frames skipping past */
+.sfx-screen.kc-void { background: radial-gradient(circle at 50% 45%, rgba(120, 10, 30, .35), rgba(10, 0, 5, .78) 70%),
+  radial-gradient(1.5px 1.5px at 20% 30%, #fff 50%, transparent 51%), radial-gradient(1.5px 1.5px at 70% 60%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 40% 80%, #ffb0b8 50%, transparent 51%), radial-gradient(1px 1px at 85% 20%, #fff 50%, transparent 51%);
+  backdrop-filter: grayscale(.7) sepia(.4) hue-rotate(-30deg) contrast(1.3); -webkit-backdrop-filter: grayscale(.7) sepia(.4) hue-rotate(-30deg) contrast(1.3); animation: sfxScreen var(--d) linear forwards, sfxFlicker .18s steps(2) infinite; }
+.sfx-screen.kc-void .frames { position: absolute; left: 0; right: 0; top: 12%; height: 76%; opacity: .25;
+  background: repeating-linear-gradient(90deg, transparent 0 140px, #1a1020 140px 150px), repeating-linear-gradient(0deg, transparent 0 12px, rgba(255, 180, 190, .2) 12px 14px);
+  border-top: 10px dashed #1a1020; border-bottom: 10px dashed #1a1020; animation: sfxFrames .3s linear infinite; }
+@keyframes sfxFrames { to { background-position: -150px 0, 0 0; } }
+@keyframes sfxFlicker { 50% { filter: brightness(1.25); } }
+
+/* ---------- lettering ---------- */
+.sfx-say { position: absolute; z-index: 90; pointer-events: none; white-space: nowrap; transform: translate(-50%, -50%) rotate(var(--rot, -6deg));
+  font: 900 40px var(--f-jp, 'Noto Sans JP', sans-serif); color: var(--c, #fff); -webkit-text-stroke: 2px #1a1020; paint-order: stroke fill; text-shadow: 3px 3px 0 #1a1020;
+  animation: sfxSay var(--d, 800ms) cubic-bezier(.2, 1.6, .4, 1) forwards; }
+.sfx-say.big { -webkit-text-stroke: 3px #1a1020; text-shadow: 5px 5px 0 #1a1020, 0 0 18px var(--c); }
+.sfx-say.bubble { font: 700 20px var(--f-ui, Oswald, sans-serif); color: #1a1020; -webkit-text-stroke: 0; text-shadow: none; background: #fff; border: 3px solid #1a1020; border-radius: 18px; padding: 6px 14px; box-shadow: 4px 4px 0 #1a1020; }
+.sfx-say.bubble::after { content: ''; position: absolute; left: 22px; bottom: -14px; border: 8px solid transparent; border-top-color: #1a1020; }
+@keyframes sfxSay { 0% { transform: translate(-50%, -50%) rotate(var(--rot)) scale(2.2); opacity: 0; } 18% { transform: translate(-50%, -50%) rotate(var(--rot)) scale(1); opacity: 1; } 78% { opacity: 1; } 100% { transform: translate(-50%, -64%) rotate(var(--rot)) scale(1.08); opacity: 0; } }
+.sfx-title { position: absolute; z-index: 92; pointer-events: none; transform: translate(-50%, -50%) skewX(-8deg); text-align: center; white-space: nowrap; animation: sfxTitle var(--d, 1100ms) cubic-bezier(.2, 1.2, .3, 1) forwards; }
+.sfx-title b { display: block; font: 900 clamp(26px, 5.4vw, 64px) var(--f-jp, 'Noto Sans JP', sans-serif); color: var(--c, #fff); -webkit-text-stroke: 3px #1a1020; paint-order: stroke fill; text-shadow: 6px 6px 0 #1a1020, 0 0 30px var(--c); letter-spacing: .02em; }
+.sfx-title i { display: inline-block; margin-top: 4px; padding: 2px 14px; font: italic 700 clamp(12px, 1.8vw, 20px) var(--f-ui, Oswald, sans-serif); letter-spacing: .12em; color: #fff; background: #1a1020; box-shadow: 0 0 0 2px var(--c); }
+@keyframes sfxTitle { 0% { transform: translate(-80%, -50%) skewX(-8deg); opacity: 0; } 14% { transform: translate(-50%, -50%) skewX(-8deg); opacity: 1; } 82% { transform: translate(-48%, -50%) skewX(-8deg); opacity: 1; } 100% { transform: translate(-20%, -50%) skewX(-8deg); opacity: 0; } }
+
+/* ---------- Stand bodies ---------- */
+.sfx-stand { position: absolute; z-index: 86; pointer-events: none; width: var(--size, 160px); height: calc(var(--size, 160px) * 1.3); margin: calc(var(--size, 160px) * -0.75) 0 0 calc(var(--size, 160px) * -0.5);
+  transform: scaleX(var(--flip, 1)); opacity: 0; filter: drop-shadow(0 0 14px var(--sc)) drop-shadow(4px 4px 0 #1a1020); transition: opacity .12s; }
+.sfx-stand svg { width: 100%; height: 100%; display: block; }
+.sfx-stand.sprite { background-repeat: no-repeat; image-rendering: auto; }
+.sfx-stand.go { opacity: .96; animation: sfxStandIn .22s cubic-bezier(.2, 1.6, .4, 1); }
+.sfx-stand.out { opacity: 0; transition: opacity .22s, transform .22s; transform: scaleX(var(--flip, 1)) scale(.7); }
+@keyframes sfxStandIn { from { transform: scaleX(var(--flip, 1)) scale(.5); } }
+.sfx-stand.ghost.go { opacity: .6; filter: grayscale(.3) brightness(1.25) drop-shadow(0 0 8px var(--sc)); animation: sfxGhost .5s ease-in-out infinite alternate; }
+.sfx-stand.ghost.solid.go { opacity: .78; mix-blend-mode: normal; }
+.sfx-stand.ghost.red.go { filter: sepia(1) hue-rotate(-40deg) saturate(3) drop-shadow(0 0 10px #ff4a5a); }
+@keyframes sfxGhost { to { opacity: .28; transform: scaleX(var(--flip, 1)) translateX(6px); } }
+.sfx-stand.blinky.go { animation: sfxBlink .14s steps(2) infinite; }
+@keyframes sfxBlink { 50% { filter: drop-shadow(0 0 22px var(--sc)) drop-shadow(4px 4px 0 #1a1020) brightness(1.4); } }
+.sfx-stand.tiny { filter: drop-shadow(0 0 6px var(--sc)) drop-shadow(2px 2px 0 #1a1020); }
+.sfx-stand.pop.go { animation: sfxPop .5s cubic-bezier(.2, 2, .4, 1), sfxBob .6s .5s ease-in-out infinite alternate; }
+@keyframes sfxPop { from { transform: scale(0) rotate(-30deg); } }
+@keyframes sfxBob { to { transform: translateY(-8px) rotate(4deg); } }
+
+/* fists: afterimage copies (strike.js barrage), frozen fists in stopped time, and the finishing uppercut */
+.stk-fist.ghost { opacity: .45; filter: grayscale(.2) brightness(1.3); mix-blend-mode: screen; }
+.stk-fist.ghost svg { opacity: .55; }
+.sfx-fist { position: absolute; z-index: 87; pointer-events: none; width: 52px; height: 52px; margin: -26px 0 0 -26px; transform: rotate(var(--r, 0deg)); filter: drop-shadow(0 0 6px #fff); }
+.sfx-fist svg { width: 100%; height: 100%; overflow: visible; }
+.sfx-fist.frozen { animation: sfxFreeze .2s ease-out both; }
+@keyframes sfxFreeze { from { transform: rotate(var(--r)) scale(.3); opacity: 0; } }
+.sfx-fist.release { transition: transform .16s cubic-bezier(.6, 0, 1, .6), opacity .12s .12s; transform: translate(var(--tx), var(--ty)) rotate(var(--r)) scale(1.2); opacity: 0; }
+.sfx-fist.upper { width: 96px; height: 96px; margin: -48px 0 0 -48px; animation: sfxUpper .5s cubic-bezier(.2, 1.4, .4, 1) forwards; }
+@keyframes sfxUpper { 0% { transform: translate(0, 40px) rotate(var(--r)) scale(.4); opacity: 0; } 30% { transform: translate(0, -20px) rotate(var(--r)) scale(1.2); opacity: 1; } 100% { transform: translate(0, -60px) rotate(var(--r)) scale(1); opacity: 0; } }
+
+/* ---------- props ---------- */
+.sfx-click, .sfx-watch { position: absolute; z-index: 89; pointer-events: none; width: 84px; height: 84px; margin: -42px 0 0 -42px; animation: sfxSay var(--d, 700ms) cubic-bezier(.2, 1.6, .4, 1) forwards; --rot: -8deg; transform: translate(0, 0); filter: drop-shadow(3px 3px 0 #1a1020); }
+.sfx-click svg, .sfx-watch svg { width: 100%; height: 100%; }
+.sfx-click b, .sfx-watch b { position: absolute; left: 50%; top: 100%; transform: translate(-50%, -30%); font: 900 24px var(--f-jp); color: #ffb0d8; -webkit-text-stroke: 2px #1a1020; paint-order: stroke fill; white-space: nowrap; }
+.sfx-watch { width: 110px; height: 110px; margin: -55px 0 0 -55px; }
+.sfx-watch b { color: #c8a0ff; font-size: 30px; }
+.sfx-watch .hand { transform-origin: 50px 50px; animation: sfxRewindHand var(--d, 1200ms) cubic-bezier(.5, 0, .5, 1) forwards; }
+@keyframes sfxRewindHand { from { transform: rotate(0deg); } to { transform: rotate(-216deg); } }
+.sfx-sha { position: absolute; z-index: 87; pointer-events: none; width: 70px; height: 52px; margin: -26px 0 0 -35px; transform: scaleX(var(--flip, 1)); filter: drop-shadow(3px 3px 0 #1a1020); animation: sfxRumble .1s linear infinite; }
+.sfx-sha svg { width: 100%; height: 100%; }
+.sfx-sha.out { opacity: 0; transition: opacity .2s; }
+@keyframes sfxRumble { 50% { margin-top: -28px; } }
+.sfx-eye { position: absolute; z-index: 89; pointer-events: none; width: 120px; height: 60px; margin: -30px 0 0 -60px; animation: sfxEye var(--d, 1000ms) ease-out forwards; filter: drop-shadow(3px 3px 0 #1a1020) drop-shadow(0 0 14px #ff4a5a); }
+.sfx-eye.reptile { filter: drop-shadow(3px 3px 0 #1a1020) drop-shadow(0 0 14px #8adf6a); }
+.sfx-eye svg { width: 100%; height: 100%; }
+@keyframes sfxEye { 0% { transform: scaleY(0); opacity: 0; } 20% { transform: scaleY(1); opacity: 1; } 80% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(.1); opacity: 0; } }
+.sfx-skel { position: absolute; z-index: 84; pointer-events: none; width: 240px; height: 340px; margin: -200px 0 0 -120px; transform: scaleX(var(--flip, 1)); mix-blend-mode: screen; filter: drop-shadow(0 0 16px #ffd84a); animation: sfxSkel var(--d, 1800ms) ease-out forwards; }
+.sfx-skel svg { width: 100%; height: 100%; }
+.sfx-skel.out { opacity: 0; transition: opacity .3s; }
+@keyframes sfxSkel { 0% { opacity: 0; transform: scaleX(var(--flip, 1)) scale(.6); } 25% { opacity: .9; transform: scaleX(var(--flip, 1)) scale(1.05); } 100% { opacity: .7; transform: scaleX(var(--flip, 1)) scale(1.12); } }
+.sfx-age { position: absolute; z-index: 3; pointer-events: none; width: 150px; height: 170px; margin: -85px 0 0 -75px; border-radius: 20px; backdrop-filter: sepia(1) grayscale(.5) brightness(.8) contrast(1.2); -webkit-backdrop-filter: sepia(1) grayscale(.5) brightness(.8) contrast(1.2); animation: sfxScreen var(--d, 1200ms) ease-in-out forwards; }
+.sfx-leftside { position: absolute; z-index: 3; pointer-events: none; width: 76px; height: 170px; margin: -85px 0 0 -76px; background: linear-gradient(90deg, rgba(10, 5, 20, .85), rgba(10, 5, 20, .2)); backdrop-filter: blur(2px) grayscale(1); -webkit-backdrop-filter: blur(2px) grayscale(1); animation: sfxScreen var(--d, 1100ms) ease-in-out forwards; }
+.sfx-can { position: absolute; z-index: 87; pointer-events: none; width: 30px; height: 60px; margin: -30px 0 0 -15px; transform: scaleX(var(--flip, 1)) rotate(20deg); filter: drop-shadow(2px 2px 0 #1a1020); animation: sfxScreen var(--d, 800ms) ease-in-out forwards; }
+.sfx-can svg, .sfx-raptor svg, .sfx-balloon svg, .sfx-flag svg, .sfx-roller svg { width: 100%; height: 100%; display: block; }
+.sfx-raptor { position: absolute; z-index: 87; pointer-events: none; width: 60px; height: 40px; margin: -20px 0 0 -30px; transform: scaleX(var(--flip, 1)); filter: drop-shadow(2px 2px 0 #1a1020); animation: sfxScreen var(--d, 900ms) linear forwards; }
+.sfx-3d { position: absolute; z-index: 90; pointer-events: none; transform: translate(-50%, -50%) rotate(var(--rot, 0deg)); font: 900 64px var(--f-jp); color: #e8508a; -webkit-text-stroke: 3px #1a1020; paint-order: stroke fill;
+  text-shadow: 2px 2px 0 #a02a5a, 4px 4px 0 #a02a5a, 6px 6px 0 #a02a5a, 8px 8px 0 #1a1020; }
+.sfx-3d.hit { animation: sfx3d .3s ease-out forwards; }
+@keyframes sfx3d { to { transform: translate(-50%, -50%) rotate(var(--rot)) scale(1.9); opacity: 0; filter: brightness(2); } }
+.sfx-sticker { position: absolute; z-index: 88; pointer-events: none; transform: translate(-50%, -50%) rotate(var(--rot, 0deg)); font: 900 30px var(--f-jp); color: #fff; background: #e8508a; border: 3px solid #1a1020; border-radius: 8px; padding: 0 8px; box-shadow: 3px 3px 0 #1a1020; animation: sfxSay var(--d, 1100ms) cubic-bezier(.2, 1.6, .4, 1) forwards; }
+.sfx-balloon { position: absolute; z-index: 87; pointer-events: none; width: 90px; height: 66px; margin: -33px 0 0 -45px; filter: drop-shadow(3px 3px 0 #1a1020); animation: sfxBob .4s ease-in-out infinite alternate; }
+.sfx-flag { position: absolute; z-index: 88; pointer-events: none; width: 190px; height: 130px; margin: -110px 0 0 -40px; filter: drop-shadow(4px 4px 0 #1a1020); transform-origin: 6% 50%; animation: sfxFlag var(--d, 1300ms) ease-in-out forwards; }
+.sfx-flag .cloth { animation: sfxWave .35s ease-in-out infinite alternate; transform-origin: 8px 40px; }
+.sfx-flag.out { opacity: 0; transition: opacity .25s; }
+@keyframes sfxFlag { 0% { transform: scaleX(0); } 20% { transform: scaleX(1); } 70% { transform: scaleX(1); } 100% { transform: scaleX(.2); opacity: 0; } }
+@keyframes sfxWave { to { transform: skewY(4deg) scaleX(.96); } }
+.sfx-roller { position: absolute; z-index: 88; pointer-events: none; width: 200px; height: 150px; margin: -120px 0 0 -100px; filter: drop-shadow(5px 5px 0 #1a1020); }
+
+/* reduced motion: no flicker, no bobbing, softer tints */
+body.reduced .sfx-screen, body.reduced .sfx-screen.kc-void, body.reduced .sfx-screen.accel { animation: sfxScreen var(--d, 1000ms) linear forwards; }
+body.reduced .sfx-screen.rewind::after, body.reduced .sfx-screen.kc-void .frames { animation: none; }
+body.reduced .sfx-stand.ghost.go, body.reduced .sfx-stand.blinky.go, body.reduced .sfx-stand.pop.go, body.reduced .sfx-balloon, body.reduced .sfx-sha { animation: none; }
+body.reduced .sfx-say, body.reduced .sfx-title { animation-timing-function: linear; }

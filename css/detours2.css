@@ -1,0 +1,7 @@
+/* The Pillar Tomb backdrop (js/detours2.js): carved pillars and a red glow over the Silver Mine's dark */
+.scene.act11 .dt-tomb-over { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.scene.act11 .dt-tomb-over svg { width: 100%; height: 100%; display: block; }
+.scene.act11 .px-sky { filter: hue-rotate(-25deg) saturate(1.3); }
+.scene.act11 .dt-tomb-over { animation: dtTombPulse 3.2s ease-in-out infinite; }
+@keyframes dtTombPulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.12) saturate(1.2); } }
+@media (prefers-reduced-motion: reduce) { .scene.act11 .dt-tomb-over { animation: none; } }

@@ -698,10 +698,47 @@ SBR.sprint = (() => {
       function usePower(i) {
         const p = powers[i]; if (!p || p.used || !started || finished) return;
         p.used = true; p.btn.classList.add('used');
+        const me = runners[0];
+        const snap = { st: S.stamina, sh: S.shield, bo: S.boostT, ag: S.autoGold, bad: S.stumble + S.slow + S.blind, pos: me.pos, rv: runners.slice(1).map(x => ({ x, stun: x.stun || 0, pos: x.pos })) };
         p.use(API);
         if (p.id !== 'timestop') say(`「${p.name}」!`);
         SBR.audio.play('spin');
         API.flash(p.color);
+        if (p.id === 'horse') horseCut(p);
+        powerFx(p, snap);
+      }
+      /** a horse's trick gets its own cut-in: the horse gallops across a speed-lined band with the move's name */
+      function horseCut(p) {
+        const h = SBR.HORSES[r.horse] || {};
+        const c = el('div', { class: 'hz-cut', html: `<div class="hz-lines"></div><div class="hz-horse">${art.horse({ coat: h.coat, mane: h.mane, wrap: h.wrap, spots: h.spots, marks: h.marks })}</div><div class="hz-txt"><small>${h.name || 'Your horse'}</small><b>「${p.name}」</b></div><em>${p.glyph || '馬'}</em>` });
+        c.style.setProperty('--pc', p.color || '#f2c14e');
+        wrap.appendChild(c); setTimeout(() => c.remove(), 1500 / (SBR.settings.speed || 1));
+        SBR.audio.play('gallop');
+      }
+      /** read what the power changed and draw it: speed bursts, shields, gold rhythm, second wind, dashes, rivals hit */
+      function powerFx(p, s) {
+        const me = runners[0], col = p.color || '#f2c14e', P = at(me);
+        let any = false;
+        if (S.boostT > s.bo + 0.1) { any = true; skin(me, 'hz-boost', S.boostT, '<i></i><i></i><i></i><i></i>'); kana(P, 'ドドドド', col); burst(P, 'star', col); }
+        if (S.shield > s.sh + 0.1) { any = true; const b = child(me, 'hz-shield', '<i></i>', S.shield); b.style.setProperty('--pc', col); kana(P, 'ガキィン', col); }
+        if (S.autoGold > s.ag) { any = true; ringEl.classList.add('hz-goldring'); later(3.5, () => ringEl.classList.remove('hz-goldring')); child(me, 'hz-notes', '<i>♪</i><i>♫</i><i>♪</i>', 2.2); kana(P, 'スッ', '#f2c14e'); }
+        if (S.stamina > s.st + 5) { any = true; child(me, 'hz-wind', '<i></i><i></i><i></i><i></i><i></i><i></i>', 1.6).style.setProperty('--pc', col); spot('sk-kana', `+${Math.round(S.stamina - s.st)}`, { x: P.x, y: P.y - 70 }, 1, '#7adf5a'); }
+        if (S.stumble + S.slow + S.blind < s.bad - 0.2) { any = true; spot('sk-kana', 'CLEAR!', { x: P.x + 30, y: P.y - 40 }, 0.9, '#fff'); ringEl.classList.remove('blinded', 'sk-ash'); }
+        if (me.pos > s.pos + 5) {
+          any = true; const d = me.pos - s.pos;
+          for (let i = 1; i <= 3; i++) { const g = child(me, 'hz-ghost', me.node.querySelector('svg') ? me.node.querySelector('svg').outerHTML : '', 0.5); g.style.setProperty('--gx', (-i * Math.min(60, d * 1.4)) + 'px'); g.style.opacity = 0.5 - i * 0.12; }
+          kana(P, 'シュン', col);
+        }
+        s.rv.forEach(o => {
+          if (o.x.done) return;
+          if ((o.x.stun || 0) > o.stun + 0.2 || o.x.pos < o.pos - 3) {
+            any = true; const Q = at(o.x);
+            burst(Q, 'star', col); kana(Q, o.x.pos < me.pos ? 'ザザッ' : 'ドゴッ', col);
+            if (o.x.pos < me.pos) spot('hz-dust', '<i></i><i></i><i></i>', { x: (P.x + Q.x) / 2, y: Q.y + 20 }, 1.1, '#d8c09a');
+            else { const ln = el('div', { class: 'hz-streak' }); const wr = wrapBox(); ln.style.cssText = `left:${P.x}px;top:${P.y}px;width:${Math.hypot(Q.x - P.x, Q.y - P.y)}px;transform:rotate(${Math.atan2(Q.y - P.y, Q.x - P.x)}rad);--pc:${col}`; fxL.appendChild(ln); later(0.5, () => ln.remove()); }
+          }
+        });
+        if (!any) { burst(P, 'star', col); kana(P, 'ゴゴゴ', col); }
       }
       powers.forEach((p, i) => {
         p.btn = el('button', { class: 'sp-power', style: { '--pc': p.color }, html: `<kbd>${i + 1}</kbd><b>${p.glyph}</b><span>${p.name}</span>` });

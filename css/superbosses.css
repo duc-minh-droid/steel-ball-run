@@ -1,0 +1,16 @@
+/* Strange Aura: the 7-star secret superboss card and boss intro (js/superbosses.js) */
+.enc-card.secret { background: radial-gradient(circle at 50% 38%, #3a1458 0%, #1a0a28 60%, #0a0410 100%) !important; color: #f3e6ff; box-shadow: 0 0 0 4px #b070e0, 0 0 26px 6px rgba(176, 112, 224, .75), 10px 10px 0 var(--ink); animation: sbAura 1.8s ease-in-out infinite; }
+.enc-card.secret .enc-type { background: linear-gradient(90deg, #6a2aa0, #c8323c) !important; color: #fff3c0; letter-spacing: 1px; }
+.enc-card.secret .enc-title { color: #f2c14e !important; text-shadow: 2px 2px 0 #6a2aa0, 4px 4px 0 var(--ink) !important; letter-spacing: 2px; }
+.enc-card.secret .enc-blurb { color: #e8d8f8 !important; font-style: italic; }
+.enc-card.secret .enc-art { border-color: #b070e0; overflow: hidden; }
+.enc-card.secret .enc-art .sb-card-art { animation: sbPulse 2.4s ease-in-out infinite; }
+.enc-stars.s7, .enc-stars.s6 { color: #f2c14e; font-size: 17px; letter-spacing: -1px; right: 6px; top: 6px; animation: sbStars 1s steps(2) infinite; text-shadow: 0 0 6px #b070e0, 1px 1px 0 #1a1020; }
+@keyframes sbAura { 0%, 100% { box-shadow: 0 0 0 4px #b070e0, 0 0 18px 4px rgba(176, 112, 224, .55), 10px 10px 0 #1a1020; } 50% { box-shadow: 0 0 0 4px #e8508a, 0 0 34px 10px rgba(200, 50, 60, .6), 10px 10px 0 #1a1020; } }
+@keyframes sbPulse { 0%, 100% { filter: saturate(1) brightness(1); } 50% { filter: saturate(1.4) brightness(1.15) hue-rotate(-18deg); } }
+@keyframes sbStars { 0% { opacity: 1; } 50% { opacity: .55; } }
+.boss-intro.sb-intro { background: radial-gradient(circle at 30% 50%, rgba(138, 58, 208, .55), rgba(10, 4, 16, .92) 70%) !important; }
+.boss-intro.sb-intro .bi-kicker { background: linear-gradient(90deg, #6a2aa0, #c8323c) !important; color: #fff3c0 !important; letter-spacing: 2px; }
+.boss-intro.sb-intro .sb-stars { color: #f2c14e; margin-right: 6px; text-shadow: 0 0 8px #b070e0; }
+.boss-intro.sb-intro .bi-name { color: #f2c14e; text-shadow: 3px 3px 0 #6a2aa0, 6px 6px 0 #1a1020; }
+@media (prefers-reduced-motion: reduce) { .enc-card.secret, .enc-card.secret .enc-art .sb-card-art, .enc-stars.s7 { animation: none; } }

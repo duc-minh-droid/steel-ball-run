@@ -21,15 +21,24 @@ SBR.strike = (() => {
   };
   const isClose = key => !!CLOSE[key];
 
-  async function rush({ key, from, to, tier = 1, lvl = 1, color = '#f2c14e', enemy = false }) {
+  /* rush(opts): battle-ui calls this for close-range Stands. js/standfx.js may take the move over with its own
+     choreography (per ability id / Stand key); it calls back here with plain:true and a `style` to reuse the barrage.
+     style: { cry:[kana,word], fist:(color)=>svg, fistColor, fan:n afterimage fists per beat, hits:(power)=>n,
+              blink:true (no travel frames), onArrive(t,stop,dir,power), onHit(t,i,power,dir), finish:async(t,power,dir,stand),
+              noFinishFlash, stay:true (leave the Stand where it is; caller removes it via the returned element) } */
+  async function rush(opts) {
+    const { key, from, to, tier = 1, lvl = 1, color = '#f2c14e', enemy = false, style = {} } = opts;
+    if (!opts.plain && SBR.standfx) { const r = SBR.standfx.rush(opts); if (r) return r; }
     if (!to.length || !SBR.stands || !SBR.stands.DEFS[key]) return;
-    const [kana, word] = CLOSE[key];
+    const [kana, word] = style.cry || CLOSE[key] || ['ドド', 'DODO'];
     const power = Math.min(5, tier + (lvl - 1));             // 0-5
-    const hits = calm() ? 3 : 5 + power * 3;                   // fists per target
+    const hits = calm() ? 3 : style.hits ? style.hits(power) : 5 + power * 3;   // fists per target
+    const fc = style.fistColor || color;
     const stand = mk('stk-stand' + (enemy ? ' enemy' : ''), SBR.stands.svg(key), from);
     stand.style.setProperty('--sc', color);
     stand.style.setProperty('--size', (150 + power * 18) + 'px');
-    const place = (p, ms, extra = '') => { const q = rel(p); stand.style.transition = `left ${ms / spd()}ms cubic-bezier(.5,0,.3,1), top ${ms / spd()}ms cubic-bezier(.5,0,.3,1), transform ${ms / spd()}ms`; stand.style.left = q.x + 'px'; stand.style.top = q.y + 'px'; stand.style.transform = extra; };
+    if (SBR.standfx && SBR.standfx.applySprite) SBR.standfx.applySprite(stand, key, 'rush');
+    const place = (p, ms, extra = '') => { const q = rel(p); stand.style.transition = ms ? `left ${ms / spd()}ms cubic-bezier(.5,0,.3,1), top ${ms / spd()}ms cubic-bezier(.5,0,.3,1), transform ${ms / spd()}ms` : 'none'; stand.style.left = q.x + 'px'; stand.style.top = q.y + 'px'; stand.style.transform = extra; };
     // speed lines behind everything for the big ones
     let lines = null;
     if (power >= 3 && !calm()) { lines = mk('stk-lines' + (power >= 5 ? ' max' : ''), '', { x: innerWidth / 2, y: innerHeight / 2 }); lines.style.setProperty('--sc', color); }
@@ -40,28 +49,46 @@ SBR.strike = (() => {
       const t = to[ti];
       const dir = t.x >= from.x ? -1 : 1;                      // stand stops just in front of the target
       const stop = { x: t.x + dir * 58, y: t.y - 6 };
-      if (power >= 2 && !calm()) afterimages(stand, from, stop, key, color, power);
-      place(stop, 170, `scaleX(${dir > 0 ? -1 : 1})`);
-      await wait(170);
+      if (style.blink) { place(stop, 0, `scaleX(${dir > 0 ? -1 : 1})`); await wait(40); }
+      else {
+        if (power >= 2 && !calm()) afterimages(stand, from, stop, key, color, power);
+        place(stop, 170, `scaleX(${dir > 0 ? -1 : 1})`);
+        await wait(170);
+      }
+      if (style.onArrive) await style.onArrive(t, stop, dir, power, stand);
       stand.classList.add('punching');
-      const cry = mk('stk-cry' + (power >= 4 ? ' big' : ''), `<b>${word}${power >= 2 ? ' ' + word : ''}${power >= 4 ? ' ' + word + '!!' : '!'}</b><i>${kana.repeat(Math.min(4, 2 + (power >> 1)))}</i>`, { x: (stop.x + t.x) / 2, y: t.y - 90 });
-      cry.style.setProperty('--sc', color);
+      const cry = word ? mk('stk-cry' + (power >= 4 ? ' big' : ''), `<b>${word}${power >= 2 ? ' ' + word : ''}${power >= 4 ? ' ' + word + '!!' : '!'}</b><i>${kana.repeat(Math.min(4, 2 + (power >> 1)))}</i>`, { x: (stop.x + t.x) / 2, y: t.y - 90 }) : null;
+      if (cry) cry.style.setProperty('--sc', color);
       const per = Math.max(24, 70 - power * 8);
+      const fan = calm() ? 0 : (style.fan != null ? style.fan : 0);
       for (let i = 0; i < hits; i++) {
-        const f = mk('stk-fist' + (power >= 3 ? ' heavy' : ''), fist(color), { x: t.x + (Math.random() * 70 - 35), y: t.y + (Math.random() * 80 - 40) });
-        f.style.setProperty('--r', (Math.random() * 60 - 30) + 'deg');
+        const fp = { x: t.x + (Math.random() * 70 - 35), y: t.y + (Math.random() * 80 - 40) };
+        const f = mk('stk-fist' + (power >= 3 ? ' heavy' : ''), (style.fist || fist)(fc), fp);
+        const r0 = Math.random() * 60 - 30;
+        f.style.setProperty('--r', r0 + 'deg');
         f.style.setProperty('--dx', (dir * 26) + 'px');
         setTimeout(() => f.remove(), 380 / spd());
+        // afterimage fists: a fanned blur of copies behind the real one
+        for (let g = 1; g <= fan; g++) {
+          const gf = mk('stk-fist ghost', (style.fist || fist)(fc), { x: fp.x - dir * g * 16, y: fp.y + (g % 2 ? -1 : 1) * g * 9 });
+          gf.style.setProperty('--r', (r0 + (g % 2 ? -1 : 1) * g * 7) + 'deg');
+          gf.style.setProperty('--dx', (dir * 26) + 'px');
+          gf.style.animationDelay = (g * 18 / spd()) + 'ms';
+          setTimeout(() => gf.remove(), 420 / spd());
+        }
+        if (style.onHit) style.onHit(t, i, power, dir);
         if (i % 3 === 0) SBR.audio.play('hit');
         await wait(per);
       }
       // the last blow
-      const fin = mk('stk-finish', '', t); fin.style.setProperty('--sc', color); setTimeout(() => fin.remove(), 600 / spd());
+      if (!style.noFinishFlash) { const fin = mk('stk-finish', '', t); fin.style.setProperty('--sc', color); setTimeout(() => fin.remove(), 600 / spd()); }
       SBR.audio.play(power >= 3 ? 'boom' : 'crit');
-      setTimeout(() => cry.remove(), 500 / spd());
+      if (cry) setTimeout(() => cry.remove(), 500 / spd());
       stand.classList.remove('punching');
+      if (style.finish) await style.finish(t, power, dir, stand);
       await wait(90);
     }
+    if (style.stay) { if (lines) setTimeout(() => lines.remove(), 200 / spd()); return stand; }
     place(from, 200, 'scale(.6)');
     stand.classList.add('back');
     await wait(160);
@@ -124,5 +151,5 @@ SBR.strike = (() => {
     w.classList.add('out'); k.classList.add('out');
     setTimeout(() => { w.remove(); k.remove(); }, 260 / spd());
   }
-  return { rush, weapon, isClose, hasWeapon, CLOSE, WEAPON };
+  return { rush, weapon, isClose, hasWeapon, afterimages, fist, mk, rel, CLOSE, WEAPON };
 })();

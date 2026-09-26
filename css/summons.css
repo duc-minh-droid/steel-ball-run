@@ -1,0 +1,72 @@
+/* Aggro indicators, Taunt badges and party summons (js/summons.js, battle-ui.js) */
+
+/* ---- aggro badge: crosshair, bars, % chance to be picked ---- */
+.uc-aggro { position: absolute; top: -12px; left: -10px; z-index: 6; display: flex; align-items: center; gap: 3px; padding: 2px 6px 2px 3px;
+  background: var(--paper, #f6ecd8); border: 2.5px solid var(--ink, #1a1020); box-shadow: 2px 2px 0 var(--ink, #1a1020); color: #6a5a6a;
+  font: 700 11px/1 Oswald, sans-serif; cursor: help; transform: rotate(-4deg); transition: background .2s, color .2s; }
+.uc-aggro:empty { display: none; }
+.uc-aggro .ag-eye { width: 14px; height: 14px; }
+.uc-aggro .ag-bars { display: flex; align-items: flex-end; gap: 1px; height: 11px; }
+.uc-aggro .ag-bars i { display: block; width: 3px; background: #c8b8a8; border: 1px solid var(--ink, #1a1020); }
+.uc-aggro .ag-bars i:nth-child(1) { height: 4px; } .uc-aggro .ag-bars i:nth-child(2) { height: 6px; }
+.uc-aggro .ag-bars i:nth-child(3) { height: 8px; } .uc-aggro .ag-bars i:nth-child(4) { height: 11px; }
+.uc-aggro .ag-bars i.on { background: #e8742a; }
+.uc-aggro.top { background: #c8323c; color: #fff; }
+.uc-aggro.top .ag-bars i.on { background: #ffd84a; }
+.uc-aggro.top .ag-eye { animation: agSpin 2.4s linear infinite; }
+.uc-aggro.taunt { background: #1a1020; color: #ff6a5a; }
+@keyframes agSpin { to { transform: rotate(360deg); } }
+/* the likeliest target wears a red crosshair over its portrait */
+.unit-card.party.aggro-top .uc-frame::before { content: ''; position: absolute; inset: 14% 18%; z-index: 2; pointer-events: none; opacity: .5;
+  border: 3px solid #c8323c; border-radius: 50%;
+  background: linear-gradient(#c8323c, #c8323c) center / 3px 100% no-repeat, linear-gradient(#c8323c, #c8323c) center / 100% 3px no-repeat;
+  -webkit-mask: radial-gradient(circle, transparent 18%, #000 19%); mask: radial-gradient(circle, transparent 18%, #000 19%);
+  animation: agPulse 1.6s ease-in-out infinite; }
+@keyframes agPulse { 50% { opacity: .15; transform: scale(1.08); } }
+.battle.targeting .unit-card.party.aggro-top .uc-frame::before { display: none; }
+
+/* ---- taunt badge ---- */
+.uc-taunt { display: none; position: absolute; left: -6px; right: -6px; bottom: 8px; z-index: 3; text-align: center; transform: rotate(-6deg);
+  background: #c8323c; color: #fff; border: 3px solid var(--ink, #1a1020); font: 400 14px/1.3 Bangers, Anton, sans-serif; letter-spacing: .08em;
+  text-shadow: 1px 1px 0 var(--ink, #1a1020); box-shadow: 3px 3px 0 var(--ink, #1a1020); pointer-events: none; }
+.uc-taunt b { font-family: 'Noto Sans JP', serif; font-weight: 900; margin-right: 4px; color: #ffd84a; }
+.unit-card.taunting .uc-taunt { display: block; animation: tauntPop .35s cubic-bezier(.2, 1.6, .4, 1); }
+.unit-card.taunting .uc-frame { outline: 3px dashed #c8323c; outline-offset: 3px; }
+.unit-card.enemy.taunting .uc-frame { animation: tauntGlow 1.2s ease-in-out infinite; }
+@keyframes tauntPop { from { transform: rotate(-6deg) scale(0); } }
+@keyframes tauntGlow { 50% { filter: drop-shadow(0 0 10px #ff3a2a); } }
+.target-hint .th-taunt { color: #fff; background: #c8323c; padding: 1px 6px; border: 2px solid var(--ink, #1a1020); margin-right: 4px; font-family: Bangers, Anton, sans-serif; letter-spacing: .05em; }
+.tip-taunt { color: #ff8a7a; }
+.tip-aggro small { opacity: .85; }
+
+/* ---- summons: a small rack at the inner edge of the party side ---- */
+.summon-rack { order: 99; display: grid; grid-template-columns: repeat(2, auto); grid-auto-flow: row; gap: 10px 8px; align-items: end; align-self: center; }
+.summon-rack:empty { display: none; }
+.unit-card.summon-card, .side.crowd-3 .unit-card.summon-card, .side.crowd-4 .unit-card.summon-card { width: 80px; animation-duration: 2.2s; }
+.unit-card.summon-card .uc-frame, .side.crowd-3 .summon-card .uc-frame, .side.crowd-4 .summon-card .uc-frame { height: 74px; border-width: 3px; }
+.unit-card.summon-card .uc-frame { box-shadow: 0 0 0 2px var(--paper, #f6ecd8), 0 0 0 4px #b070ff, 4px 4px 0 3px var(--ink, #1a1020); border-radius: 10px 2px 10px 2px; }
+.unit-card.summon-card.active .uc-frame { box-shadow: 0 0 0 2px var(--gold, #f2c14e), 0 0 0 5px var(--ink, #1a1020), 0 0 20px 6px rgba(176, 112, 255, .5); }
+.unit-card.summon-card .uc-name { font-size: 11px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.unit-card.summon-card .hpbar { height: 11px; }
+.unit-card.summon-card .hpbar span { font-size: 8px; }
+.unit-card.summon-card .energy-pips { display: none; }
+.unit-card.summon-card .uc-status { min-height: 0; gap: 2px; }
+.unit-card.summon-card .st-chip { transform: scale(.78); margin: -3px; }
+.unit-card.summon-card .uc-aggro { top: -9px; left: -8px; font-size: 9px; padding: 1px 4px 1px 2px; }
+.unit-card.summon-card .uc-aggro .ag-bars { display: none; }
+.unit-card.summon-card .uc-aggro .ag-eye { width: 11px; height: 11px; }
+.unit-card.summon-card .uc-taunt { font-size: 10px; bottom: 2px; border-width: 2px; }
+.unit-card.summon-card .uc-art svg { width: 100%; height: 100%; }
+.uc-life { position: absolute; top: 2px; right: 2px; z-index: 3; min-width: 16px; height: 16px; padding: 0 3px; border-radius: 8px; background: #b070ff; color: #fff;
+  border: 2px solid var(--ink, #1a1020); font: 700 10px/12px Oswald, sans-serif; text-align: center; }
+.uc-life:empty { display: none; }
+.unit-card.summon-card.summoned { animation: summonIn .6s cubic-bezier(.2, 1.5, .4, 1); }
+@keyframes summonIn { 0% { transform: translateY(40px) scale(.2); opacity: 0; filter: brightness(3); } 60% { filter: brightness(1.6); } }
+.unit-card.summon-card.dying { animation: summonOut .5s ease-in forwards; }
+@keyframes summonOut { to { transform: scale(.3) rotate(25deg); opacity: 0; filter: grayscale(1); } }
+.order-chip.summon { width: 30px; height: 36px; border-color: #b070ff; border-radius: 8px 2px; }
+@media (max-width: 900px) {
+  .unit-card.summon-card, .side .unit-card.summon-card { width: 60px; }
+  .unit-card.summon-card .uc-frame, .side .summon-card .uc-frame { height: 56px; }
+  .uc-aggro .ag-bars { display: none; }
+}

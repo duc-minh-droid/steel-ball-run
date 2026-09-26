@@ -103,21 +103,32 @@ SBR.battle = (() => {
     const eside = el('div', { class: 'side enemy-side' });
     field.append(pside, el('div', { class: 'vs-mark' }, 'VS'), eside);
     cards = {};
-    c.units.forEach(u => { if (!u.removed) (u.side === 'party' ? pside : eside).appendChild(unitCard(u)); });
+    pside.appendChild(el('div', { class: 'summon-rack' }));
     actionBox = el('div', { class: 'action-panel' });
     logBox = el('div', { class: 'battle-log' });
     const logToggle = el('button', { class: 'log-toggle' }, 'LOG');
     logToggle.onclick = () => logBox.classList.toggle('open');
     root.append(top, field, actionBox, logBox, logToggle);
+    c.units.forEach(u => { if (!u.removed) placeCard(u, unitCard(u)); });
     container.appendChild(root);
     renderOrder();
+    renderAggro();
   }
 
+  /** summons get their own drawings; everything else goes through ui.artFor */
+  const artOf = u => (u && u.art && u.art.kind === 'summon' && SBR.summonArt ? SBR.summonArt(u.art.key) : ui.artFor(u && u.art));
+  /** summons sit in a small rack at the inner edge of the party side */
+  function placeCard(u, card) {
+    const side = root.querySelector(u.side === 'party' ? '.party-side' : '.enemy-side');
+    const rack = u.summon && side.querySelector('.summon-rack');
+    (rack || side).appendChild(card);
+  }
   function unitCard(u) {
-    const card = el('div', { class: `unit-card ${u.side} tier-${u.tier || 'ally'}` + (u.dead ? ' dead' : '') + (u.traits && u.traits.length ? ' traited' : ''), dataset: { uid: u.uid } });
+    const card = el('div', { class: `unit-card ${u.side} tier-${u.tier || 'ally'}` + (u.summon ? ' summon-card' : '') + (u.dead ? ' dead' : '') + (u.traits && u.traits.length ? ' traited' : ''), dataset: { uid: u.uid } });
     card.innerHTML = `
-      <div class="uc-frame"><div class="uc-art">${ui.artFor(u.art)}</div><div class="uc-flash"></div></div>
-      <div class="uc-name">${u.name}${u.def && u.def.stand ? `<small>「${u.def.stand}」</small>` : ''}</div>
+      <div class="uc-frame"><div class="uc-art">${artOf(u)}</div><div class="uc-flash"></div><div class="uc-taunt"><b>挑</b>TAUNT</div>${u.summon && u.life ? '<div class="uc-life"></div>' : ''}</div>
+      ${u.side === 'party' ? '<div class="uc-aggro"></div>' : ''}
+      <div class="uc-name">${u.summon ? u.def.short || u.name : u.name}${u.def && u.def.stand ? `<small>「${u.def.stand}」</small>` : ''}</div>
       <div class="hpbar"><div class="hpghost"></div><div class="hpfill"></div><div class="shieldfill"></div><span class="hptext"></span></div>
       <div class="energy-pips"></div>
       <div class="uc-status"></div>
@@ -131,6 +142,7 @@ SBR.battle = (() => {
     card.addEventListener('mouseenter', () => { if (targeting && isValidTarget(u)) card.classList.add('target-hover'); });
     card.addEventListener('mouseleave', () => card.classList.remove('target-hover'));
     SBR.tip.bind(card.querySelector('.uc-frame'), () => unitTip(u));
+    const ag = card.querySelector('.uc-aggro'); if (ag) SBR.tip.bind(ag, () => aggroTip(u));
     return card;
   }
   function unitTip(u) {
@@ -142,8 +154,38 @@ SBR.battle = (() => {
     if (rc) lines.push(`<span class="tip-res">${rc}</span>`);
     if (u.side === 'enemy' && u.def.dtype) lines.push(`<span class="tip-dt">Attacks deal <b style="color:${SBR.DMG[u.def.dtype].color}">${SBR.DMG[u.def.dtype].name}</b></span>`);
     if (u.side === 'enemy' && u.def.passive) lines.push(`<span class="tip-passive">${u.def.passive}</span>`);
-    if (u.side === 'party' && u.def.passive) lines.push(`<span class="tip-passive">${u.def.passive.name}: ${u.def.passive.desc}</span>`);
+    if (u.side === 'party' && !u.summon && u.def.passive) lines.push(`<span class="tip-passive">${u.def.passive.name}: ${u.def.passive.desc}</span>`);
+    if (u.summon) { const o = c.unit(u.owner); lines.push(`<span class="tip-passive">Summoned by ${o ? o.name : '?'}${u.life ? ` · ${u.life} round${u.life > 1 ? 's' : ''} left` : ''}. ${u.def.desc || ''}</span>`); }
+    if (c.has(u, 'taunt')) lines.push(`<span class="tip-taunt"><b>TAUNTING</b> — ${u.side === 'enemy' ? 'your single-target moves must hit this unit.' : 'draws 85% of single-target enemy attacks.'}</span>`);
+    if (u.side === 'party' && !u.dead) lines.push(aggroTip(u));
     return lines.join('<br>');
+  }
+  /** the aggro breakdown: where the weight comes from and the resulting chance of being picked */
+  function aggroTip(u) {
+    if (u.dead) return '';
+    const info = c.aggroInfo(u);
+    const odds = c.targetWeights().find(e => e.u === u);
+    const fmt = (p, i) => (p.mul != null ? `×${p.mul.toFixed(2)}` : `${i && p.v >= 0 ? '+' : ''}${p.v.toFixed(2)}`);
+    const tier = SBR.threatTier ? SBR.threatTier() : 0;
+    return `<span class="tip-aggro"><b>Aggro ${info.aggro.toFixed(2)}</b> · <b>${Math.round((odds ? odds.p : 0) * 100)}%</b> chance to be picked by a single-target enemy attack<br><small>${info.parts.map((p, i) => `${p.label} ${fmt(p, i)}`).join(' · ')}${c.has(u, 'taunt') ? ' · Taunt: taunters share 85% of attacks' : ''}${tier ? ' · high Threat: enemies also focus the wounded' : ''}</small></span>`;
+  }
+  /** aggro badges on party cards: % to be targeted, bars, and a red crosshair on the likeliest target */
+  function renderAggro() {
+    if (!c || !root) return;
+    const list = c.targetWeights();
+    const top = list.reduce((m, e) => (!m || e.p > m.p ? e : m), null);
+    c.units.filter(u => u.side === 'party').forEach(u => {
+      const card = cards[u.uid]; if (!card) return;
+      const box = card.querySelector('.uc-aggro'); if (!box) return;
+      const e = list.find(x => x.u === u);
+      const isTop = !!(e && top === e && list.length > 1);
+      card.classList.toggle('aggro-top', isTop);
+      if (!e) { box.innerHTML = ''; box.className = 'uc-aggro'; return; }
+      const pct = Math.round(e.p * 100), bars = Math.max(1, Math.min(4, Math.ceil(e.p * list.length * 2)));
+      box.innerHTML = `<svg viewBox="0 0 20 20" class="ag-eye"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M10 0v6M10 14v6M0 10h6M14 10h6" stroke="currentColor" stroke-width="2.2"/><circle cx="10" cy="10" r="2" fill="currentColor"/></svg><span class="ag-bars">${[0, 1, 2, 3].map(i => `<i class="${i < bars ? 'on' : ''}"></i>`).join('')}</span><span class="ag-pct">${pct}%</span>`;
+      box.className = 'uc-aggro' + (isTop ? ' top' : '') + (c.has(u, 'taunt') ? ' taunt' : '');
+    });
+    c.units.filter(u => u.summon).forEach(u => { const k = cards[u.uid]; const l = k && k.querySelector('.uc-life'); if (l) l.textContent = u.life > 0 ? u.life : ''; });
   }
   function setHp(u, hp, instant) {
     const card = cards[u.uid]; if (!card) return;
@@ -168,6 +210,7 @@ SBR.battle = (() => {
       SBR.tip.bind(chip, () => ui.statusTip(s.id, s));
       box.appendChild(chip);
     });
+    card.classList.toggle('taunting', !u.dead && u.statuses.some(s => s.id === 'taunt'));
   }
   function updateCompanion(u, card = cards[u.uid]) {
     if (!card) return;
@@ -199,7 +242,7 @@ SBR.battle = (() => {
   }
   function crowding() {
     root.querySelectorAll('.side').forEach(s => {
-      const n = [...s.children].filter(k => !k.classList.contains('gone')).length;
+      const n = [...s.children].filter(k => !k.classList.contains('gone') && !k.classList.contains('summon-rack')).length;
       s.classList.toggle('crowd-3', n === 3);
       s.classList.toggle('crowd-4', n >= 4);
     });
@@ -213,7 +256,7 @@ SBR.battle = (() => {
       const idx = ((c.turnIdx < 0 ? 0 : c.turnIdx) + k) % n;
       const u = c.unit(c.order[idx]);
       if (!u || u.dead || u.removed) continue;
-      const chip = el('div', { class: 'order-chip ' + u.side + (k === 0 && c.turnIdx >= 0 ? ' now' : ''), html: ui.artFor(u.art) });
+      const chip = el('div', { class: 'order-chip ' + u.side + (u.summon ? ' summon' : '') + (k === 0 && c.turnIdx >= 0 ? ' now' : ''), html: artOf(u) });
       SBR.tip.bind(chip, `${u.name} · initiative ${u.init}`);
       orderBox.appendChild(chip);
       shown++;
@@ -222,7 +265,7 @@ SBR.battle = (() => {
   function syncAll() {
     c.units.forEach(u => {
       if (u.removed) { if (cards[u.uid]) cards[u.uid].classList.add('gone'); return; }
-      if (!cards[u.uid]) { const side = root.querySelector(u.side === 'party' ? '.party-side' : '.enemy-side'); side.appendChild(unitCard(u)); }
+      if (!cards[u.uid]) placeCard(u, unitCard(u));
       setHp(u, u.hp);
       renderStatus(u);
       renderEnergy(u);
@@ -230,6 +273,7 @@ SBR.battle = (() => {
       cards[u.uid].classList.toggle('dead', !!u.dead);
     });
     renderOrder();
+    renderAggro();
   }
 
   /* ---------- animation helpers ---------- */
@@ -324,6 +368,7 @@ SBR.battle = (() => {
         if (cards[e.uid]) cards[e.uid].classList.add('active');
         activeUid = e.uid;
         renderOrder();
+        renderAggro();
         if (u) renderEnergy(u);
         await sleep(160);
         break;
@@ -346,7 +391,7 @@ SBR.battle = (() => {
         const foeT = u ? e.targets.filter(t => t !== e.uid && cards[t] && c.unit(t) && c.unit(t).side !== u.side) : [];
         if (skKey && SBR.strike && SBR.strike.isClose(skKey) && foeT.length && dtype) {
           rushed = true;
-          await SBR.strike.rush({ key: skKey, from: center(e.uid), to: foeT.slice(0, 4).map(center), tier, lvl: slvl, enemy: !!e.enemy, color: (dtype && SBR.DMG[dtype] ? SBR.DMG[dtype].color : (u.def && u.def.color)) || '#f2c14e' });
+          await SBR.strike.rush({ key: skKey, abId: e.abId, name: e.name, from: center(e.uid), to: foeT.slice(0, 4).map(center), tier, lvl: slvl, enemy: !!e.enemy, color: (dtype && SBR.DMG[dtype] ? SBR.DMG[dtype].color : (u.def && u.def.color)) || '#f2c14e' });
         } else if (skKey) await standFlash(e.uid, skKey);
         if (!rushed && u && SBR.strike && SBR.strike.hasWeapon(fx) && e.targets.length && !(e.targets.length === 1 && e.targets[0] === e.uid)) {
           await SBR.strike.weapon({ look: fx, from: center(e.uid), to: center(e.targets.find(t => t !== e.uid) || e.targets[0]), tier, lvl: slvl, enemy: !!e.enemy });
@@ -360,7 +405,7 @@ SBR.battle = (() => {
         const tpts = e.targets.filter(t => cards[t]).slice(0, 5).map(center);
         const selfOnly = e.targets.length === 1 && e.targets[0] === e.uid;
         if (!rushed) await SBR.fx.play(fx || 'hit', center(e.uid), tpts.length ? tpts : [center(e.uid)], {
-          enemy: e.enemy, self: selfOnly, tier, dtype, abId: e.abId,
+          enemy: e.enemy, self: selfOnly, tier, dtype, abId: e.abId, name: e.name,
           lvl: (u && u.upgrades && e.abId && u.upgrades[e.abId]) || 1,
           variant: hash(e.abId || e.name || fx), ucolor: u && u.def && u.def.color,
           scanColor: e.abId === 'life_detector' ? '#e8742a' : e.abId === 'epitaph' ? '#c8323c' : undefined,
@@ -400,26 +445,39 @@ SBR.battle = (() => {
       case 'setHp': setHp(u, e.hp); await sleep(60); break;
       case 'status':
         renderStatus(u);
-        if (cards[e.uid]) { const d = SBR.STATUS[e.id]; floatText(e.uid, d.name, 'st ' + e.kind); SBR.audio.play(e.kind === 'buff' ? 'st_buff' : 'st_debuff'); }
+        if (cards[e.uid]) { const d = SBR.STATUS[e.id]; floatText(e.uid, d.name, 'st ' + e.kind); SBR.audio.play(e.kind === 'buff' ? 'st_buff' : 'st_debuff'); if (e.id === 'taunt' || d.aggro) renderAggro(); }
         await sleep(90);
         break;
-      case 'statusGone': renderStatus(u); break;
+      case 'statusGone': renderStatus(u); if (e.id === 'taunt' || (SBR.STATUS[e.id] || {}).aggro) renderAggro(); break;
       case 'float': floatText(e.uid, e.text, e.cls); if (e.text === 'DODGE') SBR.audio.play('dodge'); else if (e.text === 'IMMUNE') SBR.audio.play('immune'); else if (e.cls && e.cls.includes('miss')) SBR.audio.play('miss'); await sleep(140); break;
       case 'death': {
         const card = cards[e.uid];
         if (card) { card.classList.add('dying'); setTimeout(() => { card.classList.remove('dying'); card.classList.add(e.permanent ? 'gone' : 'dead'); if (u.side === 'enemy') card.classList.add('gone'); }, 700); }
         SBR.audio.play('death'); SBR.fx.death(center(e.uid));
         if (u && u.side === 'enemy') { const pt = center(e.uid); ui.sfxText('RETIRED', pt.x, pt.y, 'retire'); }
-        await sleep(450);
+        renderAggro();
+        await sleep(e.summon ? 250 : 450);
         break;
       }
       case 'revive': { const card = cards[e.uid]; if (card) card.classList.remove('dead', 'gone'); setHp(u, e.hp); floatText(e.uid, 'REVIVED', 'heal'); SBR.audio.play('heal'); await sleep(300); break; }
       case 'summon': {
-        const side = root.querySelector('.enemy-side');
+        if (cards[e.uid]) cards[e.uid].remove();
         const card = unitCard(u); card.classList.add('summoned');
-        side.appendChild(card);
-        requestAnimationFrame(() => SBR.fx.summon(center(e.uid)));
+        placeCard(u, card);
+        if (u.summon) {
+          // dust kicked up, a ring and the summon's own sound word
+          requestAnimationFrame(() => {
+            const pt = center(e.uid);
+            SBR.fx.dust({ x: pt.x, y: pt.y + 40 }, 14);
+            SBR.fx.ring(pt.x, pt.y, u.def.color || '#f2c14e', 80, 6, 0.45);
+            SBR.fx.stars(pt.x, pt.y, u.def.color || '#f2c14e', 7, 180);
+            if (u.def.kana) SBR.fx.kana(pt.x, pt.y - 60, u.def.kana, u.def.color || '#f2c14e', 44, 900);
+          });
+          SBR.audio.play('stand');
+          addLog(`<b>${u.name}</b> joins the fight`);
+        } else requestAnimationFrame(() => SBR.fx.summon(center(e.uid)));
         renderOrder();
+        renderAggro();
         await sleep(350);
         break;
       }
@@ -521,7 +579,7 @@ SBR.battle = (() => {
     startTargeting(u, t, tuid => finishInput(() => c.useAbility(u, id, tuid)));
   }
   function targetsFor(u, t) {
-    if (t === 'enemy') return c.foes(u);
+    if (t === 'enemy') { const T = c.tauntersAgainst(u); return T.length ? T : c.foes(u); }
     if (t === 'ally') return c.friends(u);
     if (t === 'allyDead') return c.party().filter(p => p.dead && !p.removed);
     return [];
@@ -541,10 +599,12 @@ SBR.battle = (() => {
   function renderHint() {
     const h = actionBox.querySelector('.target-hint'); if (!h || !targeting) return;
     const T = targeting;
-    if (!T.pick) { h.textContent = T.t === 'enemy' ? 'Choose a target · Esc to cancel' : 'Choose an ally · Esc to cancel'; return; }
+    const TT = T.t === 'enemy' ? c.tauntersAgainst(T.u) : [];
+    const taunted = TT.length ? `<b class="th-taunt">挑 TAUNTED</b> Must target ${TT.map(t => t.name).join(' / ')} · ` : '';
+    if (!T.pick) { if (taunted) h.innerHTML = taunted + 'Esc to cancel'; else h.textContent = T.t === 'enemy' ? 'Choose a target · Esc to cancel' : 'Choose an ally · Esc to cancel'; return; }
     const k = T.picked.length, who = T.t === 'enemy' ? 'enemies' : 'allies';
     h.innerHTML = `<span class="th-count">${[...Array(T.pick)].map((_, i) => `<i class="${i < k ? 'on' : ''}"></i>`).join('')}</span>
-      <span class="th-text">Pick up to <b>${T.pick}</b> ${who}${T.ab && T.ab.spread && k > 1 ? ` · <em>${SPLIT(k)}% each</em>` : T.ab && T.ab.spread ? ' · split damage' : ''}</span>`;
+      <span class="th-text">${taunted}Pick up to <b>${T.pick}</b> ${who}${T.ab && T.ab.spread && k > 1 ? ` · <em>${SPLIT(k)}% each</em>` : T.ab && T.ab.spread ? ' · split damage' : ''}</span>`;
     const go = el('button', { class: 'th-btn go' + (k ? '' : ' disabled') }, k ? `Go (${k}) ↵` : 'Go ↵');
     go.onclick = ev => { ev.stopPropagation(); confirmPicks(); };
     const all = el('button', { class: 'th-btn' }, `Max (${T.pick})`);
@@ -665,7 +725,8 @@ SBR.battle = (() => {
       await play(c.flush());
       if (c.result) break;
       if (b.skip) { syncAll(); continue; }
-      if (u.side === 'party') {
+      if (u.summon) { await sleep(200); c.summonAct(u); }
+      else if (u.side === 'party') {
         if (c.has(u, 'raptor')) { await sleep(300); c.autoRaptor(u); }
         else await playerTurn(u);
       } else { await sleep(260); c.enemyAct(u); }
@@ -685,5 +746,5 @@ SBR.battle = (() => {
     await ui.resultPanel('How to fight', 'Each turn, your active rider gains 2 Energy (max 6). Spend it on abilities — ◆ pips show the cost. Free abilities cost nothing. BRACE (Q) skips your action for +1 Energy and Guard. You can use one item per turn without ending it. Hover anything for details: statuses, enemies, abilities. Spin-tagged abilities matter against some Stands.', 'sword');
   }
 
-  return { run };
+  return { run, get combat() { return c; } };
 })();

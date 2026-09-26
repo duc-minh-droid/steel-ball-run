@@ -18,7 +18,7 @@ Object.assign(SBR.TECHNIQUES, {
   if (m && m.achievements && m.unlockedTech) Object.entries(SBR.TECHNIQUES).forEach(([k, t]) => { if (t.unlock && m.achievements[t.unlock] && !m.unlockedTech.includes(k)) m.unlockedTech.push(k); });
 
   const P = SBR.Combat.prototype;
-  const soloLead = c => { const alive = c.alive('party'); const lead = SBR.run && SBR.run.lead; return alive.length === 1 && alive[0].id === lead ? alive[0] : null; };
+  const soloLead = c => { const alive = c.alive('party').filter(u => !u.summon); const lead = SBR.run && SBR.run.lead; return alive.length === 1 && alive[0].id === lead ? alive[0] : null; };
 
   // Requiem: riders fight at a fraction of their max HP; Wanted Poster: threat on the first fight
   const Base = SBR.Combat;
