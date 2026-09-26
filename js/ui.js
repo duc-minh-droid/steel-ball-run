@@ -400,6 +400,7 @@ SBR.ui = (() => {
       const pct = Math.max(0, m.hp / m.maxHp * 100);
       const card = el('div', { class: 'ps-card' + (m.hp <= 0 ? ' down' : '') + (m.points ? ' has-points' : '') });
       card.innerHTML = `<div class="ps-port">${art.portrait(c.portrait)}</div><div class="ps-info"><div class="ps-name">${c.short} <small>Lv${m.level}</small></div><div class="hpbar"><div class="hpfill" style="width:${pct}%"></div><span>${Math.max(0, m.hp)}/${m.maxHp}</span></div>${m.exhaustion ? `<div class="ps-exh">Exhaustion ×${m.exhaustion}</div>` : ''}</div>${m.points ? '<div class="ps-pts">+' + m.points + '</div>' : ''}`;
+      if (SBR.affinity) SBR.affinity.pip(card, m.id);
       card.onclick = () => partyScreen(m.id);
       SBR.tip.bind(card, `<b>${c.name}</b> — ${c.stand}<br>${m.points ? `<b style="color:#f2c14e">${m.points} stat points to spend!</b><br>` : ''}Click to open character sheet.`);
       s.appendChild(card);
@@ -513,6 +514,7 @@ SBR.ui = (() => {
       ${card.enemies && !hide ? `<div class="enc-foes">${card.enemies.map(id => `<span class="enc-foe" title="${SBR.ENEMIES[id].name}">${artFor(SBR.ENEMIES[id].art)}</span>`).join('')}</div>` : ''}
       ${!hide && (card.type === 'fight' || card.type === 'elite') ? `<div class="enc-threat">${'☠'.repeat(1 + SBR.threatTier() + (card.type === 'elite' ? 1 : 0))}</div>` : ''}
       <div class="enc-foot">${card.pace ? `<span class="enc-pace ${card.pace > 0 ? 'up' : 'down'}">${card.pace > 0 ? '+' : ''}${card.pace} pace</span>` : '<span></span>'}<span class="enc-key">${i + 1}</span></div><div class="enc-gloss"></div>`;
+    if (SBR.affinity) SBR.affinity.decorate(c, card); // who in the party likes or dislikes this road (js/affinity.js)
     c.addEventListener('click', () => {
       if (c.parentNode && c.parentNode.dataset.picked) return;
       if (c.parentNode) c.parentNode.dataset.picked = '1';
@@ -541,6 +543,7 @@ SBR.ui = (() => {
     function tab(m, reserve) {
       const c = SBR.CHARS[m.id];
       const t = el('button', { class: 'party-tab' + (m.id === current ? ' active' : '') + (reserve ? ' reserve' : '') + (m.points ? ' pts' : ''), html: `<div class="pt-port">${art.portrait(c.portrait)}</div><span>${c.short}</span>` });
+      if (SBR.affinity) SBR.affinity.pip(t, m.id);
       t.onclick = () => { current = m.id; renderTabs(); renderSheet(); SBR.audio.play('click'); };
       return t;
     }
@@ -556,6 +559,7 @@ SBR.ui = (() => {
         <div class="hpbar big"><div class="hpfill" style="width:${Math.max(0, m.hp / m.maxHp * 100)}%"></div><span>${m.hp}/${m.maxHp} HP</span></div>
         ${m.exhaustion ? `<div class="cs-exh">Exhaustion ×${m.exhaustion}: −${15 * m.exhaustion}% max HP, damage and healing</div>` : ''}</div>`;
       sheet.appendChild(head);
+      if (SBR.affinity) { const aff = SBR.affinity.sheetRow(m); if (aff) sheet.appendChild(aff); }
       const statsBox = el('div', { class: 'cs-stats' });
       statsBox.appendChild(el('div', { class: 'cs-sub' }, m.points ? `STATS — ${m.points} point${m.points > 1 ? 's' : ''} to spend` : 'STATS'));
       for (const [k, s] of Object.entries(SBR.STATS)) {

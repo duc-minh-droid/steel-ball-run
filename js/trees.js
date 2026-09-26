@@ -2,7 +2,7 @@
    Modelled on An Average Campaign's per-class trees: three branches per rider, prerequisites, a capstone per branch
    that changes how the rider plays, a paid respec, and Legacy ranks (a small stacking bonus once a tree is complete).
    Purchases live in SBR.meta.trees = { johnny: ['j_tusk_0', ...] } and ranks in SBR.meta.treeRanks.
-   Bonuses apply whenever that rider is in the party, lead or ally:
+   Bonuses apply only when that rider leads the run (allies ride without their Legacy):
      - stats / bonus keys / resistances   -> wrapped SBR.equipBonus (combat reads them like gear)
      - granted abilities                  -> wrapped SBR.extraAbilities
      - skill-check bonus                  -> wrapped SBR.bonus().check while the rider is in the party
@@ -215,8 +215,11 @@ SBR.trees = (() => {
 
   /** everything a rider's tree adds up to (cached per purchase list) */
   const cache = {};
+  const EMPTY = { stats: {}, bonus: {}, res: {}, immune: [], abilities: [], hp: 0, check: 0, start: {}, caps: new Set() };
+  /** a Legacy only empowers the rider who starts the run: allies ride as they are */
   function bonusFor(cid) {
     if (!NODES[cid]) return null;
+    if (SBR.run && SBR.run.lead && SBR.run.lead !== cid) return EMPTY;
     const key = owned(cid).join(',') + '|' + rank(cid);
     if (cache[cid] && cache[cid].key === key) return cache[cid].v;
     const v = { stats: {}, bonus: {}, res: {}, immune: [], abilities: [], hp: 0, check: 0, start: {}, caps: new Set() };
@@ -537,7 +540,7 @@ SBR.trees = (() => {
   function tab(body, refresh) {
     const last = SBR.meta.lastLead;
     if (!sel) sel = RIDERS.includes(last) ? last : 'johnny';
-    body.appendChild(el('p', { class: 'muted tr-intro', html: 'Each lead rider has a permanent <b>Legacy tree</b>: three branches bought with Race Points. A capstone at the top of each branch changes how that rider fights. Bonuses apply whenever the rider is in your party, as lead or ally.' }));
+    body.appendChild(el('p', { class: 'muted tr-intro', html: 'Each lead rider has a permanent <b>Legacy tree</b>: three branches bought with Race Points. A capstone at the top of each branch changes how that rider fights. Bonuses apply only when that rider is your lead: allies ride without their Legacy.' }));
     // keep the scroll position when a purchase re-renders the Saloon body
     const keep = () => { const y = body.scrollTop; refresh(); body.scrollTop = y; };
     body.appendChild(panel(sel, keep));

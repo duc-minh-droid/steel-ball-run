@@ -90,6 +90,15 @@ SBR.game = (() => {
     SBR.toast(`<div class="toast-port">${art.portrait(SBR.CHARS[m.id].portrait)}</div><div><b>${SBR.CHARS[m.id].short} is your lead.</b><br><small>${LEAD_SPARED[m.id] || ''}</small></div>`, 'ally');
   }
   function findMember(id) { const r = SBR.run; return r.party.find(m => m.id === id) || r.reserve.find(m => m.id === id); }
+  /** riders who never go to the reserve (the party screen locks them too) */
+  const STORY_BOUND = ['johnny', 'gyro'];
+  const canBench = m => m.id !== SBR.run.lead && !STORY_BOUND.includes(m.id);
+  /** a story-bound rider joined a full party without a picker: the last benchable rider steps back */
+  function bumpForBound(m) {
+    const r = SBR.run, out = [...r.party].reverse().find(canBench);
+    if (!out) return;
+    r.party.splice(r.party.indexOf(out), 1, m); r.reserve.splice(r.reserve.indexOf(m), 1); r.reserve.push(out);
+  }
   const G = {
     recruit(id, silent) {
       const r = SBR.run;
@@ -97,7 +106,19 @@ SBR.game = (() => {
       if (r.solo && (id === 'johnny' || id === 'gyro')) return;
       const m = makeMember(id, Math.max(1, partyLevel() - 1));
       SBR.meta.seen.allies[id] = true;
-      if (r.party.length < 4) r.party.push(m); else r.reserve.push(m);
+      if (SBR.affinity) SBR.affinity.joined(id);
+      // Johnny and Gyro always ride in the party; anyone else can wait in the reserve
+      const bound = STORY_BOUND.includes(id);
+      if (r.party.length < 4) r.party.push(m);
+      else if (silent) { r.reserve.push(m); if (bound) bumpForBound(m); }
+      else {
+        // party full: the newcomer waits in the reserve until you choose who makes room (after the current panel closes)
+        r.reserve.push(m);
+        SBR.toast(`<div class="toast-port">${art.portrait(SBR.CHARS[id].portrait)}</div><div><b>${SBR.CHARS[id].name}</b> wants to ride with you. <small>The party is full!</small></div>`, 'ally');
+        SBR.audio.play('success');
+        later(() => (SBR.partyPicker ? SBR.partyPicker(m, { forced: bound }) : null));
+        return;
+      }
       SBR.toast(`<div class="toast-port">${art.portrait(SBR.CHARS[id].portrait)}</div><div><b>${SBR.CHARS[id].name}</b> joins${r.party.includes(m) ? ' the party' : ' the reserve (party full)'}!</div>`, 'ally');
       SBR.audio.play('success');
     },
@@ -380,15 +401,20 @@ SBR.game = (() => {
   }
   SBR.riskMul = () => { const s = SBR.run && SBR.run.risk; return s ? [0.6, 0.8, 1, 1.35, 1.8][s - 1] : 1; };
 
-  function showStage() {
+  async function showStage() {
     const r = SBR.run;
+    // a safe point between encounters: deferred pickers still waiting, then riders who have had enough (js/affinity.js)
+    if (pending.length) await flushPending();
+    if (SBR.affinity) await SBR.affinity.safePoint(G);
     SBR.music.play(SBR.music.themeForStage());
     if (!r.stageCards) { r.stageCards = drawCards(); if (SBR.extraCards) r.stageCards = SBR.extraCards(r.stageCards, G) || r.stageCards; SBR.saveRun(); }
-    ui.stageScreen(r.stageCards, {
+    const cards = r.stageCards;
+    const judge = (card, kind) => { if (SBR.affinity) SBR.affinity.onPick(cards, card, kind); };
+    ui.stageScreen(cards, {
       reroll: () => rerollCards(),
-      pick: card => resolveCard(card),
-      scavenge: () => scavenge(),
-      rest: () => rest(),
+      pick: card => { judge(card); return resolveCard(card); },
+      scavenge: () => { judge(null, 'scavenge'); return scavenge(); },
+      rest: () => { judge(null, 'rest'); return rest(); },
     });
   }
 
@@ -636,13 +662,13 @@ SBR.game = (() => {
     const loot = [];
     const relicChance = opts.loot === 'relic' || opts.boss ? 1 : opts.elite ? 0.5 : 0;
     if (Math.random() < relicChance) { const id = randomRelic(opts.boss || opts.elite ? ['common', 'rare'] : ['common']); if (id) { r.gear.push(id); loot.push({ kind: 'equip', id }); } }
-    if (Math.random() < (opts.elite || opts.boss ? 0.6 : 0.25)) { const it = pick(Object.keys(SBR.ITEMS)); if (r.items.length < beltSize()) { r.items.push(it); loot.push({ kind: 'item', id: it }); } }
+    if (Math.random() < (opts.elite || opts.boss ? 0.3 : 0.08)) { const it = pick(Object.keys(SBR.ITEMS)); if (r.items.length < beltSize()) { r.items.push(it); loot.push({ kind: 'item', id: it }); } }
     const mats = rollDrops(combat);
-    if (rm !== 1) Object.keys(mats).forEach(k => { if (!SBR.MATERIALS[k].remnant && !SBR.MATERIALS[k].holy) mats[k] = Math.max(1, Math.round(mats[k] * rm)); });
+    if (rm > 1) Object.keys(mats).forEach(k => { if (!SBR.MATERIALS[k].remnant && !SBR.MATERIALS[k].holy) mats[k] = Math.min(mats[k] + 1, Math.round(mats[k] * rm)); });
     if ((r.risk || 0) >= 4 && Math.random() < (r.risk === 5 ? 0.8 : 0.4)) { const id = randomRelic(['rare']); if (id) { r.gear.push(id); loot.push({ kind: 'equip', id }); } }
     Object.entries(mats).forEach(([k, n]) => { r.mats[k] = (r.mats[k] || 0) + n; });
-    SBR.econ.rollTrinkets(combat, opts).forEach(id => { const got = G.trinket(id, true); if (got) loot.push(got); });
-    if ((opts.elite || opts.boss) && Math.random() < 0.35) { const eqPool = Object.keys(SBR.EQUIPMENT).filter(k => !SBR.EQUIPMENT[k].remnant && !SBR.EQUIPMENT[k].derived && SBR.EQUIPMENT[k].rarity !== 'common'); const eid = pick(eqPool); r.gear.push(eid); loot.push({ kind: 'equip', id: eid }); }
+    (combat._trinketDrops || []).forEach(id => { const got = G.trinket(id, true); if (got) loot.push(got); });
+    if ((opts.elite || opts.boss) && Math.random() < 0.15) { const eqPool = Object.keys(SBR.EQUIPMENT).filter(k => !SBR.EQUIPMENT[k].remnant && !SBR.EQUIPMENT[k].derived && SBR.EQUIPMENT[k].rarity !== 'common'); const eid = pick(eqPool); r.gear.push(eid); loot.push({ kind: 'equip', id: eid }); }
     const rp = opts.boss ? 10 : opts.elite ? 3 : 1;
     addRp(rp);
     const members = combat.party().filter(u => !u.removed).map(u => ({ id: u.id, leveled: gainXp(u.ref, xp), fell: !!u._fell }));
@@ -651,15 +677,26 @@ SBR.game = (() => {
     return true;
   }
 
+  /** each fallen enemy leaves at most one or two things (materials and trinkets share the slots), and often nothing:
+      shops, events and detours are where supplies come from. A Soul still always drops. */
   function rollDrops(combat) {
-    const out = {};
+    const out = {}, trinkets = [];
     const luck = Math.max(...SBR.run.party.map(m => m.stats.luck)) * 0.01;
-    combat.units.filter(u => u.side === 'enemy' && u.dead).forEach(u => {
-      const tb = 1 + 0.12 * SBR.threatTier() + ((u.traits || []).length ? 0.25 : 0);
-      (SBR.DROPS[u.id] || []).forEach(([mat, ch, a, b]) => { if (Math.random() < (ch + luck) * tb) out[mat] = (out[mat] || 0) + randInt(a, b); });
+    combat.units.filter(u => u.side === 'enemy' && u.dead && !u.summon).forEach(u => {
+      const tier = u.tier === 'boss' ? 'boss' : u.tier === 'elite' || (u.traits || []).length ? 'elite' : 'common';
+      const roll = Math.random() - luck;
+      const slots = tier === 'boss' ? 2 : tier === 'elite' ? (roll < 0.45 ? 2 : 1) : roll < 0.12 ? 2 : roll < 0.55 ? 1 : 0;
+      const tb = 1 + 0.08 * SBR.threatTier();
+      const cands = [];
+      (SBR.DROPS[u.id] || []).forEach(([mat, ch, a, b]) => { if (Math.random() < Math.min(0.95, (ch + luck) * tb)) cands.push({ mat, n: tier === 'common' ? 1 : randInt(a, Math.min(b, tier === 'boss' ? 3 : 2)) }); });
+      const tch = { boss: 0.7, elite: 0.3, common: 0.08 }[tier];
+      if (SBR.TRINKET_DROPS && Math.random() < tch) cands.push({ trinket: pick(SBR.TRINKET_DROPS[tier]) });
+      SBR.util.shuffle(cands).slice(0, slots).forEach(c => { if (c.trinket) trinkets.push(c.trinket); else out[c.mat] = (out[c.mat] || 0) + c.n; });
       const rem = SBR.REMNANT_DROPS[u.id];
       if (rem && !(SBR.run.mats[rem] > 0)) out[rem] = 1;
     });
+    if (combat.opts && combat.opts.boss && !trinkets.length && SBR.TRINKET_DROPS) trinkets.push(pick(SBR.TRINKET_DROPS.boss));
+    combat._trinketDrops = trinkets.slice(0, 2);
     return out;
   }
   /** where an owned piece is: in the bag, or worn by someone (bag first) */
@@ -1106,7 +1143,7 @@ SBR.game = (() => {
   });
 
   const _debug = { rerollCards, resumeRun, newRun, startAct, fight, bossStage, playScene, showStage, actFinish, resolveCard, advanceStage, ending, gameOver, applySprint, drawCards, G };
-  return { canCraft, craft, reinforce, salvage, sell, findOwned, rerollCards, equip, unequip, freeSlot, _debug, makeMember, memberAbilities, xpToNext, autoAssign, beltSize, achieve, standings, playerRank, G, bestFor, checkMod, fieldUseItem, toTitle, titleScreen, lobbyScreen, setupScreen, riskDC };
+  return { canCraft, craft, reinforce, salvage, sell, findOwned, rerollCards, equip, unequip, freeSlot, _debug, makeMember, memberAbilities, xpToNext, autoAssign, beltSize, achieve, standings, playerRank, G, bestFor, checkMod, fieldUseItem, toTitle, titleScreen, lobbyScreen, setupScreen, riskDC, _rollDrops: rollDrops };
 })();
 
 /* boot */

@@ -1,0 +1,44 @@
+/* Boss telegraphs (js/bosstuning.js + js/battle-ui.js): what the boss does next, who it's aiming at, how to answer it */
+
+/* the strip under the top bar */
+.intent-strip { position: absolute; top: 62px; left: 50%; transform: translateX(-50%); z-index: 6; display: none; flex-direction: column; gap: 4px;
+  max-width: min(760px, calc(100% - 32px)); pointer-events: none; }
+.intent-strip.show { display: flex; animation: intentIn .35s cubic-bezier(.2, 1.4, .4, 1); }
+.intent-strip .is-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; padding: 5px 12px 6px; background: rgba(26, 8, 14, .92);
+  border: 3px solid #1a1020; box-shadow: 0 0 0 2px #ff5a3a, 4px 4px 0 2px #1a1020; color: #f6ecd8; font-size: 13px; line-height: 1.25; transform: rotate(-.6deg); }
+.intent-strip .is-row.aoe { box-shadow: 0 0 0 2px #ffd84a, 4px 4px 0 2px #1a1020; }
+.intent-strip .is-kick { font-family: var(--f-sfx, Bangers, Impact, sans-serif); letter-spacing: .08em; color: #ff5a3a; font-size: 15px; -webkit-text-stroke: .5px #1a1020; }
+.intent-strip .is-row.aoe .is-kick { color: #ffd84a; }
+.intent-strip .is-text { font-weight: 700; }
+.intent-strip .is-counter { color: #d8c8a8; font-size: 12px; font-style: italic; }
+
+/* the badge on the boss card */
+.uc-intent { position: absolute; left: -4px; right: -4px; top: 6px; z-index: 4; display: flex; flex-direction: column; align-items: center; padding: 2px 4px 3px;
+  background: #c8323c; border: 3px solid #1a1020; color: #fff; text-align: center; transform: rotate(3deg); cursor: help; animation: intentPulse 1.1s ease-in-out infinite; }
+.uc-intent.aoe { background: #e8742a; }
+.uc-intent b { font-family: var(--f-sfx, Bangers, Impact, sans-serif); font-size: 12px; letter-spacing: .12em; line-height: 1; color: #ffd84a; -webkit-text-stroke: .5px #1a1020; }
+.uc-intent span { font-weight: 800; font-size: 12px; line-height: 1.1; }
+.uc-intent i { font-style: normal; font-size: 11px; opacity: .92; }
+.unit-card.intent-boss .uc-frame { box-shadow: 0 0 0 3px #ff5a3a, 0 0 18px 4px rgba(255, 90, 58, .55), 7px 7px 0 4px var(--ink, #1a1020); }
+.unit-card.intent-pop { animation: intentShake .45s ease-in-out; }
+
+/* the rider in its sights, or everyone for an area move */
+.unit-card.intent-marked .uc-frame, .unit-card.intent-aoe .uc-frame { outline: 3px dashed #ff5a3a; outline-offset: 3px; }
+.unit-card.intent-aoe .uc-frame { outline-color: #ffd84a; }
+.unit-card.intent-marked::after { content: '⚠ TARGETED'; position: absolute; left: 50%; top: -14px; transform: translateX(-50%) rotate(-4deg); z-index: 6;
+  padding: 1px 7px; background: #ff5a3a; color: #fff; border: 2px solid #1a1020; font-family: var(--f-sfx, Bangers, Impact, sans-serif); font-size: 13px; letter-spacing: .08em;
+  white-space: nowrap; pointer-events: none; animation: intentPulse 1.1s ease-in-out infinite; }
+
+@keyframes intentPulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.35); } }
+@keyframes intentIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(.95); } to { opacity: 1; transform: translateX(-50%); } }
+@keyframes intentShake { 0%, 100% { transform: none; } 25% { transform: translateX(-5px) rotate(-2deg); } 75% { transform: translateX(5px) rotate(2deg); } }
+
+@media (max-width: 700px) {
+  .intent-strip { top: 54px; }
+  .intent-strip .is-row { font-size: 11px; padding: 4px 8px; }
+  .intent-strip .is-counter { display: none; }
+  .uc-intent span { font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .uc-intent, .unit-card.intent-marked::after, .intent-strip.show, .unit-card.intent-pop { animation: none; }
+}

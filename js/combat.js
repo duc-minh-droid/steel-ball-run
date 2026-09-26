@@ -22,7 +22,9 @@ SBR.Combat = class Combat {
     const run = SBR.run;
     run.party.forEach(m => { if (m.hp > 0 || true) this.units.push(this.makePartyUnit(m)); });
     const partySize = this.party().length;
-    this.hpScale = 0.75 + 0.18 * partySize;
+    // every rider you bring makes the other side tougher: ~0.9x alone, ~1.7x with four, ~2x with five
+    this.partySize = partySize;
+    this.hpScale = 0.62 + 0.28 * partySize;
     enemyIds.forEach(id => this.units.push(this.makeEnemyUnit(id)));
     if (SBR.applyTraits) SBR.applyTraits(this, opts);
 
@@ -494,7 +496,7 @@ SBR.Combat = class Combat {
         case 'bleed': this.typedHp(u, 2 * s.stacks, 'bleed', 'BLEED'); s.stacks--; if (s.stacks <= 0) this.removeStatus(u, s.id); break;
         case 'holed': this.typedHp(u, 3 * s.stacks, 'spin', 'HOLE'); break;
         case 'guilt': this.typedHp(u, 2 * s.stacks, 'stand', 'GUILT'); s.stacks = Math.min(d.max, s.stacks + 1); break;
-        case 'infinite': this.typedHp(u, Math.max(3, Math.round(u.maxHp * 0.08)), 'true', '∞'); break;
+        case 'infinite': this.typedHp(u, Math.max(3, Math.round(u.maxHp * (u.tier !== 'boss' ? 0.08 : u.def && u.def.secret ? 0.025 : 0.04))), 'true', '∞'); break;
         case 'regen': this.heal(null, u, 4); break;
         case 'burn': this.typedHp(u, 3 * s.stacks, 'phys', 'BURN'); s.stacks--; if (s.stacks <= 0) this.removeStatus(u, s.id); break;
         case 'sha': this.push({ t: 'fx', kind: 'boom', uid: u.uid }); this.typedHp(u, 6, 'phys', 'SHA!'); break;
@@ -604,7 +606,8 @@ SBR.Combat = class Combat {
   brace(u) {
     this.push({ t: 'act', uid: u.uid, name: 'Brace', fx: 'buff', targets: [u.uid] });
     u.energy = Math.min(u.maxEnergy, u.energy + 1);
-    this.addStatus(u, 'guard', 0, 1);
+    // Guard lasts through the enemy turns until this rider's next turn (a 1-turn Guard would expire at once)
+    this.addStatus(u, 'guard', 0, 2);
     if (this.has(u, 'primed')) { this.removeStatus(u, 'primed'); this.push({ t: 'float', uid: u.uid, text: 'PIN PULLED!', cls: 'buff big' }); }
     this.endTurn(u);
   }

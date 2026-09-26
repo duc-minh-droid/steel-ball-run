@@ -69,7 +69,7 @@ SBR.STATUS = {
   sound:     { name: 'Sound Stamp', glyph: '音', color: '#e8508a', kind: 'debuff', mode: 'stacks', max: 6, desc: s => `Silent Way onomatopoeia. When this unit acts, it takes ${6 * s} damage and the stamp is removed.` },
   leftblind: { name: 'Left-Side Blind', glyph: '左', color: '#4a5a8a', kind: 'debuff', mode: 'turns', desc: () => 'Cannot perceive the left. 35% chance for actions to fail. -15% dodge.', mods: { dodge: -0.15 } },
   guilt:     { name: 'Guilt', glyph: '罪', color: '#8a1a2a', kind: 'debuff', mode: 'stacks', max: 15, desc: s => `Buried sins resurface: ${2 * s} damage at turn start, grows by 1 each turn.`, tick: 'guilt' },
-  infinite:  { name: 'Infinite Rotation', glyph: '∞', color: '#f2c14e', kind: 'debuff', mode: 'stacks', max: 1, desc: () => 'Caught in the Golden Rectangle. Loses 8% of max HP every turn. Cannot be removed or redirected.', tick: 'infinite', permanent: true },
+  infinite:  { name: 'Infinite Rotation', glyph: '∞', color: '#f2c14e', kind: 'debuff', mode: 'stacks', max: 1, desc: () => 'Caught in the Golden Rectangle. Loses 8% of max HP every turn (4% for bosses, 2.5% for Strange Auras). Cannot be removed or redirected.', tick: 'infinite', permanent: true },
   timestop:  { name: 'Time Stopped', glyph: '止', color: '#ffd84a', kind: 'debuff', mode: 'turns', desc: () => 'Frozen in stopped time.', skip: true },
   aged:      { name: 'Aged', glyph: '老', color: '#b0a080', kind: 'debuff', mode: 'turns', desc: () => 'Ball Breaker withered half the body. Deals 30% less damage and takes 20% more.', mods: { dmgOut: 0.7, dmgIn: 1.2 } },
   // buffs

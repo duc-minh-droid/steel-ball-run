@@ -44,8 +44,8 @@
     desc: l => `A ball aimed at the arteries. Inflicts ${l > 1 ? 4 : 3} Bleed.`,
     run(x) { const r = x.dmg(x.target, 6, { spin: 0.04 }); if (r.hit) x.status(x.target, 'bleed', x.lvl > 1 ? 4 : 3); } };
   A.gallows_spin = { name: 'Gallows Spin', cost: 2, cd: 2, target: 'enemy', tags: ['spin'], fx: 'ball',
-    desc: l => `The sentence is carried out. Triple damage against targets below 35% HP${l > 1 ? ', and refunds 1 Energy if it kills' : ''}.`,
-    run(x) { const low = hpPct(x.target) < 0.35; x.dmg(x.target, low ? 30 : 10, { spin: 0.05 }, { label: low ? 'EXECUTE' : undefined }); if (x.lvl > 1 && x.target.dead) x.energy(x.user, 1); } };
+    desc: l => `The sentence is carried out. Triple damage against targets below 35% HP (double against bosses)${l > 1 ? ', and refunds 1 Energy if it kills' : ''}.`,
+    run(x) { const low = hpPct(x.target) < 0.35; x.dmg(x.target, low ? (x.target.tier === 'boss' ? 20 : 30) : 10, { spin: 0.05 }, { label: low ? 'EXECUTE' : undefined }); if (x.lvl > 1 && x.target.dead) x.energy(x.user, 1); } };
   A.royal_sentence = { name: 'Royal Sentence', cost: 3, cd: 5, target: 'enemy', tags: ['spin'], fx: 'ballbreaker', pierce: true,
     desc: () => 'The Zeppeli family\'s final duty. Piercing Spin that Ages the target; below half HP it is also Spun.',
     run(x) { x.dmg(x.target, 18, { spin: 0.07 }, { pierce: true, noDodge: true }); if (!x.target.dead) { x.status(x.target, 'aged', 0, 2); if (hpPct(x.target) < 0.5) x.status(x.target, 'stun', 0, 1); } } };

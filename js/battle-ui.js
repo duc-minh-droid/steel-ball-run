@@ -5,6 +5,7 @@ SBR.battle = (() => {
   const ui = SBR.ui, art = SBR.art;
   let c = null, root = null, cards = {}, actionBox = null, orderBox = null, logBox = null, roundBox = null;
   let inputResolve = null, targeting = null, activeUid = null, keyHandler = null;
+  let intents = {}, intentBox = null; // boss telegraphs (js/bosstuning.js): uid -> intent event
 
   const SFX_WORDS = { ora: ['オラオラ', 'ORA ORA'], muda: ['無駄無駄', 'MUDA MUDA'], dora: ['ドラララ', 'DORARARA'], ari: ['アリアリ', 'ARI ARI'], nail: ['ズキュン', 'ZUKYUN'], ball: ['ギャルギャル', 'GYARU'], gun: ['BANG!', 'ドン'], claw: ['ザシュ', 'SLASH'], hit: ['ドゴォ', 'WHAM'], boom: ['ドグォン', 'KA-BOOM'], aoe: ['ドドド', 'DODODO'], golden: ['黄金', 'GOLDEN'], act4: ['ドララ', 'ORA ORA'], ballbreaker: ['ボール', 'BREAK'], spray: ['ブシュ', 'SPLRT'], rope: ['シュル', 'SNAP'],
     fire: ['ゴオッ', 'FWOOSH'], firebind: ['ジュウ', 'SIZZLE'], ripple: ['コォォ', 'RIPPLE'], uv: ['コォォ', 'SHINE'], beam: ['ビシュ', 'ZHOOM'], timestop: ['ドォーン', 'THE WORLD'], timeskip: ['ドォン', 'SKIP'], rewind: ['カチッ', 'CLICK'],
@@ -108,11 +109,36 @@ SBR.battle = (() => {
     logBox = el('div', { class: 'battle-log' });
     const logToggle = el('button', { class: 'log-toggle' }, 'LOG');
     logToggle.onclick = () => logBox.classList.toggle('open');
-    root.append(top, field, actionBox, logBox, logToggle);
+    intents = {};
+    intentBox = el('div', { class: 'intent-strip' });
+    root.append(top, intentBox, field, actionBox, logBox, logToggle);
     c.units.forEach(u => { if (!u.removed) placeCard(u, unitCard(u)); });
     container.appendChild(root);
     renderOrder();
     renderAggro();
+    renderIntents();
+  }
+  /** boss telegraphs: a badge on the boss, a crosshair on who it's aiming at, and a strip saying how to answer it */
+  function renderIntents() {
+    if (!root) return;
+    Object.keys(intents).forEach(uid => { const u = c.unit(uid); if (!u || u.dead) delete intents[uid]; });
+    Object.values(cards).forEach(k => { k.classList.remove('intent-marked', 'intent-aoe', 'intent-boss'); const b = k.querySelector('.uc-intent'); if (b) b.remove(); });
+    const list = Object.values(intents);
+    list.forEach(e => {
+      const bc = cards[e.uid];
+      if (bc) {
+        bc.classList.add('intent-boss');
+        const t = e.target && c.unit(e.target);
+        const b = el('div', { class: 'uc-intent' + (e.aoe ? ' aoe' : ''), html: `<b>NEXT</b><span>${e.name}</span><i>${e.aoe ? '➜ ALL' : '➜ ' + (t ? t.name : '?')}</i>` });
+        SBR.tip.bind(b, () => `<b>${e.text}</b><br>${e.counter}${e.hint ? `<br><i>${e.hint}</i>` : ''}`);
+        bc.querySelector('.uc-frame').appendChild(b);
+      }
+      if (e.aoe) c.alive('party').forEach(p => cards[p.uid] && cards[p.uid].classList.add('intent-aoe'));
+      else if (e.target && cards[e.target]) cards[e.target].classList.add('intent-marked');
+    });
+    if (!intentBox) return;
+    intentBox.classList.toggle('show', list.length > 0);
+    intentBox.innerHTML = list.map(e => `<div class="is-row${e.aoe ? ' aoe' : ''}"><b class="is-kick">INTENT</b><span class="is-text">${e.text}</span><span class="is-counter">${e.counter}${e.hint ? ' ' + e.hint : ''}</span></div>`).join('');
   }
 
   /** summons get their own drawings; everything else goes through ui.artFor */
@@ -274,6 +300,7 @@ SBR.battle = (() => {
     });
     renderOrder();
     renderAggro();
+    renderIntents();
   }
 
   /* ---------- animation helpers ---------- */
@@ -493,6 +520,8 @@ SBR.battle = (() => {
         await sleep(250); break;
       }
       case 'banner': await banner(e.text, e.sub); break;
+      case 'intent': intents[e.uid] = e; renderIntents(); if (cards[e.uid]) { cards[e.uid].classList.remove('intent-pop'); void cards[e.uid].offsetWidth; cards[e.uid].classList.add('intent-pop'); } SBR.audio.play('menace'); await sleep(420); break;
+      case 'intentClear': delete intents[e.uid]; renderIntents(); break;
       case 'timestop':
         if (e.on) { root.classList.add('timestop'); SBR.audio.play('timestop'); SBR.fx.ring(innerWidth * 0.75, innerHeight * 0.45, '#ffd84a', Math.max(innerWidth, innerHeight), 14, 1.2); await banner('THE WORLD!', 'Time has stopped.'); }
         else { await sleep(300); root.classList.remove('timestop'); ui.sfxText('時は動き出す', innerWidth / 2, innerHeight / 2, 'k-golden'); }

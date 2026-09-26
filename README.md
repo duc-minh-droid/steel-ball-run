@@ -75,6 +75,10 @@ Then open <http://localhost:5178>. Progress saves in your browser's local storag
    - Blackmore hides in frozen rain that only Spin attacks can pierce.
    - Valentine's copies take his hits.
    - Diego's THE WORLD stops time more often as he gets desperate.
+   - **Bosses fight like bosses.** They usually move first, and against three or more riders they also get an **Overwhelming Presence** move at the end of the round. Their HP and damage grow with the act and with every rider you bring.
+   - **Telegraphs.** A boss announces its next big move: a badge on its card, a crosshair on the rider it's aiming at, and a strip under the top bar ("Ringo is aiming Quickdraw at Johnny"). The telegraphed move hits much harder, but **Brace** (Guard now lasts until your next turn) cuts it to about a third, a **Taunt** pulls a single-target one onto the taunter, and a **stun interrupts it**. Area telegraphs also drain 1 Energy from every rider who didn't brace.
+   - **No cheese.** After a stun or time stop a boss is **Steeled** and shrugs off the next ones for two turns. A single hit can take at most 15% of a boss's HP (10% for Strange Auras), so burst can't delete one. At half HP a boss catches a **Second Wind** (cleanse, a small shield, +15% damage), and a fight that drags past round 9 (13 for Strange Auras) makes it **furious**. Whatever it summoned scatters when it falls.
+   - Elite fights hit harder too, and the strongest elite telegraphs its big move.
 9. **Build up across runs.** Race Points buy permanent Techniques, and unlock horses (about 70–110 RP) and starting items (45–90 RP) from the Stable or the setup screen. Achievements unlock lead riders and Techniques, and still unlock their horse or item for free.
    - Some Techniques change the rules instead of adding numbers, each with a catch: **Requiem** (+35% damage, fight at 70% HP), **Golden Rectangle Discipline** (no natural Energy; free attacks give +2), **D'Arby's Wager** (roll checks twice, but failures cost HP), **Lone Wolf** (a lone lead gets +60% damage, Energy and dodge), **Wanted Poster** (+2 Threat from the start, +40% money and XP), **Express Rider** (one fewer card, more pace and XP), **Stone Mask Pact** (half healing, but hits heal you) and **THE WORLD's Opening** (enemies lose their first turn, you start with less Energy).
 
@@ -86,7 +90,7 @@ Each lead rider (Johnny, Gyro, Mountain Tim and Hot Pants) has a permanent skill
 - **Nodes branch.** Each branch splits into two arms, and the node where they meet needs only one of them. Costs rise from 10 to 70 RP, so a full tree costs 663 RP, which is several runs' worth.
 - **Minor nodes** give stats, damage by type, crit, dodge, block, starting Energy, Regen, resistances, battle HP, skill-check bonuses, or an ability early (Nail Bullet, Wormhole, Scan, Golden Spin, Rope Corral, Flesh Disguise).
 - **Capstones change how the rider fights.** Examples: Nail Storm (a volley at every enemy, and Johnny's basic attacks always leave a Nail Hole), Slow Dancer's Rhythm (a dodge gives Energy and a counter-nail), Twin Balls (Steel Ball throws a second ball), Zeppeli Surgery, Ball Breaker from the first stage, High Noon (Tim always draws first and his first shot always crits), Cattle Drive, Flesh Armour (overhealing becomes Shield), Vatican Rite (Holy revolver rounds) and Relic Sense.
-- **Bonuses apply whenever that rider is in the party,** whether they're the lead or an ally.
+- **Bonuses apply only to your lead.** A rider's Legacy powers them when they start the run; the same rider joining as an ally rides without it.
 - **Respec** refunds everything for a 10% fee (at least 10 RP).
 - **Legacy ranks.** Once a tree is complete, each of five ranks adds +3% damage and +4 battle HP (60–180 RP each).
 
@@ -179,6 +183,20 @@ Every choice feeds a hidden world state, like a tabletop campaign. Nothing tells
 - **Six endings.** They are chosen by what you did, not only by where you finish.
 - **The Chronicle** (`J`, or the tab on the left) records your deeds. When a consequence finally happens, it writes what the deed caused in red ink. The ending shows the full list.
 
+## Your allies have opinions
+
+Every ally who isn't your lead has likes and dislikes taken from the manga. Gyro likes Naples, cheese, the Spin and doctoring, and hates cruelty. Johnny wants the Corpse and to win, and hates resting. Mountain Tim likes the law and protecting Lucy. Hot Pants likes the Vatican and hates robbery and the President's deals. Pocoloco likes luck and gambling. Wekapipo likes honour and shielding the weak. Lucy dislikes violence. Diego likes money and winning, and hates charity.
+
+- **You can see it coming.** Small portrait badges on each encounter card show who in the party would like (♥) or dislike (✗) that road. The Party screen (`P`) shows each ally's bond bar and what they like and dislike.
+- **Cards.** Picking a card an ally likes raises their bond. Picking one they dislike, or passing up one they wanted, lowers it. Scavenge and Short Rest count too: Pocoloco and Diego like scavenging, Lucy likes resting, and Johnny and Diego hate it.
+- **Choices.** An event or story answer is read from its label, the deed it records and the faction standing it moves. Robbing the wounded boy makes Gyro, Tim and Wekapipo disapprove.
+- **Bond runs from 0 to 100** and starts at 55. A toast with the ally's portrait and a line in their voice shows each change.
+  - **Devoted (80+):** +6% damage and +3% crit.
+  - **Wary (30 or less):** −1 starting Energy. The ally also asks to talk a stage or two later. You can hear them out, make it up to them with a $40 gift, or tell them to ride or leave (a RESOLVE check).
+  - **10 or less:** they leave the party at the next safe point, which is before the next stage's cards. A manga page shows them saying why. A story event can still bring them back later, and they return at 40.
+- **Johnny and Gyro are bound to the story.** Their bond never drops below 15, so they can turn Wary but never leave. In the final act nobody leaves. Reserve riders keep their bond as it is, and the lead rider has no bond.
+- **Party full.** When a fifth rider wants to join, a picker opens once the current panel closes. You choose who moves to the reserve, or you keep the newcomer in the reserve. The lead, Johnny and Gyro can't be benched. When Johnny or Gyro is the one joining, someone has to make room.
+
 ## Debugging
 
 Press the backtick key (`` ` ``) or open `index.html?debug` for the debug panel. It jumps to any act, stage, side event, story scene, fight, boss lineup, detour, sprint or ending, with the lead, level, threat and faction standing you choose. The same jumps are scriptable from the console as `SBR.debug.*`.
@@ -253,11 +271,13 @@ The theme keys are `title`, `act1` to `act6`, `devilspalm`, `silvermine`, `lakei
 | `js/economy.js` | The 16 materials, Souls, upgrades, reinforce, salvage, selling, trinkets, services, fees |
 | `js/campaign.js` | World state, factions, consequences, follow-up encounters, story branches, endings, the Chronicle |
 | `js/trees.js` | Legacy skill trees: nodes, capstone abilities and triggers, the Saloon tab |
+| `js/affinity.js`, `css/affinity.css` | Ally likes and dislikes, bond and its tiers, card badges, departures and the talk events; the party-full picker |
 | `js/debug.js` | Debug panel and `SBR.debug` jump API |
 | `js/areas.js` | Detour areas, hazards, their enemies, bosses, events and gear |
 | `js/detours2.js` | More detour events, enemies, elites, exclusive gear and alternate bosses; the Pillar Tomb detour |
 | `js/superbosses.js` | The Strange Aura superbosses: their mechanics, secret cards, Souls, legendary gear and Techniques |
 | `js/combat.js` | Combat engine: pure state plus an event log |
+| `js/bosstuning.js`, `css/bossintent.css` | The boss director: boss/elite scaling by act and party size, initiative, Overwhelming Presence, telegraphed moves and their counters, Steeled, hit caps, Second Wind and Fury. Tuning lives in `SBR.bossTuning.CFG` |
 | `js/fx.js` | Canvas VFX: projectiles, slashes, spirals, damage-over-time effects |
 | `js/standfx.js`, `css/standfx.css` | Per-move Stand choreography (time stop, ORA barrages, zippers, erased space, ankh flames...), routed by ability id or enemy move name |
 | `js/battle-ui.js` | Replays combat events as animations and handles input |
