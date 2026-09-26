@@ -866,7 +866,9 @@ SBR.ui = (() => {
       box.appendChild(row);
       if (res.loot && res.loot.length) {
         const lr = el('div', { class: 'loot-row' }, el('span', {}, 'Loot: '));
-        res.loot.forEach(l => lr.appendChild(l.kind === 'relic' ? relicChip(l.id, 'pop') : l.kind === 'equip' ? equipChip(l.id, 'pop') : l.kind === 'trinket' ? trinketChip(l.id, 'pop') : itemChip(l.id)));
+        // each drop gets its name underneath, so the haul reads without hovering every icon
+        const lootName = l => { try { const D = l.kind === 'relic' ? SBR.RELICS : l.kind === 'equip' ? SBR.EQUIPMENT : l.kind === 'trinket' ? SBR.TRINKETS : SBR.ITEMS; return (D && D[l.id] && D[l.id].name) || ''; } catch (e) { return ''; } };
+        res.loot.forEach(l => { const chip = l.kind === 'relic' ? relicChip(l.id, 'pop') : l.kind === 'equip' ? equipChip(l.id, 'pop') : l.kind === 'trinket' ? trinketChip(l.id, 'pop') : itemChip(l.id); const nm = lootName(l); lr.appendChild(nm ? el('div', { class: 'ux-loot' }, chip, el('small', {}, nm)) : chip); });
         box.appendChild(lr);
       }
       if (res.mats && Object.keys(res.mats).length) {

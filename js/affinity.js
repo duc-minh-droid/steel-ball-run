@@ -403,5 +403,5 @@ SBR.partyPicker = (m, o = {}) => new Promise(resolve => {
   foot.appendChild(go);
   if (!o.forced) foot.appendChild(ui.btn(`${C.short} waits in the reserve`, () => { SBR.toast(`<div class="toast-port">${art.portrait(C.portrait)}</div><div><b>${C.name}</b> rides in the reserve. <small>Swap riders any time from the Party screen (P).</small></div>`, 'ally'); done(); }, 'btn-ghost pp-decline'));
   box.appendChild(foot);
-  const w = ui.modal(box, { title: 'Party Full', noClose: true, size: 'wide', cls: 'pp-modal' });
+  const w = ui.modal(box, { noClose: true, size: 'wide', cls: 'pp-modal' });
 });

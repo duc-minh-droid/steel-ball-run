@@ -1030,7 +1030,8 @@ SBR.game = (() => {
   }
   function compTab(body) {
     const seen = SBR.meta.seen;
-    body.appendChild(el('div', { class: 'cs-sub' }, 'RIDERS'));
+    const riderHead = el('div', { class: 'cs-sub' }, 'RIDERS');
+    body.appendChild(riderHead);
     const ag = el('div', { class: 'comp-grid' });
     Object.entries(SBR.CHARS).forEach(([k, c]) => {
       const s = k === 'johnny' || k === 'gyro' || seen.allies[k];
@@ -1039,7 +1040,10 @@ SBR.game = (() => {
       ag.appendChild(card);
     });
     body.appendChild(ag);
-    body.appendChild(el('div', { class: 'cs-sub' }, 'ENEMIES & STANDS'));
+    const count = (head, grid) => head.appendChild(el('span', { class: 'ux-count' }, `${grid.querySelectorAll('.comp-card:not(.locked)').length} / ${grid.children.length} found`));
+    count(riderHead, ag);
+    const enemyHead = el('div', { class: 'cs-sub' }, 'ENEMIES & STANDS');
+    body.appendChild(enemyHead);
     const eg = el('div', { class: 'comp-grid' });
     Object.entries(SBR.ENEMIES).filter(([k]) => k !== 'outlawish').forEach(([k, e]) => {
       const s = seen.enemies[k];
@@ -1048,6 +1052,7 @@ SBR.game = (() => {
       eg.appendChild(card);
     });
     body.appendChild(eg);
+    count(enemyHead, eg);
     body.appendChild(el('div', { class: 'cs-sub' }, 'STATUS EFFECTS'));
     const sg = el('div', { class: 'status-glossary' });
     Object.entries(SBR.STATUS).forEach(([k, d]) => sg.appendChild(el('div', { class: 'sgl', html: `<span class="st-chip ${d.kind}" style="--c:${d.color}">${SBR.icons.status(k)}</span><div><b>${d.name}</b><p>${d.desc(2)}</p></div>` })));
@@ -1104,8 +1109,11 @@ SBR.game = (() => {
         box.appendChild(ig);
         const eq = SBR.meta.equippedTech.map(k => SBR.TECHNIQUES[k].name).join(', ') || 'none';
         box.appendChild(el('p', { class: 'muted' }, `Techniques equipped: ${eq}`));
-        const foot = el('div', { class: 'lobby-foot' });
+        const foot = el('div', { class: 'lobby-foot setup-foot' });
         foot.appendChild(ui.btn('◂ Saloon', () => lobbyScreen(), 'btn-ghost btn-tbc'));
+        // what you're about to ride with, always in view next to the button
+        const H = SBR.HORSES[horse], I = SBR.EQUIPMENT[item];
+        foot.appendChild(el('div', { class: 'ux-setup-sum', html: `<span><i>Lead</i><b>${L.short || L.name}</b></span><span><i>Horse</i><b>${H ? H.name : '?'}</b></span><span><i>Item</i><b>${I ? I.name : '?'}</b></span>` }));
         foot.appendChild(ui.btn('RIDE! ▸', () => beginRace(horse, item, lead), 'btn-primary big btn-go', { 'data-kana': 'ドドドド' }));
         box.appendChild(foot);
       };

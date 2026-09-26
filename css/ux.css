@@ -1,0 +1,105 @@
+/* =================== UX pass: clarity, feedback, less clutter (loaded last) ===================
+   Toast stack, tooltips-free key hints, battle readability, boss telegraph strip, log placement,
+   setup footer, scroll cues, reward captions. Additive only: no existing class is renamed. */
+
+/* ---------- keyboard hints ---------- */
+.ux-kbd {
+  display: inline-block; min-width: 1.5em; padding: 0 4px; margin: 0 2px; border: 2px solid currentColor; border-bottom-width: 3px; border-radius: 3px;
+  font: 700 11px/1.35 var(--f-ui, 'Oswald'); letter-spacing: 0; text-align: center; vertical-align: middle; text-transform: none; opacity: .9; font-style: normal;
+}
+.btn .ux-kbd { font-size: 12px; margin-left: 6px; opacity: .75; transform: skewX(0); }
+
+/* ---------- toasts: capped (js/core.js), merged repeats, out of the way of panels ---------- */
+#toasts { gap: 6px; }
+.toast { position: relative; max-width: min(340px, calc(100vw - 32px)); line-height: 1.3; }
+.toast small { display: inline-block; line-height: 1.25; }
+.toast .toast-n {
+  position: absolute; top: -11px; right: -11px; padding: 0 6px; background: var(--jj-magenta, #d6307a); color: #fff; border: 2px solid var(--ink);
+  font-family: var(--f-sfx, Bangers, sans-serif); font-weight: 400; font-size: 15px; letter-spacing: .04em; transform: rotate(6deg); box-shadow: 2px 2px 0 var(--ink);
+}
+.toast.bump:not(.out) { animation: uxToastBump .3s cubic-bezier(.2, 1.4, .4, 1); }
+@keyframes uxToastBump { 40% { transform: scale(1.06); } }
+/* achievement toasts share the .achv class with the (locked, 55%-opacity, grey) achievement cards: give them back their gold */
+.toast.achv { opacity: 1; background-color: var(--gold, #f2c14e); background-image: linear-gradient(100deg, rgba(255, 255, 255, .45), transparent 40%); padding: 8px 14px; border: 3px solid var(--ink); }
+.toast.achv b { font-family: var(--f-title); font-weight: 400; font-size: 15px; }
+.toast.achv small { display: inline; }
+/* sprint: keep the riding-power buttons and stamina bar (bottom-left) clear */
+body:has(.sprint) #toasts { top: 280px; bottom: auto; }
+/* the stage's left rail stays visible */
+body:has(.screen-stage) #toasts { left: 84px; }
+/* battle: the action panel and party HP/status (bottom and left) stay clear; toasts sit compact under the LOG button */
+body:has(.screen-battle) #toasts { top: 110px; bottom: auto; left: auto; right: 16px; flex-direction: column; align-items: flex-end; }
+body:has(.screen-battle) .toast { max-width: 300px; font-size: 13px; padding: 6px 10px; gap: 8px; }
+body:has(.screen-battle) .toast-port { width: 30px; height: 36px; }
+/* while a panel/modal is open: a compact stack in the top-right corner instead of over the panel's content and choices */
+body:has(#overlay > .modal-wrap) #toasts { top: 12px; bottom: auto; left: auto; right: 16px; flex-direction: column; align-items: flex-end; }
+body:has(#overlay > .modal-wrap) .toast { max-width: 300px; font-size: 13px; padding: 6px 10px; gap: 8px; }
+body:has(#overlay > .modal-wrap) .toast-port { width: 30px; height: 36px; }
+body:has(#overlay > .modal-wrap) .toast-ico, body:has(#overlay > .modal-wrap) .toast-glyph { width: 24px; height: 24px; }
+body:has(#overlay > .modal-wrap) .toast-wanted .wanted-svg { width: 28px; height: 36px; }
+
+/* ---------- battle: names never hide under the portrait frame ---------- */
+.uc-name { position: relative; z-index: 2; margin-top: 9px; }
+/* targeting hint: steady and readable (the old blink dropped it to 15% opacity), with the keys spelled out */
+.target-hint { animation: uxHintPulse 1.4s ease-in-out infinite; box-shadow: 4px 4px 0 var(--ink); font-size: 15px; letter-spacing: .02em; }
+.target-hint .th-keys { margin-left: 10px; font-size: 12px; font-weight: 700; opacity: .92; }
+.target-hint .th-keys .ux-kbd { margin-left: 6px; }
+@keyframes uxHintPulse { 0%, 100% { box-shadow: 4px 4px 0 var(--ink); } 50% { box-shadow: 4px 4px 0 var(--ink), 0 0 0 4px rgba(255, 255, 255, .55); } }
+
+/* log: opens from the top-right so it never covers Brace / Items in the action panel */
+.log-toggle { top: 62px; bottom: auto; right: 16px; display: flex; align-items: center; gap: 2px; font-family: var(--f-ui, 'Oswald'); letter-spacing: .08em; }
+.log-toggle .ux-kbd { font-size: 10px; }
+.log-toggle:hover, .log-toggle.on { background: var(--gold, #f2c14e); }
+.battle-log { top: 104px; bottom: auto; width: 320px; font-size: 13px; line-height: 1.35; box-shadow: 5px 5px 0 var(--ink); }
+.battle-log.open { max-height: min(50vh, calc(100vh - 330px)); }
+
+/* ---------- boss telegraph strip: lower (clear of the turn order), bigger, the answer on its own line ---------- */
+.intent-strip { top: 72px; max-width: min(820px, calc(100% - 32px)); }
+.intent-strip .is-row { font-size: 15px; padding: 7px 14px 8px; gap: 3px 10px; line-height: 1.3; }
+.intent-strip .is-kick { font-size: 18px; }
+.intent-strip .is-text { font-size: 15px; }
+.intent-strip .is-counter { flex-basis: 100%; font-style: normal; font-size: 13px; color: #f3e6c8; }
+.intent-strip .is-ans {
+  display: inline-block; margin-right: 7px; padding: 0 6px; background: #ffd84a; color: #1a1020; border: 2px solid #1a1020;
+  font-family: var(--f-sfx, Bangers, Impact, sans-serif); font-weight: 400; font-size: 13px; letter-spacing: .08em; line-height: 1.15; transform: skewX(-8deg);
+}
+.intent-strip .is-ans.tip { background: #9fdcff; }
+.uc-intent span { font-size: 13px; }
+@media (max-width: 1000px) { .intent-strip .is-row { font-size: 13px; } .intent-strip .is-text { font-size: 13px; } .intent-strip .is-counter { font-size: 12px; } .intent-strip .is-hint { display: none; } }
+
+/* ---------- big screens: battle cards scale with the field ---------- */
+@media (min-width: 1600px) and (min-height: 950px) {
+  .battle-field { zoom: 1.3; }
+}
+
+/* ---------- scroll cues: long panels show a thin ink/pink scrollbar again ---------- */
+.setup, .lobby-body, .modal { scrollbar-width: thin; scrollbar-color: var(--jj-magenta, #d6307a) rgba(26, 16, 32, .08); overflow-x: hidden; }
+
+/* ---------- setup: the RIDE button and your picks stay in view ---------- */
+.setup > .setup-foot {
+  position: sticky; bottom: -18px; z-index: 6; margin: 14px -22px -18px; padding: 12px 22px 14px; background-color: var(--paper);
+  background-image: radial-gradient(rgba(26, 16, 32, .07) 1px, transparent 1.4px); background-size: 7px 7px;
+  border-top: 3px solid var(--ink); box-shadow: 0 -8px 14px rgba(26, 16, 32, .12);
+}
+.ux-setup-sum { display: flex; gap: 18px; flex: 1; justify-content: center; flex-wrap: wrap; min-width: 0; }
+.ux-setup-sum span { display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
+.ux-setup-sum i { font-style: normal; font-family: var(--f-ui, 'Oswald'); font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; opacity: .6; }
+.ux-setup-sum b { font-family: var(--f-anton, 'Oswald'); font-weight: 400; font-size: 17px; letter-spacing: .03em; white-space: nowrap; }
+@media (max-width: 700px) { .setup > .setup-foot { bottom: -14px; margin: 14px -14px -14px; padding: 10px 14px; } .ux-setup-sum { display: none; } }
+
+/* ---------- compendium progress ---------- */
+.cs-sub .ux-count { margin-left: 10px; padding: 0 8px; background: var(--ink); color: var(--jj-gold, #f2c14e); font-size: 12px; letter-spacing: .08em; order: 2; white-space: nowrap; }
+
+/* ---------- rewards: every drop is named ---------- */
+.ux-loot { display: flex; flex-direction: column; align-items: center; gap: 3px; max-width: 110px; }
+.ux-loot small { font-size: 12px; font-weight: 700; line-height: 1.15; text-align: center; }
+
+/* ---------- lobby helper line was tiny and faint ---------- */
+.lobby-body > p.muted:first-child { font-size: 14px; opacity: .85; }
+
+/* ---------- sprint: the rules line stays legible over the clouds; the first-race tip sits below the progress track ---------- */
+.sprint-sub { display: inline-block; padding: 3px 12px; background: rgba(26, 16, 32, .78); border: 2px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+.sprint-tip { top: 146px; }
+
+@media (prefers-reduced-motion: reduce) { .target-hint, .toast.bump { animation: none; } }
+body.reduced .target-hint { animation: none; }

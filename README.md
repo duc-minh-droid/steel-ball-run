@@ -6,7 +6,13 @@ All the art is drawn in code as SVG and canvas. All the music and sound effects 
 
 ![Title screen](docs/media/title.jpg)
 
-**[🎮 Play now](https://steel-ball-run-kohl.vercel.app)** · **[▶ Watch the demo video](docs/media/demo.webm)** · **[Showcase page](docs/index.html)**
+**[🎮 Play now](https://steel-ball-run-kohl.vercel.app)** · **[▶ Watch the trailer](docs/media/trailer.mp4)** · **[Showcase page](docs/index.html)**
+
+## Trailer
+
+[![Trailer: Stand battles, the Arrow's tarot draw, a telegraphing boss and a race finish](docs/media/teaser.gif)](docs/media/trailer.mp4)
+
+*Click the clip for the full 80-second trailer (1080p MP4). Everything in it is recorded live from the game.*
 
 ## Play
 
@@ -17,6 +23,42 @@ python -m http.server 5178
 ```
 
 Then open <http://localhost:5178>. Progress saves in your browser's local storage.
+
+## How to play
+
+A run takes about an hour. Here is everything you need for the first one.
+
+### 1 · Registration
+![Registration screen with the lead riders, the Drifter, the Legacy tree and the RIDE button highlighted](docs/media/tutorial/01-setup.jpg)
+
+Pick a **lead rider** (Johnny and Gyro to start; more unlock as you clear acts) or the **Drifter**, a custom rider who earns a power on the road. Your lead carries their **Legacy tree** of permanent upgrades. Scroll down to choose a horse and a starting item, then press **RIDE!**
+
+### 2 · The stage
+![Stage screen with the encounter cards, Pace bar, Threat and money, Scavenge and Rest buttons, party strip and menu tabs highlighted](docs/media/tutorial/02-stage.jpg)
+
+Each act has about seven stages. On each one you **choose one of three encounter cards**; stars show the danger and the corner shows the pace cost. Keep an eye on **Pace** (fall behind and your rank drops) and **Threat** (the President noticing you). Short on HP? **Scavenge** or **Short Rest** instead. Hearts on the party strip show how each ally feels about your choices.
+
+### 3 · Encounters
+![An encounter panel with the drawn scene and the choice list highlighted](docs/media/tutorial/03-event.jpg)
+
+Read the scene, then pick a choice (keys `1`–`3` work). Tags show a **d20 check** and your odds, a cost, or who has to be there. Your choice plays out in the next panel, and it may come back acts later. Allies love or hate certain choices, and one pushed too far will leave.
+
+### 4 · Battle
+![Battle screen with the turn order, Energy, ability bar, Brace button and enemy cards highlighted](docs/media/tutorial/04-battle.jpg)
+
+Turns follow the **turn order** at the top. Each move costs **Energy** pips, and you gain one a turn. Click an ability (or press its number), then click a target. A ×2–×4 badge means the move can hit several targets, and ALL hits everyone. **Brace** (`Q`) skips your move for +1 Energy and Guard until your next turn. Hover anything for details: statuses, resistances, aggro odds.
+
+### 5 · Bosses
+![Boss battle with the telegraph strip, the targeted rider and the winding-up boss highlighted](docs/media/tutorial/05-boss.jpg)
+
+Bosses are meant to feel overwhelming. Watch the **telegraph strip**: it names the big move coming and who it's aimed at. **Brace or Guard** the marked rider, **Taunt** to pull the hit, or **stun** the boss to cancel it. Answer it and the boss is left Exposed.
+
+### 6 · Stage races
+![Race screen with the timing ring, trick buttons, stamina bar and the pack highlighted](docs/media/tutorial/06-race.jpg)
+
+Every act ends with a race. Press **Space** as the needle crosses **gold** to surge, and hit gold during an attack to dodge it. Keys `1`–`4` fire your horse's trick and your riders' race powers. Watch your stamina. Place well for money, Race Points and rank.
+
+Between runs, spend **Race Points** in the Saloon on Techniques, horses, starting items and your riders' Legacy trees.
 
 ## Screenshots
 
@@ -67,7 +109,7 @@ Then open <http://localhost:5178>. Progress saves in your browser's local storag
    - **Aggro.** Enemies choose single targets at random, weighted by aggro, as in AAC. Front-liners like Wekapipo and Mountain Tim draw more attention, and Lucy and Hot Pants draw less. GRIT raises aggro a little and RESOLVE lowers it. Heavy gear such as the Iron-Plated Vest raises it, and light gear such as Racing Silks lowers it. Big hits, heals and Stand moves raise it for a while, and taking hits lowers it. Evasive and **Lying Low** make you hard to notice. A badge on each party card shows your chance to be picked, and a red crosshair marks the most likely target. Hover the badge for the breakdown. At higher Threat, enemies also go after the wounded.
    - **Taunt.** A taunting ally draws 85% of single-target attacks, which is what Tim's **Draw!**, Wekapipo's **Royal Challenge** and the custom rider's **Showboat** are for. Some elites and bosses taunt too (Stroheim, the Presidential Guard, Wekapipo, Honey-Mouth Ike). While one is taunting, your single-target moves can only pick the taunter.
    - **Summons.** Some moves call help onto your side of the field. Summons act at the end of each round, can be hit, and vanish when their summoner falls or their rounds run out. They never count as party members. You get Tim's Longhorn Steers and rope Scarecrow, Gyro's Spinning Sentry, Johnny's wandering Nail Hole, Hot Pants' Flesh Double (a taunting decoy), two of Diego's raptors, Pocoloco's Hey Ya! cheerleader, and Killer Queen's Sheer Heart Attack. The Harvest Jar and Stray Cat in a Pot items summon too. Up to four can be on the field at once.
-7. **Gear up.** Enemies drop materials and Stand Remnants for the crafting bench.
+7. **Gear up.** Enemies drop materials and Stand Remnants for the crafting bench. Each fallen enemy leaves at most one or two things (often nothing); shops, events and detours are where most supplies come from.
    - Each rider wears a weapon, a hat, a coat, boots and two charms.
    - Charms belong to families, and two charms from the same family don't stack.
 8. **Beat the act boss, then race to the finish.** Each boss's mechanic comes from their Stand:
@@ -241,6 +283,8 @@ The theme keys are `title`, `act1` to `act6`, `devilspalm`, `silvermine`, `lakei
 | `P` `B` `C` `M` `J` | Party, Bag, Crafting, Map, Chronicle (also the tabs on the left of the screen) |
 | `` ` `` | Debug panel |
 | `Space` | Advance dialogue / surge in the sprint |
+| `Enter` | Continue past a result or rewards panel |
+| `L` | Open or close the battle log |
 | `Esc` | Settings (speed, sound and music volume, screen shake, reduced motion) |
 
 ## Code layout

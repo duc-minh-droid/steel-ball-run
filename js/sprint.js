@@ -901,9 +901,9 @@ SBR.sprint = (() => {
         const speak = k => SBR.CHARS[k] && !['johnny', 'gyro'].includes(k) || r.party.some(m => m.id === k);
         const winName = win.player ? L.name : win.filler ? `rider No.${win.num}, ${win.full}` : SBR.RIVALS[win.key].name;
         const stageName = name.split(/\s[—-]\s/)[0].replace(/ Finish$/, '');
-        const WIN = ['Nobody hands you fifty million dollars. You take it, one stage at a time.', 'Tha’ one. Wh’ next?', 'Did you see that?! First across!', 'Keep the champagne. Wher’ the next line?'];
-        const LOSE = place <= 3 ? ['Close. Not close enough.', 'Points are points. ’l take them.', 'Next stage, that line is mine.'] : ['Eat my dust next time. I swear it.', 'The race is’ over. Not by a long way.', 'Keep riding. Just keep riding.'];
-        const GLOAT = { diego: 'Did you really think a stable boy would lose to you? WRYYY... I mean, how quaint.', pocoloco: 'Hey Ya said today was my lucky day! I’ ALWAYS my lucky day!', hotpants: 'God rides with me. You only have a horse.', mountaintim: 'Ride hard, friend. The trail is long.', sandman: 'My peopl’ land. My peopl’ speed.', wekapipo: '...' };
+        const WIN = ['Nobody hands you fifty million dollars. You take it, one stage at a time.', 'That’s one. Who’s next?', 'Did you see that?! First across!', 'Keep the champagne. Where’s the next line?'];
+        const LOSE = place <= 3 ? ['Close. Not close enough.', 'Points are points. I’ll take them.', 'Next stage, that line is mine.'] : ['Eat my dust next time. I swear it.', 'The race isn’t over. Not by a long way.', 'Keep riding. Just keep riding.'];
+        const GLOAT = { diego: 'Did you really think a stable boy would lose to you? WRYYY... I mean, how quaint.', pocoloco: 'Hey Ya said today was my lucky day! It’s ALWAYS my lucky day!', hotpants: 'God rides with me. You only have a horse.', mountaintim: 'Ride hard, friend. The trail is long.', sandman: 'My people’s land. My people’s speed.', wekapipo: '...' };
         const lines = [
           { who: 'steven', text: place === 1 ? `LADIES AND GENTLEMEN! The ${stageName} goes to ${L.name.toUpperCase()}!!` : `LADIES AND GENTLEMEN! The ${stageName} goes to ${winName.toUpperCase()}!!` },
           { narr: place === 1 ? 'The crowd tears down the fences. Hats fly. Somebody fires a pistol into the air.' : 'The crowd roars for the winner. Your horse heaves under you, soaked in sweat.' },

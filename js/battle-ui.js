@@ -107,8 +107,8 @@ SBR.battle = (() => {
     pside.appendChild(el('div', { class: 'summon-rack' }));
     actionBox = el('div', { class: 'action-panel' });
     logBox = el('div', { class: 'battle-log' });
-    const logToggle = el('button', { class: 'log-toggle' }, 'LOG');
-    logToggle.onclick = () => logBox.classList.toggle('open');
+    const logToggle = el('button', { class: 'log-toggle', title: 'Battle log (L)', html: 'LOG <kbd class="ux-kbd">L</kbd>' });
+    logToggle.onclick = () => { logBox.classList.toggle('open'); logToggle.classList.toggle('on', logBox.classList.contains('open')); };
     intents = {};
     intentBox = el('div', { class: 'intent-strip' });
     root.append(top, intentBox, field, actionBox, logBox, logToggle);
@@ -138,7 +138,7 @@ SBR.battle = (() => {
     });
     if (!intentBox) return;
     intentBox.classList.toggle('show', list.length > 0);
-    intentBox.innerHTML = list.map(e => `<div class="is-row${e.aoe ? ' aoe' : ''}"><b class="is-kick">INTENT</b><span class="is-text">${e.text}</span><span class="is-counter">${e.counter}${e.hint ? ' ' + e.hint : ''}</span></div>`).join('');
+    intentBox.innerHTML = list.map(e => `<div class="is-row${e.aoe ? ' aoe' : ''}"><b class="is-kick">INTENT</b><span class="is-text">${e.text}</span><span class="is-counter"><b class="is-ans">ANSWER</b>${e.counter}</span>${e.hint ? `<span class="is-counter is-hint"><b class="is-ans tip">TIP</b>${e.hint}</span>` : ''}</div>`).join('');
   }
 
   /** summons get their own drawings; everything else goes through ui.artFor */
@@ -630,7 +630,7 @@ SBR.battle = (() => {
     const T = targeting;
     const TT = T.t === 'enemy' ? c.tauntersAgainst(T.u) : [];
     const taunted = TT.length ? `<b class="th-taunt">挑 TAUNTED</b> Must target ${TT.map(t => t.name).join(' / ')} · ` : '';
-    if (!T.pick) { if (taunted) h.innerHTML = taunted + 'Esc to cancel'; else h.textContent = T.t === 'enemy' ? 'Choose a target · Esc to cancel' : 'Choose an ally · Esc to cancel'; return; }
+    if (!T.pick) { if (taunted) h.innerHTML = taunted + 'Esc to cancel'; else h.innerHTML = `${T.t === 'enemy' ? 'Choose a target' : 'Choose an ally'} <span class="th-keys"><kbd class="ux-kbd">Tab</kbd> cycle <kbd class="ux-kbd">↵</kbd> pick <kbd class="ux-kbd">Esc</kbd> cancel</span>`; return; }
     const k = T.picked.length, who = T.t === 'enemy' ? 'enemies' : 'allies';
     h.innerHTML = `<span class="th-count">${[...Array(T.pick)].map((_, i) => `<i class="${i < k ? 'on' : ''}"></i>`).join('')}</span>
       <span class="th-text">${taunted}Pick up to <b>${T.pick}</b> ${who}${T.ab && T.ab.spread && k > 1 ? ` · <em>${SPLIT(k)}% each</em>` : T.ab && T.ab.spread ? ' · split damage' : ''}</span>`;
@@ -684,6 +684,7 @@ SBR.battle = (() => {
   }
   function onKey(e) {
     if (document.querySelector('.dlg-wrap') || document.querySelector('.modal-wrap')) return;
+    if ((e.key === 'l' || e.key === 'L') && root) { const t = root.querySelector('.log-toggle'); if (t) t.click(); return; }
     if (!inputResolve) return;
     const u = c.unit(activeUid); if (!u || u.side !== 'party') return;
     if (e.key === 'Escape' && targeting) { stopTargeting(); return; }

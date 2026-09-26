@@ -183,20 +183,54 @@ SBR.tip = (() => {
     tipEl.style.left = Math.max(8, tx) + 'px';
     tipEl.style.top = Math.max(8, ty) + 'px';
   };
-  const hide = () => { tipEl = tipEl || document.getElementById('tooltip'); tipEl.classList.remove('show'); };
+  let owner = null, watch = 0;
+  const hide = () => { tipEl = tipEl || document.getElementById('tooltip'); tipEl.classList.remove('show'); owner = null; clearInterval(watch); watch = 0; };
+  // a tooltip whose node was re-rendered or removed never gets its mouseleave: drop it once the node leaves the page
+  const own = node => { owner = node; if (!watch) watch = setInterval(() => { if (!owner || !owner.isConnected) hide(); }, 250); };
   const bind = (node, htmlOrFn) => {
-    node.addEventListener('mouseenter', e => show(typeof htmlOrFn === 'function' ? htmlOrFn() : htmlOrFn, e.clientX, e.clientY));
-    node.addEventListener('mousemove', e => show(typeof htmlOrFn === 'function' ? htmlOrFn() : htmlOrFn, e.clientX, e.clientY));
+    node.addEventListener('mouseenter', e => { show(typeof htmlOrFn === 'function' ? htmlOrFn() : htmlOrFn, e.clientX, e.clientY); own(node); });
+    node.addEventListener('mousemove', e => { show(typeof htmlOrFn === 'function' ? htmlOrFn() : htmlOrFn, e.clientX, e.clientY); own(node); });
     node.addEventListener('mouseleave', hide);
     return node;
   };
   return { show, hide, bind };
 })();
 
+/* Toasts: a short stack that never buries the screen. Repeats merge into one toast with a ×N count,
+   only the newest few stay (fewer while a panel is open), and long messages linger a little longer. */
 SBR.toast = (msg, kind = '') => {
   const box = document.getElementById('toasts');
+  if (!box) return;
+  const key = kind + '|' + msg;
+  const text = String(msg).replace(/<[^>]*>/g, '');
+  const life = Math.min(6000, 2600 + Math.max(0, text.length - 50) * 30);
+  const arm = t => {
+    clearTimeout(t._out); clearTimeout(t._rm);
+    t._out = setTimeout(() => t.classList.add('out'), life);
+    t._rm = setTimeout(() => t.remove(), life + 450);
+  };
+  const same = [...box.children].find(t => t._key === key && !t.classList.contains('out'));
+  if (same) {
+    same._n = (same._n || 1) + 1;
+    let n = same.querySelector('.toast-n');
+    if (!n) { n = document.createElement('b'); n.className = 'toast-n'; same.appendChild(n); }
+    n.textContent = '×' + same._n;
+    same.classList.remove('bump'); void same.offsetWidth; same.classList.add('bump');
+    box.appendChild(same);
+    arm(same);
+    return;
+  }
   const t = SBR.util.el('div', { class: 'toast ' + kind, html: msg });
+  t._key = key;
   box.appendChild(t);
-  setTimeout(() => t.classList.add('out'), 2600);
-  setTimeout(() => t.remove(), 3100);
+  arm(t);
+  // cap the stack: older toasts bow out early
+  const busy = document.querySelector('#overlay > .modal-wrap');
+  const cap = busy || window.innerHeight < 620 || window.innerWidth < 760 ? 2 : 3;
+  const live = [...box.children].filter(x => !x.classList.contains('out'));
+  live.slice(0, Math.max(0, live.length - cap)).forEach(x => {
+    clearTimeout(x._out); clearTimeout(x._rm);
+    x.classList.add('out');
+    x._rm = setTimeout(() => x.remove(), 420);
+  });
 };
