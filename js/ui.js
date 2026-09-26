@@ -284,8 +284,9 @@ SBR.ui = (() => {
   /* ---------- Choice / event panel ---------- */
   function eventPanel(ev) {
     return new Promise(resolve => {
-      const box = el('div', { class: 'event-panel' });
-      const pic = el('div', { class: 'event-art', html: ev.art ? portraitOf(ev.art) : `<div class="event-icon">${art.icon(ev.icon || 'question', 96)}</div>` });
+      const drawn = ev.id && SBR.evs && SBR.evs.has(ev.id) ? SBR.evs.scene(ev.id) : '';
+      const box = el('div', { class: 'event-panel' + (drawn ? ' has-scene' : '') });
+      const pic = drawn ? el('div', { class: 'event-scene', html: drawn }) : el('div', { class: 'event-art', html: ev.art ? portraitOf(ev.art) : `<div class="event-icon">${art.icon(ev.icon || 'question', 96)}</div>` });
       const body = el('div', { class: 'event-body' });
       body.append(el('h2', {}, ev.title), ev.html ? el('p', { class: 'event-text', html: ev.html }) : el('p', { class: 'event-text' }, ev.text || ''));
       const list = el('div', { class: 'choices' });
@@ -320,9 +321,18 @@ SBR.ui = (() => {
       document.addEventListener('keydown', onKey);
     });
   }
-  function resultPanel(title, text, icon = 'star') {
+  function resultPanel(title, text, icon = 'star', o = {}) {
     return new Promise(resolve => {
       if (!text) return resolve();
+      // an illustrated outcome continues the event's strip: the last panel shrinks aside, the new one slides in
+      if (o.scene) {
+        const box = el('div', { class: 'result-panel result-strip' });
+        box.innerHTML = `<div class="rs-strip">${o.prev ? `<div class="rs-prev">${o.prev}</div><div class="rs-arrow">▶</div>` : ''}<div class="rs-now">${o.scene}</div></div><div class="rs-cap"><h3>${title}</h3><p></p></div>`;
+        box.querySelector('.rs-cap p').textContent = text;
+        const w = modal(box, { noClose: true, size: 'wide', cls: 'result-strip-modal' });
+        box.appendChild(btn('Continue ▸', () => { closeModal(w); resolve(); }, 'btn-primary'));
+        return;
+      }
       const box = el('div', { class: 'result-panel' }, el('div', { class: 'result-icon', html: art.icon(icon, 56) }), el('h3', {}, title), el('p', {}, text));
       const w = modal(box, { noClose: true, size: 'small' });
       box.appendChild(btn('Continue', () => { closeModal(w); resolve(); }, 'btn-primary'));

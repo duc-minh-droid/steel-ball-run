@@ -1,0 +1,28 @@
+/* Illustrated encounters (js/evscene.js) */
+.event-panel.has-scene { display: flex; flex-direction: column; gap: 10px; }
+.event-panel.has-scene .event-body { width: 100%; }
+.event-scene { position: relative; width: min(100%, calc(40vh * 800 / 360)); margin: 0 auto; aspect-ratio: 800 / 360; overflow: hidden; border: 4px solid #1a1020; box-shadow: 6px 6px 0 #1a1020; background: #1a1020; transform: rotate(-.4deg); animation: evsIn .45s cubic-bezier(.2, 1.3, .4, 1) both; }
+.event-scene .evs-svg, .rs-strip .evs-svg { display: block; width: 100%; height: 100%; }
+@keyframes evsIn { from { opacity: 0; transform: translateY(-12px) scale(.97) rotate(-1deg); } }
+.event-modal:has(.has-scene) .modal { max-width: min(980px, 96vw); }
+
+.result-strip-modal .modal { max-width: min(1100px, 97vw); }
+.result-strip { display: flex; flex-direction: column; gap: 12px; align-items: stretch; text-align: left; }
+.rs-strip { display: flex; align-items: center; gap: 8px; }
+.rs-prev { flex: 0 0 26%; aspect-ratio: 800 / 360; border: 3px solid #1a1020; overflow: hidden; filter: saturate(.55) brightness(.8); transform: rotate(-2deg); box-shadow: 4px 4px 0 #1a1020; animation: rsShrink .5s ease-out both; }
+.rs-arrow { font-size: 22px; color: #e8508a; text-shadow: 2px 2px 0 #1a1020; animation: rsPulse 1s infinite alternate; }
+.rs-now { flex: 0 1 min(72%, calc(50vh * 800 / 360)); aspect-ratio: 800 / 360; border: 4px solid #1a1020; overflow: hidden; box-shadow: 7px 7px 0 #1a1020; transform: rotate(.6deg); animation: rsSlide .55s .12s cubic-bezier(.2, 1.3, .4, 1) both; background: #1a1020; }
+@keyframes rsShrink { from { flex-basis: 100%; filter: none; transform: none; } }
+@keyframes rsSlide { from { opacity: 0; transform: translateX(60px) rotate(3deg) scale(.94); } }
+@keyframes rsPulse { to { transform: translateX(4px); } }
+.rs-cap { background: #f6ecd8; border: 3px solid #1a1020; padding: 8px 14px; box-shadow: 4px 4px 0 #1a1020; }
+.rs-cap h3 { margin: 0 0 4px; font-family: Anton, Impact, sans-serif; letter-spacing: .02em; }
+.rs-cap p { margin: 0; line-height: 1.4; }
+.result-strip > .btn { align-self: flex-end; }
+@media (max-width: 700px) {
+  .rs-strip { flex-direction: column; }
+  .rs-prev, .rs-arrow { display: none; }
+  .event-scene { width: min(100%, calc(30vh * 800 / 360)); }
+  .rs-now { flex-basis: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .event-scene, .rs-prev, .rs-now, .rs-arrow { animation: none; } }

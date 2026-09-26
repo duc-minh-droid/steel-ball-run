@@ -669,11 +669,11 @@ SBR.art = (() => {
         <pattern id="${id}d" width="5" height="5" patternUnits="userSpaceOnUse"><circle cx="2.5" cy="2.5" r="1" fill="${INK}" opacity=".18"/></pattern>
         <pattern id="${id}t" width="2.2" height="2.2" patternUnits="userSpaceOnUse" patternTransform="rotate(30)"><circle cx="1.1" cy="1.1" r=".55" fill="${INK}"/></pattern>
       </defs>
-      <rect width="100" height="120" fill="url(#${id}g)"/>
+      ${opts.nobg ? '' : `      <rect width="100" height="120" fill="url(#${id}g)"/>
       <path d="M62 0 L100 0 L100 120 L28 120Z" fill="${bg[1]}" opacity=".5"/>
       <rect width="100" height="120" fill="url(#${id}d)"/>
       <g fill="#fff" opacity=".35">${[[10,14,3],[88,22,2.4],[14,96,2],[90,90,3],[80,8,1.6]].map(([x,y,r])=>`<path d="M${x} ${y-r} l${r*.3} ${r*.7} ${r*.75} .1 -${r*.6} ${r*.5} .25 ${r*.75} -${r*.7} -${r*.42} -${r*.7} ${r*.42} .25 -${r*.75} -${r*.6} -${r*.5} ${r*.75} -.1z"/>`).join('')}</g>
-      <g stroke="#fff" stroke-width="1" opacity=".25">${[0,1,2,3,4,5,6,7].map(i=>`<path d="M50 60 L${50+Math.cos(i*0.785)*90} ${60+Math.sin(i*0.785)*90}"/>`).join('')}</g>
+      <g stroke="#fff" stroke-width="1" opacity=".25">${[0,1,2,3,4,5,6,7].map(i=>`<path d="M50 60 L${50+Math.cos(i*0.785)*90} ${60+Math.sin(i*0.785)*90}"/>`).join('')}</g>`}
       ${spL('behind')}${exBehind ? ex : ''}${accLayer(p, 'behind')}
       <g stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round">
         ${hairBack[hs] ? hairBack[hs](p.hair, p, id) : ''}

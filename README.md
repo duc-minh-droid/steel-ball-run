@@ -35,7 +35,7 @@ Then open <http://localhost:5178>. Progress saves in your browser's local storag
    - Johnny and Gyro join the story whoever you pick. The custom rider can turn them down at the well; after that their lines are left out, and story beats that only make sense with them are not offered.
    - Your lead never leaves the party. Story departures become wounds or changes of heart instead.
 2. **Ride through six acts.** They follow the real race legs: the Arizona desert, the Rockies, the Midwest, the frozen north, Philadelphia and New York.
-3. **Choose an encounter each stage.** You get three cards: a fight, a shop, a story event with a d20 skill check, a trainer, an ally or a detour. You can also Scavenge or take a Short Rest instead.
+3. **Choose an encounter each stage.** Most encounters open on a drawn scene of what's happening, and each choice continues the strip with a panel showing what came of it. You get three cards: a fight, a shop, a story event with a d20 skill check, a trainer, an ally or a detour. You can also Scavenge or take a Short Rest instead.
    - Every event choice changes something: an ally joins, you gain gear, a fight breaks out, a stat changes, or a flag is set that comes back later.
    - Rob the boy in the ditch and his brother hunts you down two acts later.
 4. **Walk a Path.** Each lead has three Paths, which play the role of AAC's subclasses. Trainers on the road teach them: pass their check or beat them in a duel.
@@ -194,6 +194,7 @@ The theme keys are `title`, `act1` to `act6`, `devilspalm`, `silvermine`, `lakei
 | `js/sbr.js` | Racers, canon side-story encounters, manga items, Act IV Tubular Bells |
 | `js/manga.js` | Story branches, skip consequences, act lineups, omens and endings |
 | `js/sides.js` / `js/corpse.js` | Side Stand users, vampires and Hamon; the Saint’s Corpse for every lead |
+| `js/evscene.js`, `js/evs_a.js`–`js/evs_c.js` | Drawn encounter scenes: an opening panel for about 160 encounters and a follow-on panel for each choice |
 | `js/multi.js` | Moves that hit or buff several picked targets, and how they split damage |
 | `js/panels.js` | Manga-panel dialogue pages and before/mid/after fight talk |
 | `js/custom.js` | The custom rider, the creator, and the Hamon, Vampire, Cyborg, Stand and Aja powers with their encounters |

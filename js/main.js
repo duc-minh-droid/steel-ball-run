@@ -501,7 +501,12 @@ SBR.game = (() => {
     if (key && SBR.campaign) SBR.campaign.onChoice(key + (failed ? ':fail' : ''), G);
     if (!outcome) return true;
     if (outcome.fx) outcome.fx(G);
-    if (outcome.text) await ui.resultPanel(ch.label, outcome.text, ch.check ? 'dice' : 'star');
+    if (outcome.text) {
+      const full = key ? key + (failed ? ':fail' : '') : '';
+      const evId = key ? key.replace(/:\d+$/, '') : '';
+      const drawn = full && SBR.evs && SBR.evs.has(evId) ? SBR.evs.outcome(full) : '';
+      await ui.resultPanel(ch.label, outcome.text, ch.check ? 'dice' : 'star', drawn ? { scene: drawn, prev: SBR.evs.scene(evId) } : {});
+    }
     await flushPending();
     if (outcome.fight) {
       const f = outcome.fight;
