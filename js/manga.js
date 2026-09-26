@@ -1301,7 +1301,7 @@
       { id: 'mines', label: 'Ride the mining road', text: 'The miners sell cheap, and Naples’ agents buy their dynamite here. (Shops 15% cheaper, +1 Threat.)', beat: ['st_marco', 'st_zombiehorse'], threat: 1, bonus: { discount: 0.15 } },
     ],
     3: [
-      { id: 'plains', label: 'Cross the open plains', text: 'Sandman’s people’s country. Treat it well. (Natives +1, +1 encounter card.)', beat: ['st_golden', 'st_nicholas'], rep: { natives: 1 }, bonus: { cards: 1 } },
+      { id: 'plains', label: 'Cross the open plains', text: 'Sandman’s people’s country. Treat it well. (Natives +1, +1 free scout redraw each stage.)', beat: ['st_golden', 'st_nicholas'], rep: { natives: 1 }, bonus: { cards: 1 } },
       { id: 'city', label: 'Ride through Kansas City', text: 'Telegraphs, newspapers, Lucy Steel, and the President’s agents. (+1.5 Threat, +20% XP.)', beat: ['st_lucy_secret', 'st_diego_mother'], threat: 1.5, bonus: { xp: 0.2 } },
       { id: 'river', label: 'Take a riverboat down the Missouri ($30)', text: 'Pay the fare and save your horses. (+12 pace, party heals 30%.)', beat: ['st_tim_rope', 'st_golden'], cost: 30, pace: 12, heal: 0.3 },
     ],

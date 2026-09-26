@@ -285,7 +285,7 @@ SBR.RELICS = {
   spareballs: { name: 'Zeppeli Spare Balls', glyph: '球', color: '#c8c8d8', rarity: 'starter', desc: 'Spin abilities deal +12% damage. Gyro starts battles with +1 Rotation.', bonus: { spinDmg: 0.12, rotationStart: 1 }, starter: true },
   timsrope:   { name: 'Mountain Tim\'s Rope', glyph: '縄', color: '#c8a070', rarity: 'starter', desc: 'Party starts each battle with Guard for 1 turn and +5% block.', bonus: { block: 0.05, guardStart: 1 }, starter: true },
   dotmap:     { name: 'Dot Han\'s Trail Map', glyph: '図', color: '#e8742a', rarity: 'starter', desc: '+20 Pace at the start of every act. Scavenging finds more.', bonus: { pace: 20, scavenge: 1 }, starter: true },
-  arimathea:  { name: 'Joseph\'s Map Fragment', glyph: '聖', color: '#f2c14e', rarity: 'starter', desc: 'See 4 encounter cards instead of 3.', bonus: { cards: 1 }, starter: true },
+  arimathea:  { name: 'Joseph\'s Map Fragment', glyph: '聖', color: '#f2c14e', rarity: 'starter', desc: 'One free Bribe a Scout every stage: redraw the encounter cards at no cost.', bonus: { cards: 1 }, starter: true },
   // common
   badge:      { name: 'Jotaro\'s Cap', glyph: '帽', color: '#2a2a4a', rarity: 'common', price: 70, desc: '+6% block chance. Yare yare daze.', bonus: { block: 0.06 } },
   watch:      { name: 'Joseph\'s Polaroid Camera', glyph: '写', color: '#8a5ad0', rarity: 'common', price: 60, desc: '+3 initiative. Smash it and Hermit Purple prints what is coming.', bonus: { init: 3 } },

@@ -194,7 +194,7 @@ SBR.CONDITIONS = {
   goldfever: { name: 'Gold Fever', color: '#f2c14e', desc: 'Shops charge 30% more, but money from all sources is +30%. Greedy bandits roam.', bonus: { discount: -0.3, money: 0.3 }, traitBias: ['greedy'] },
   night:     { name: 'Night Riding', color: '#3a2a6a', desc: 'You race through the night. Enemies start Evasive; you gain +25% experience.', bonus: { xp: 0.25 }, enemyStatus: ['evasive', 1] },
   vatican:   { name: 'Vatican Escort', color: '#f6ecd8', desc: 'The Church watches over you: the party heals fully at the start of the act. The President sends blessed men after you.', heal: true, traitBias: ['corpse', 'valentine'], traitChance: 0.08 },
-  telegraph: { name: 'Telegraph Lines Cut', color: '#6a8ad0', desc: 'Nobody knows where you are: -1 Threat and one extra encounter card, but you start the act behind (-15 pace).', threat: -1, bonus: { cards: 1 }, pace: -15 },
+  telegraph: { name: 'Telegraph Lines Cut', color: '#6a8ad0', desc: 'Nobody knows where you are: -1 Threat and one free scout redraw of the encounter cards every stage, but you start the act behind (-15 pace).', threat: -1, bonus: { cards: 1 }, pace: -15 },
   stampede:  { name: 'Stampede Country', color: '#8a5a30', desc: 'Herds everywhere. Beasts are Hulking more often; fights give +1 material.', traitBias: ['hulking', 'swift'], traitChance: 0.06 },
   rivals:    { name: 'Rival\'s Gambit', color: '#8adf6a', desc: 'The favourites ride hard this leg. Enemies are Stand-touched more often; sprint prizes are +50%.', traitBias: ['standtouched'], traitChance: 0.06, sprintMoney: 1.5 },
 };

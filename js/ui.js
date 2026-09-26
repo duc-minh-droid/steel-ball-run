@@ -444,8 +444,8 @@ SBR.ui = (() => {
         side.append(sc2, rs);
         if (handlers.reroll) {
           const cost = SBR.econ.rerollCost();
-          const rr = btn(el('span', { html: `${art.icon('dice', 20)} Bribe a Scout <small>${fmtMoney(cost)}</small>` }), () => { if (r.money < cost) return; if (!locked) { locked = true; handlers.reroll(); } }, 'btn-side' + (r.money < cost ? ' disabled' : ''));
-          SBR.tip.bind(rr, `<b>Bribe a Scout</b><br>Pay ${fmtMoney(cost)} for word of other roads: redraw this stage's encounters. The price goes up each time.`);
+          const rr = btn(el('span', { html: `${art.icon('dice', 20)} Bribe a Scout <small>${cost ? fmtMoney(cost) : 'FREE'}</small>` }), () => { if (r.money < cost) return; if (!locked) { locked = true; handlers.reroll(); } }, 'btn-side' + (r.money < cost ? ' disabled' : ''));
+          SBR.tip.bind(rr, cost ? `<b>Bribe a Scout</b><br>Pay ${fmtMoney(cost)} for word of other roads: redraw this stage's encounters. The price goes up each time.` : `<b>Bribe a Scout</b><br>Free this time: redraw this stage's encounters.`);
           side.append(rr);
         }
       } else {

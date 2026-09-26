@@ -346,7 +346,7 @@ SBR.game = (() => {
     out.push({ id: 'af1', type: 'elite', title: 'Deeper In', blurb: 'Tougher, and better loot.', icon: 'skull', pace: -2, areaFight: fights[1].concat(fights[2] ? [fights[2][0]] : []), elite: true });
     const trainers = SBR.EVENTS.filter(e => e.pathOffer && !r.usedEvents.includes(e.id) && e.cond(G));
     if (trainers.length && Math.random() < 0.6) { const t = pick(trainers); out.push({ id: t.id, type: t.type, title: t.title, blurb: t.blurb, icon: t.icon, pace: t.pace, art: t.art }); }
-    return out.slice(0, 3 + (SBR.bonus().cards || 0));
+    return out.slice(0, 3 + Math.min(0, SBR.bonus().cards || 0));
   }
   async function exitArea() {
     const r = SBR.run, A = SBR.AREAS[r.area.id];
@@ -374,7 +374,8 @@ SBR.game = (() => {
     const due = SBR.campaign.dueCard();
     if (due) return [Object.assign(due, { stars: due.stars || rollStars(due) })];
     const pool = SBR.EVENTS.filter(e => e.acts.includes(r.act) && !(e.once && r.usedEvents.includes(e.id)) && (!e.cond || e.cond(G)));
-    const n = 3 + (SBR.bonus().cards || 0) - (storyCard ? 1 : 0);
+    // always three cards; extra-card bonuses buy free scout redraws instead (economy.js rerollCost)
+    const n = 3 + Math.min(0, SBR.bonus().cards || 0) - (storyCard ? 1 : 0);
     const out = [];
     const bag = pool.slice();
     while (out.length < n && bag.length) {

@@ -539,7 +539,7 @@
     for (const M of MAIN) {
       if (!M.acts.includes(r.act) || SBR.sbDone(M.key)) continue;
       let ok = false; try { ok = M.cond(); } catch (e) { ok = false; }
-      if (ok && Math.random() < M.chance) return cards.concat([secretCard(M.key)]);
+      if (ok && Math.random() < M.chance) { const out = cards.slice(); const i = out.map((c, j) => c.story ? -1 : j).filter(j => j >= 0).pop(); if (i == null) return cards.concat([secretCard(M.key)]).slice(-3); out[i] = secretCard(M.key); return out; }
     }
     return cards;
   };

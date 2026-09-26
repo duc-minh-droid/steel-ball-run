@@ -94,13 +94,38 @@
     u.extraMoves = picks.length;
   }
 
+  /* Regular fights from act III roll their own shape: sometimes a man short, sometimes one or two more,
+     and every regular enemy rolls bonus HP (more when the group is small). Elites and bosses are left alone. */
+  const SIZE = { // chances of [one fewer, one more, two more]
+    3: [0.2, 0.25, 0], 4: [0.15, 0.35, 0.1], 5: [0.15, 0.35, 0.15], 6: [0.15, 0.35, 0.2] };
+  const HP = { 3: [1.1, 1.4], 4: [1.35, 1.9], 5: [1.5, 2.1], 6: [1.65, 2.4] };
+  const buildFight = SBR.buildFight;
+  SBR.buildFight = (a, stage, kind = 'fight', tier) => {
+    let ids = buildFight(a, stage, kind, tier);
+    const S = SIZE[Math.min(6, a)];
+    if (!SBR.enemyMoves.enabled || kind !== 'fight' || !S || !ids || !ids.length) return ids;
+    const roll = Math.random();
+    if (roll < S[0] && ids.length > 1) ids = ids.slice(0, -1);
+    else if (roll > 1 - S[2]) ids = ids.concat([SBR.util.pick(ids), SBR.util.pick(ids)]);
+    else if (roll > 1 - S[2] - S[1]) ids = ids.concat([SBR.util.pick(ids)]);
+    return ids.slice(0, 6);
+  };
+  function toughen(c) {
+    const H = HP[Math.min(6, act())];
+    const o = c.opts || {}; if (!H || o.boss || o.elite || o.strangeAura) return;
+    const mobs = c.units.filter(u => u.side === 'enemy' && !u.summon && u.tier !== 'boss' && u.tier !== 'elite');
+    const small = Math.max(0, 3 - mobs.length) * 0.15;
+    mobs.forEach(u => { const k = H[0] + Math.random() * (H[1] - H[0]) + small; u.maxHp = Math.round(u.maxHp * k); u.hp = u.maxHp; u.hpRoll = k; });
+  }
+
   const Base = SBR.Combat;
   SBR.Combat = class extends Base {
     constructor(e, o) {
       super(e, o);
       if (!SBR.enemyMoves.enabled || !SBR.run) return;
+      toughen(this);
       this.units.filter(u => u.side === 'enemy').forEach(grant);
     }
   };
-  SBR.enemyMoves = { enabled: true, extraCount, grant, pools: { GUN, MELEE, BEAST, STAND, TACTIC } };
+  SBR.enemyMoves = { enabled: true, extraCount, grant, pools: { GUN, MELEE, BEAST, STAND, TACTIC }, SIZE, HP };
 })();

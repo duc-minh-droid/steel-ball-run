@@ -225,7 +225,7 @@ SBR.TRINKET_DROPS = { common: ['conf_coin', 'silver_spoon', 'arrowhead', 'gold_t
 /* ---------------- 4. Money sinks & sources ---------------- */
 SBR.econ = {
   trainCost: () => 40 + 15 * SBR.run.act,
-  rerollCost: () => 20 + 10 * SBR.run.act + 15 * ((SBR.run.rerolls && SBR.run.rerolls.stage === `${SBR.run.act}-${SBR.run.stage}`) ? SBR.run.rerolls.n : 0),
+  rerollCost: () => { const n = (SBR.run.rerolls && SBR.run.rerolls.stage === `${SBR.run.act}-${SBR.run.stage}`) ? SBR.run.rerolls.n : 0; const free = Math.max(0, SBR.bonus().cards || 0); return n < free ? 0 : 20 + 10 * SBR.run.act + 15 * (n - free); },
   feeCost: () => 20 + 10 * SBR.run.act,
   /** a trinket roll for each enemy killed */
   rollTrinkets(combat, opts) {
