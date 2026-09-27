@@ -304,6 +304,7 @@ SBR.game = (() => {
     r.lineup = r.lineup || {}; r.conditions = r.conditions || {};
     if (!r.lineup[n]) r.lineup[n] = SBR.rollLineup(n);
     if (!r.conditions[n]) r.conditions[n] = SBR.rollCondition(n);
+    if (SBR.route) SBR.route.startAct(n); // the act's forks, and rival storylines (js/route.js)
     const C = SBR.curCondition();
     r.pace = SBR.util.clamp(50 + (SBR.bonus().pace || 0) + (C.pace || 0), 0, 100);
     if (C.threat) G.threat(C.threat);
@@ -331,7 +332,7 @@ SBR.game = (() => {
         SBR.audio.play('menace');
         setTimeout(res, 2600 / SBR.settings.speed);
         scr.addEventListener('click', res, { once: true });
-      }, 'slash');
+      }, 'pageturn');
     });
   }
 
@@ -379,10 +380,10 @@ SBR.game = (() => {
     const out = [];
     const bag = pool.slice();
     while (out.length < n && bag.length) {
-      const e = weighted(bag, x => x.weight || 1);
+      const e = weighted(bag, x => (x.weight || 1) * (SBR.route ? SBR.route.weight(x) : 1)); // the road you took biases the deal
       bag.splice(bag.indexOf(e), 1);
       if (out.some(o => o.type === 'shop') && e.type === 'shop') continue;
-      const stars = rollStars(e);
+      const stars = SBR.route ? SBR.route.stars(e, rollStars(e)) : rollStars(e);
       if (e.fight && e.fight.random) { out.push({ id: e.id, type: e.type, title: e.title, blurb: e.blurb, icon: e.icon, pace: e.pace, art: e.art, stars, enemies: riskFight(r.act, r.stage, e.type, stars) }); continue; }
       out.push({ id: e.id, type: e.type, title: e.title, blurb: e.blurb, icon: e.icon, pace: e.pace, art: e.art, stars, enemies: e.fight && e.fight.random ? SBR.buildFight(r.act, r.stage, e.type === 'elite' ? 'elite' : 'fight') : null });
     }
@@ -408,6 +409,7 @@ SBR.game = (() => {
     if (pending.length) await flushPending();
     if (SBR.affinity) await SBR.affinity.safePoint(G);
     SBR.music.play(SBR.music.themeForStage());
+    if (!r.stageCards && SBR.route && SBR.route.needsPick()) await SBR.route.pickRoad(G); // fork in the road (js/route.js)
     if (!r.stageCards) { r.stageCards = drawCards(); if (SBR.extraCards) r.stageCards = SBR.extraCards(r.stageCards, G) || r.stageCards; SBR.saveRun(); }
     const cards = r.stageCards;
     const judge = (card, kind) => { if (SBR.affinity) SBR.affinity.onPick(cards, card, kind); };
@@ -526,6 +528,10 @@ SBR.game = (() => {
       const who = (ch.check.who && SBR.run.party.find(m => m.id === ch.check.who && m.hp > 0)) || bestFor(ch.check.stat);
       const ok = await ui.diceCheck({ stat: ch.check.stat, dc: ch.check.dc + riskDC(), who, mod: checkMod(who, ch.check.stat) });
       outcome = ok ? ch.ok : ch.fail; failed = !ok;
+    } else if (ch.minigame && SBR.minigames) {
+      // a minigame (js/minigames.js) stands in for the check: a win is ok, a loss is :fail
+      const res = await SBR.minigames.play(ch.minigame, ch);
+      outcome = res.win ? ch.ok : ch.fail; failed = !res.win;
     }
     if (key && SBR.campaign) SBR.campaign.onChoice(key + (failed ? ':fail' : ''), G);
     if (!outcome) return true;
@@ -822,6 +828,7 @@ SBR.game = (() => {
     const r = SBR.run;
     res.order.forEach((k, i) => { r.points[k] = (r.points[k] || 0) + (SBR.POINTS[i] || 3); });
     Object.keys(SBR.RIVALS).forEach(k => { if (SBR.RIVALS[k].out && SBR.RIVALS[k].out(r)) return; if (!res.order.includes(k)) r.points[k] = (r.points[k] || 0) + randInt(0, 12); });
+    if (SBR.route) SBR.route.sprintBias(res); // rival stances: rivals find points, allies ride interference
     const C = SBR.curCondition && SBR.curCondition();
     const money = Math.round(([110, 70, 45, 30, 20, 15][res.place - 1] || 10) * SBR.EARN * (C && C.sprintMoney || 1) * (r.flags.advert ? 1.5 : 1)); r.flags.advert = false;
     if (res.place <= 3) G.threat(1);
@@ -847,7 +854,7 @@ SBR.game = (() => {
   async function gameOver() {
     const r = SBR.run;
     if (!r) return;
-    SBR.music.stop(); SBR.audio.play('defeat');
+    SBR.music.play('gameover'); SBR.audio.play('defeat');
     await SBR.toBeContinued();
     achieve('wipe');
     const act = SBR.ACTS[r.act];
@@ -869,7 +876,7 @@ SBR.game = (() => {
     const rank = playerRank();
     const champ = rank === 1;
     achieve('win');
-    SBR.audio.play('victory'); SBR.music.play('title');
+    SBR.audio.play('victory'); SBR.music.play('ending');
     if (champ) achieve('champion');
     SBR.meta.stats.wins++; SBR.saveMeta();
     const endKey = SBR.campaign.pickEnding();

@@ -22,6 +22,7 @@ SBR.ui = (() => {
 
   /** Manga-panel wipe transition, then render */
   async function transition(render, style = 'slash') {
+    if (SBR.transitions) style = SBR.transitions.pick(style); // js/transitions.js: battle exit, page turn
     const fx = el('div', { class: 'wipe ' + style });
     document.getElementById('app').appendChild(fx);
     if (!SBR.settings.reducedMotion) { await sleep(360); }
@@ -304,6 +305,7 @@ SBR.ui = (() => {
           const pct = Math.round(Math.max(0.05, Math.min(0.95, (21 - (dc - mod)) / 20)) * 100);
           b.append(el('span', { class: 'choice-check', style: { '--c': SBR.STATS[ch.check.stat].color } }, `${SBR.STATS[ch.check.stat].short} DC${dc} · ${pct}%`));
         }
+        if (ch.minigame && SBR.minigames) b.append(SBR.minigames.badge(ch.minigame));
         if (cost) b.append(el('span', { class: 'choice-cost' + (afford ? '' : ' bad') }, fmtMoney(cost)));
         if (!reqOk && ch.reqText) b.append(el('span', { class: 'choice-cost bad' }, ch.reqText));
         if (afford && reqOk) b.addEventListener('click', () => { document.removeEventListener('keydown', onKey); SBR.audio.play('select'); closeModal(w); resolve(ch); });
@@ -431,6 +433,7 @@ SBR.ui = (() => {
         el('h1', {}, A ? (r.area.stage >= A.stages ? A.boss.name : A.name) : r.stage === act.stages ? SBR.actPlan(r.act).boss.name : SBR.actPlan(r.act).story[r.stage] ? 'A Fateful Encounter' : SBR.art.SCENES[act.scene].name),
         el('div', { class: 'stage-sub' }, A ? `${A.sub} · Hazard: ${SBR.HAZARDS[A.hazard].name}` : act.sub.split('—')[0].trim() + ' · ' + (act.sub.split('—')[1] || '').trim()));
       if (A) SBR.tip.bind(title.querySelector('.stage-sub'), `<b>${SBR.HAZARDS[A.hazard].name}</b><br>${SBR.HAZARDS[A.hazard].desc}`);
+      else if (SBR.route) { const rs = SBR.route.strip(); if (rs) title.appendChild(rs); } // the road ahead (js/route.js)
       root.appendChild(title);
       const deck = el('div', { class: 'card-deck' });
       cards.forEach((card, i) => deck.appendChild(encounterCard(card, i, () => handlers.pick(card))));
@@ -690,10 +693,12 @@ SBR.ui = (() => {
     const r = SBR.run;
     const box = el('div', { class: 'map-screen' });
     box.appendChild(el('div', { class: 'map-wrap', html: art.usMap(SBR.ACTS[r.act].route) }));
+    if (SBR.route) { box.appendChild(SBR.route.mapGraph()); box.appendChild(SBR.route.rivalPanel()); } // forks + rivals (js/route.js)
     const A = SBR.curArea();
     if (A) box.appendChild(el('div', { class: 'map-detour', style: { '--pc': A.color }, html: `<b>Detour: ${A.name}</b> — stage ${r.area.stage} of ${A.stages}. ${A.sub}.<br><small>Hazard: ${SBR.HAZARDS[A.hazard].name}. ${SBR.HAZARDS[A.hazard].desc}</small>` }));
     else if ((r.areasSeen || []).length) box.appendChild(el('div', { class: 'map-detour done', html: `Detours taken: ${r.areasSeen.map(id => SBR.AREAS[id].name).join(', ')}` }));
     box.appendChild(standingsTable());
+    if (SBR.route) SBR.route.decorateStandings(box);
     modal(box, { title: 'The Route — 6,000 km', drawer: true });
   }
   function standingsTable(highlight) {

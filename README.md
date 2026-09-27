@@ -60,6 +60,16 @@ Every act ends with a race. Press **Space** as the needle crosses **gold** to su
 
 Between runs, spend **Race Points** in the Saloon on Techniques, horses, starting items and your riders' Legacy trees.
 
+## Minigames, forks, team-ups and more
+
+- **Minigames.** Some encounters are settled by skill instead of a d20: *D'Arby's Gamble* (read his tells, call or fold for soul chips), *Quickdraw at High Noon* (fire on "DRAW!", not the fake-outs), *Lasso Rodeo*, *River Ford* and Gyro's *Golden Rectangle Training*. Each takes 10–20 seconds, scales with the act and the card's stars, and counts as passing or failing the check. "Let fate decide" rolls the dice instead.
+- **Forks in the road.** After each stage the trail splits: Canyon Trails (fights and loot), Frontier Towns (shops, events, recruits), Sacred Ground (trainers, detours, rest), Shortcuts (pace, riskier cards) and the odd Unmarked Trail. The road shapes your next three cards. The Map (M) shows the whole act as a graph.
+- **Rivals who remember.** Diego, Pocoloco, Sandman and Norisuke keep crossing your path and become a Rival, earn your Respect, or turn Ally. Rivals hound you in sprints; allies ride interference and may help in a boss fight. It's all in the Chronicle.
+- **ゴゴゴ gauge and team-ups.** Hits fill the gauge; when it's full, press T for a team-up with another rider (once per pair per battle): 16 named pairs such as Johnny & Gyro's Golden Spin Tandem, Jotaro & Josuke's DORARARA × ORAORA and Jotaro & Jolyne's Father & Daughter, plus a Double Rush for anyone else, each with a two-portrait cut-in.
+- **Battlefield objects.** Powder barrels, dynamite crates, boulders, oil lamps, water troughs and freight cars. Break one and it goes off on the side it sits near, or kick an explosive over to the enemy. Enemies will shoot the barrel next to you. Hazards now show a banner.
+- **Animation.** Per-type idles, knockback with hit-stop on crits, dodge sidesteps, low-HP breathing, retire poses and Stand dissolves, a slow-motion 再起不能 for bosses, level-up bursts, victory poses and To Be Continued.
+- **Tarot, music and transitions.** The Arrow's reading now looks like the Stardust Crusaders deck: ornate gold cards with a roman-numeral crest, the Stand in an arched window and a scroll banner, one major arcana per Stand. 19 new synthesized tracks (boss themes for Ringo, Blackmore, Sandman, Axl, Wekapipo, Kars, Pucci, Kira and the T-rex, plus tarot, events, map, victory, game over, ending and minigames), a tension layer in ordinary battles, and new manga transitions.
+
 ## Screenshots
 
 | | |
@@ -306,6 +316,7 @@ The theme keys are `title`, `act1` to `act6`, `devilspalm`, `silvermine`, `lakei
 | `` ` `` | Debug panel |
 | `Space` | Advance dialogue / surge in the sprint |
 | `Enter` | Continue past a result or rewards panel |
+| `T` | Team-up when the ゴゴゴ gauge is full |
 | `L` | Open or close the battle log |
 | `Esc` | Settings (speed, sound and music volume, screen shake, reduced motion) |
 

@@ -1,0 +1,35 @@
+/* New ui.transition styles (js/transitions.js). In: 360ms, out: under 600ms (ui.js removes the wipe then). */
+
+/* battle exit: two ink shutters slam shut on a diagonal with a gold seam, then split apart */
+.wipe.battleout { background: none; }
+.wipe.battleout::before, .wipe.battleout::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(-35deg, #1a1020 0 26px, #2a1838 26px 52px); }
+.wipe.battleout::before { clip-path: polygon(0 0, 100% 0, 0 100%); transform: translate(-100%, -100%); animation: boShutA .34s cubic-bezier(.7, 0, .3, 1) forwards;
+  background: linear-gradient(to bottom right, transparent 0 48.6%, #1a1020 48.6% 48.9%, #f2c14e 48.9% 49.7%, #fff3c0 49.7% 50%), repeating-linear-gradient(-35deg, #1a1020 0 26px, #2a1838 26px 52px); }
+.wipe.battleout::after { clip-path: polygon(100% 0, 100% 100%, 0 100%); transform: translate(100%, 100%); animation: boShutB .34s cubic-bezier(.7, 0, .3, 1) forwards;
+  background: linear-gradient(to bottom right, #fff3c0 50%, #f2c14e 50.3% 51.1%, #1a1020 51.1% 51.4%, transparent 51.4%), repeating-linear-gradient(-35deg, #1a1020 0 26px, #2a1838 26px 52px); }
+.wipe.battleout.out::before { animation: boOpenA .5s cubic-bezier(.6, 0, .4, 1) forwards; }
+.wipe.battleout.out::after { animation: boOpenB .5s cubic-bezier(.6, 0, .4, 1) forwards; }
+@keyframes boShutA { to { transform: none; } } @keyframes boShutB { to { transform: none; } }
+@keyframes boOpenA { from { transform: none; } to { transform: translate(-100%, 0); } }
+@keyframes boOpenB { from { transform: none; } to { transform: translate(100%, 0); } }
+
+/* act start: a manga page turns over, and its panels sweep away one by one */
+.wipe.pageturn { background: #f3e6c8; transform-origin: 0 50%; transform: perspective(1800px) rotateY(-95deg); animation: ptIn .36s cubic-bezier(.3, 0, .2, 1) forwards; overflow: hidden;
+  background-image: radial-gradient(rgba(26, 16, 32, .12) 1px, transparent 1.5px); background-size: 6px 6px; box-shadow: inset -40px 0 60px rgba(60, 30, 10, .35); }
+.wipe.pageturn::before, .wipe.pageturn::after { content: ''; position: absolute; top: 9%; bottom: 9%; border: 6px solid #1a1020; background: repeating-linear-gradient(115deg, #1a1020 0 3px, transparent 3px 16px), #efe0bc; }
+.wipe.pageturn::before { left: 9%; width: 38%; transform: skewX(-4deg); }
+.wipe.pageturn::after { left: 50%; width: 41%; transform: skewX(-4deg); background: radial-gradient(circle at 60% 40%, #c8323c 0 12%, transparent 13%), repeating-conic-gradient(from 0deg at 60% 40%, #1a1020 0 4deg, transparent 4deg 12deg), #efe0bc; }
+.wipe.pageturn.out { animation: ptOut .55s cubic-bezier(.5, 0, .7, 1) forwards; }
+.wipe.pageturn.out::before { animation: ptPanel .4s cubic-bezier(.6, 0, .9, .4) forwards; }
+.wipe.pageturn.out::after { animation: ptPanel .4s .08s cubic-bezier(.6, 0, .9, .4) forwards; }
+@keyframes ptIn { to { transform: perspective(1800px) rotateY(0); } }
+@keyframes ptOut { 0% { transform: perspective(1800px) rotateY(0); } 100% { transform: perspective(1800px) rotateY(0) translateX(-110%); box-shadow: inset -120px 0 80px rgba(60, 30, 10, .5); } }
+@keyframes ptPanel { to { transform: skewX(-4deg) translateX(-160%) rotate(-6deg); } }
+
+/* the event panel turns in like a page */
+.event-modal.tx-pageflip .modal { transform-origin: 0 50%; animation: txPageFlip .5s cubic-bezier(.25, 1.2, .4, 1) both; }
+@keyframes txPageFlip { 0% { transform: perspective(1400px) rotateY(-80deg); opacity: .2; filter: brightness(.6); } 60% { opacity: 1; } 100% { transform: perspective(1400px) rotateY(0); filter: none; } }
+
+body.reduced .wipe.battleout::before, body.reduced .wipe.battleout::after, body.reduced .wipe.pageturn, body.reduced .wipe.pageturn::before, body.reduced .wipe.pageturn::after, body.reduced .event-modal.tx-pageflip .modal { animation: none !important; }
+body.reduced .wipe.pageturn, body.reduced .wipe.battleout { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .event-modal.tx-pageflip .modal { animation: none; } }

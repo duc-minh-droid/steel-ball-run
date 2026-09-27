@@ -6,6 +6,12 @@ SBR.battle = (() => {
   let c = null, root = null, cards = {}, actionBox = null, orderBox = null, logBox = null, roundBox = null;
   let inputResolve = null, targeting = null, activeUid = null, keyHandler = null;
   let intents = {}, intentBox = null; // boss telegraphs (js/bosstuning.js): uid -> intent event
+  /* extension point for other files (js/teamups.js, js/fieldobjects.js):
+     actions: (u, extraRow, api) add buttons to the action panel · events[t]: async (e, u, api) plays a custom event
+     keys: (keyEvent, u, api) => true when handled · render: (root, api) after the battle is drawn · sync: (api) after syncAll */
+  const hooks = { actions: [], events: {}, keys: [], render: [], sync: [] };
+  const safe = (f, ...a) => { try { return f(...a); } catch (err) { console.warn('battle hook', err); return undefined; } };
+  const calm = () => !!SBR.settings.reducedMotion;
 
   const SFX_WORDS = { ora: ['オラオラ', 'ORA ORA'], muda: ['無駄無駄', 'MUDA MUDA'], dora: ['ドラララ', 'DORARARA'], ari: ['アリアリ', 'ARI ARI'], nail: ['ズキュン', 'ZUKYUN'], ball: ['ギャルギャル', 'GYARU'], gun: ['BANG!', 'ドン'], claw: ['ザシュ', 'SLASH'], hit: ['ドゴォ', 'WHAM'], boom: ['ドグォン', 'KA-BOOM'], aoe: ['ドドド', 'DODODO'], golden: ['黄金', 'GOLDEN'], act4: ['ドララ', 'ORA ORA'], ballbreaker: ['ボール', 'BREAK'], spray: ['ブシュ', 'SPLRT'], rope: ['シュル', 'SNAP'],
     fire: ['ゴオッ', 'FWOOSH'], firebind: ['ジュウ', 'SIZZLE'], ripple: ['コォォ', 'RIPPLE'], uv: ['コォォ', 'SHINE'], beam: ['ビシュ', 'ZHOOM'], timestop: ['ドォーン', 'THE WORLD'], timeskip: ['ドォン', 'SKIP'], rewind: ['カチッ', 'CLICK'],
@@ -102,7 +108,7 @@ SBR.battle = (() => {
     const field = el('div', { class: 'battle-field' });
     const pside = el('div', { class: 'side party-side' });
     const eside = el('div', { class: 'side enemy-side' });
-    field.append(pside, el('div', { class: 'vs-mark' }, 'VS'), eside);
+    field.append(pside, el('div', { class: 'vs-mark' }, 'VS'), eside, el('div', { class: 'field-rack near-party' }), el('div', { class: 'field-rack near-enemy' }));
     cards = {};
     pside.appendChild(el('div', { class: 'summon-rack' }));
     actionBox = el('div', { class: 'action-panel' });
@@ -117,6 +123,7 @@ SBR.battle = (() => {
     renderOrder();
     renderAggro();
     renderIntents();
+    hooks.render.forEach(f => safe(f, root, api));
   }
   /** boss telegraphs: a badge on the boss, a crosshair on who it's aiming at, and a strip saying how to answer it */
   function renderIntents() {
@@ -142,17 +149,27 @@ SBR.battle = (() => {
   }
 
   /** summons get their own drawings; everything else goes through ui.artFor */
-  const artOf = u => (u && u.art && u.art.kind === 'summon' && SBR.summonArt ? SBR.summonArt(u.art.key) : ui.artFor(u && u.art));
-  /** summons sit in a small rack at the inner edge of the party side */
+  const artOf = u => (u && u.art && u.art.kind === 'summon' && SBR.summonArt ? SBR.summonArt(u.art.key) : u && u.art && u.art.kind === 'field' && SBR.fieldobjects ? SBR.fieldobjects.svg(u.art.key) : ui.artFor(u && u.art));
+  /** how a unit idles: riders breathe, gunmen sway, beasts prowl, bosses loom */
+  function idleOf(u) {
+    if (u.side === 'field') return 'idle-none';
+    if (u.summon) return 'idle-summon';
+    if (u.side === 'party') return 'idle-breathe';
+    if (u.tier === 'boss') return 'idle-boss';
+    if (u.art && u.art.kind === 'creature') return 'idle-prowl';
+    return 'idle-sway';
+  }
+  /** summons sit in a small rack at the inner edge of the party side; battlefield objects in a rack near their side */
   function placeCard(u, card) {
+    if (u.side === 'field') { const rack = root.querySelector('.field-rack.near-' + (u.near === 'party' ? 'party' : 'enemy')); if (rack) { rack.appendChild(card); return; } }
     const side = root.querySelector(u.side === 'party' ? '.party-side' : '.enemy-side');
     const rack = u.summon && side.querySelector('.summon-rack');
     (rack || side).appendChild(card);
   }
   function unitCard(u) {
-    const card = el('div', { class: `unit-card ${u.side} tier-${u.tier || 'ally'}` + (u.summon ? ' summon-card' : '') + (u.dead ? ' dead' : '') + (u.traits && u.traits.length ? ' traited' : ''), dataset: { uid: u.uid } });
+    const card = el('div', { class: `unit-card ${u.side} tier-${u.tier || 'ally'} ${idleOf(u)}` + (u.summon ? ' summon-card' : '') + (u.side === 'field' ? ' field-card near-' + u.near : '') + (u.dead ? ' dead' : '') + (u.traits && u.traits.length ? ' traited' : '') + (u.def && u.def.stand ? ' stand-user' : ''), dataset: { uid: u.uid } });
     card.innerHTML = `
-      <div class="uc-frame"><div class="uc-art">${artOf(u)}</div><div class="uc-flash"></div><div class="uc-taunt"><b>挑</b>TAUNT</div>${u.summon && u.life ? '<div class="uc-life"></div>' : ''}</div>
+      <div class="uc-frame"><div class="uc-art">${artOf(u)}</div><div class="uc-vfx"></div><div class="uc-flash"></div><div class="uc-taunt"><b>挑</b>TAUNT</div>${u.summon && u.life ? '<div class="uc-life"></div>' : ''}</div>
       ${u.side === 'party' ? '<div class="uc-aggro"></div>' : ''}
       <div class="uc-name">${u.summon ? u.def.short || u.name : u.name}${u.def && u.def.stand ? `<small>「${u.def.stand}」</small>` : ''}</div>
       <div class="hpbar"><div class="hpghost"></div><div class="hpfill"></div><div class="shieldfill"></div><span class="hptext"></span></div>
@@ -172,6 +189,7 @@ SBR.battle = (() => {
     return card;
   }
   function unitTip(u) {
+    if (u.side === 'field' && SBR.fieldobjects) return SBR.fieldobjects.tip(u, c);
     const lines = [`<b>${u.fullName || u.name}</b>${u.def && u.def.title ? ` — <i>${u.def.title}</i>` : ''}`];
     lines.push(`HP ${u.hp}/${u.maxHp}`);
     lines.push(`Dodge ${Math.round(c.dodgeChance(u) * 100)}% · Block ${Math.round(c.blockChance(u) * 100)}% · Crit ${Math.round(c.critChance(u) * 100)}%`);
@@ -219,6 +237,7 @@ SBR.battle = (() => {
     const fill = card.querySelector('.hpfill'), ghost = card.querySelector('.hpghost');
     fill.style.width = pct + '%';
     fill.classList.toggle('low', pct < 30);
+    card.classList.toggle('low-hp', pct > 0 && pct < 30 && u.side !== 'field' && !u.dead);
     if (instant) ghost.style.width = pct + '%';
     else setTimeout(() => { ghost.style.width = pct + '%'; }, 380);
     const sh = c.stacks(u, 'shield');
@@ -296,11 +315,19 @@ SBR.battle = (() => {
       renderStatus(u);
       renderEnergy(u);
       updateCompanion(u);
-      cards[u.uid].classList.toggle('dead', !!u.dead);
+      cards[u.uid].classList.toggle(u.side === 'field' ? 'gone' : 'dead', !!u.dead);
+      if (u.dead) cards[u.uid].classList.remove('low-hp');
     });
     renderOrder();
     renderAggro();
     renderIntents();
+    hooks.sync.forEach(f => safe(f, api));
+  }
+  /** restart a one-shot CSS animation class on a card (animations live on .uc-frame / .uc-art, never .unit-card) */
+  function pulse(uid, cls, ms = 600) {
+    const k = cards[uid]; if (!k || calm()) return;
+    k.classList.remove(cls); void k.offsetWidth; k.classList.add(cls);
+    setTimeout(() => k.classList.remove(cls), ms);
   }
 
   /* ---------- animation helpers ---------- */
@@ -360,16 +387,19 @@ SBR.battle = (() => {
   /* ---------- event playback ---------- */
   // what lands on a target after a multi-target act; played on every target at once
   const WAVE = new Set(['dmg', 'heal', 'status', 'statusGone', 'float', 'setHp', 'death']);
+  const QUIET = new Set(['combo']); // instant UI updates that may sit between the hits of a wave
   async function play(events) {
     let multi = null;
     for (let i = 0; i < events.length; i++) {
       const e = events[i];
-      if (e.t === 'act') multi = e.targets && e.targets.length > 1 ? new Set(e.targets) : null;
-      else if (!WAVE.has(e.t)) multi = null;
+      if (e.t === 'act' || e.t === 'teamup') multi = e.targets && e.targets.length > 1 ? new Set(e.targets) : null;
+      else if (!WAVE.has(e.t) && !QUIET.has(e.t)) multi = null;
       if (multi && WAVE.has(e.t) && multi.has(e.uid)) {
-        const by = new Map();
-        while (i < events.length && WAVE.has(events[i].t) && multi.has(events[i].uid)) { const x = events[i++]; if (!by.has(x.uid)) by.set(x.uid, []); by.get(x.uid).push(x); }
+        const by = new Map(), quiet = [];
+        // gauge ticks between the hits of an area attack don't break the wave; they're drawn after it
+        while (i < events.length && ((WAVE.has(events[i].t) && multi.has(events[i].uid)) || QUIET.has(events[i].t))) { const x = events[i++]; if (QUIET.has(x.t)) { quiet.push(x); continue; } if (!by.has(x.uid)) by.set(x.uid, []); by.get(x.uid).push(x); }
         i--;
+        if (quiet.length) setTimeout(() => quiet.forEach(x => playOne(x)), 0);
         if (by.size > 1) { flashWave([...by.keys()]); await Promise.all([...by.values()].map(async list => { for (const x of list) await playOne(x); })); }
         else for (const x of [...by.values()][0]) await playOne(x);
         continue;
@@ -453,6 +483,17 @@ SBR.battle = (() => {
           if (dcol && card) card.style.setProperty('--dmgc', dcol);
           if (e.eff !== undefined && e.eff !== null && e.eff !== 1 && e.dtype !== 'true') floatText(e.uid, e.eff >= 1.2 ? 'WEAK!' : e.eff > 1 ? 'weak' : e.eff <= 0.6 ? 'RESIST' : 'resist', 'eff ' + (e.eff > 1 ? 'weak' : 'resist') + (e.eff >= 1.2 || e.eff <= 0.6 ? ' big' : ''));
           if (card) { card.classList.remove('hit'); void card.offsetWidth; card.classList.add('hit'); }
+          // knocked back away from the attacker; big hits and crits hit harder, with a beat of hit-stop on a crit
+          if (card && u && !calm()) {
+            const heavy = e.crit || e.amount >= u.maxHp * 0.18 || (e.label && /BOOM|DERAIL|CRUSH/.test(e.label));
+            card.classList.remove('kb-l', 'kb-r', 'kb-heavy', 'kb-light', 'tinted', 'hitstop');
+            void card.offsetWidth;
+            card.classList.add(u.side === 'enemy' ? 'kb-r' : 'kb-l', heavy ? 'kb-heavy' : 'kb-light');
+            if (e.dtype && !e.label) card.classList.add('tinted');
+            if (e.crit) card.classList.add('hitstop');
+            setTimeout(() => card.classList.remove('kb-l', 'kb-r', 'kb-heavy', 'kb-light', 'tinted', 'hitstop'), 620);
+          }
+          if (e.crit && !calm()) await sleep(70);
           if (e.label) SBR.fx.dot(e.label, center(e.uid)); else SBR.fx.impact(center(e.uid), e.crit, e.blocked, e.dtype);
           if (e.crit) { floatText(e.uid, e.amount, 'dmg crit' + (e.dtype ? ' dt' : '')); floatText(e.uid, 'CRITICAL!', 'critword'); SBR.audio.play('crit'); ui.shake(undefined, true); }
           else if (e.blocked) { floatText(e.uid, e.amount, 'dmg blocked'); floatText(e.uid, 'BLOCK', 'block'); SBR.audio.play('block'); }
@@ -472,16 +513,27 @@ SBR.battle = (() => {
       case 'setHp': setHp(u, e.hp); await sleep(60); break;
       case 'status':
         renderStatus(u);
-        if (cards[e.uid]) { const d = SBR.STATUS[e.id]; floatText(e.uid, d.name, 'st ' + e.kind); SBR.audio.play(e.kind === 'buff' ? 'st_buff' : 'st_debuff'); if (e.id === 'taunt' || d.aggro) renderAggro(); }
+        if (cards[e.uid]) { const d = SBR.STATUS[e.id]; cards[e.uid].style.setProperty('--pc', d.color || '#f2c14e'); pulse(e.uid, e.kind === 'buff' ? 'pulse-buff' : 'pulse-debuff', 650); floatText(e.uid, d.name, 'st ' + e.kind); SBR.audio.play(e.kind === 'buff' ? 'st_buff' : 'st_debuff'); if (e.id === 'taunt' || d.aggro) renderAggro(); }
         await sleep(90);
         break;
       case 'statusGone': renderStatus(u); if (e.id === 'taunt' || (SBR.STATUS[e.id] || {}).aggro) renderAggro(); break;
-      case 'float': floatText(e.uid, e.text, e.cls); if (e.text === 'DODGE') SBR.audio.play('dodge'); else if (e.text === 'IMMUNE') SBR.audio.play('immune'); else if (e.cls && e.cls.includes('miss')) SBR.audio.play('miss'); await sleep(140); break;
+      case 'float': floatText(e.uid, e.text, e.cls); if (e.text === 'DODGE' || e.text === 'PHASED' || e.text === 'EPITAPH') pulse(e.uid, u && u.side === 'enemy' ? 'dodge-r' : 'dodge-l', 520); if (e.text === 'DODGE') SBR.audio.play('dodge'); else if (e.text === 'IMMUNE') SBR.audio.play('immune'); else if (e.cls && e.cls.includes('miss')) SBR.audio.play('miss'); await sleep(140); break;
       case 'death': {
         const card = cards[e.uid];
-        if (card) { card.classList.add('dying'); setTimeout(() => { card.classList.remove('dying'); card.classList.add(e.permanent ? 'gone' : 'dead'); if (u.side === 'enemy') card.classList.add('gone'); }, 700); }
-        SBR.audio.play('death'); SBR.fx.death(center(e.uid));
-        if (u && u.side === 'enemy') { const pt = center(e.uid); ui.sfxText('RETIRED', pt.x, pt.y, 'retire'); }
+        // how it goes down: a boss in slow motion, Stand users and summons dissolve, riders strike the retire pose, the rest are blown away
+        const boss = u && u.side === 'enemy' && u.tier === 'boss';
+        const variant = u.side === 'field' ? 'die-break' : e.summon || u.summon ? 'die-dissolve' : u.side === 'party' ? 'die-retire' : boss ? 'die-boss' : (u.def && u.def.stand) ? 'die-dissolve' : 'die-fly';
+        const hold = boss && !calm() ? 1500 : 700;
+        if (card) {
+          card.classList.add('dying', variant);
+          setTimeout(() => { card.classList.remove('dying', variant); card.classList.add(e.permanent || u.side === 'field' ? 'gone' : 'dead'); if (u.side === 'enemy') card.classList.add('gone'); }, hold);
+        }
+        const pt = center(e.uid);
+        SBR.audio.play('death'); SBR.fx.death(pt);
+        if (variant === 'die-dissolve' && !calm()) { SBR.fx.stars(pt.x, pt.y, (u.def && u.def.color) || '#c8a0ff', 10, 220); SBR.fx.smoke(pt.x, pt.y - 20, '#b070e0', 8, 0.35, -60); }
+        if (variant === 'die-retire' && !calm()) SBR.fx.kana(pt.x, pt.y - 40, 'ドサッ', '#f6ecd8', 44, 800);
+        if (boss && !calm()) await bossDeath(u, pt);
+        else if (u && u.side === 'enemy') ui.sfxText('RETIRED', pt.x, pt.y, 'retire');
         renderAggro();
         await sleep(e.summon ? 250 : 450);
         break;
@@ -533,11 +585,29 @@ SBR.battle = (() => {
         root.classList.remove('rewinding');
         break;
       case 'endTurn': if (cards[e.uid]) renderStatus(u); break;
+      default: { const h = hooks.events[e.t]; if (h) { try { await h(e, u, api); } catch (err) { console.warn('battle hook ' + e.t, err); } } }
     }
     // log important events
     if (e.t === 'act') addLog(`<b>${u ? u.name : '?'}</b> uses ${e.name}`);
     if (e.t === 'dmg' && e.amount) addLog(`${u.name} takes ${e.amount}${e.crit ? ' (crit)' : ''}${e.label ? ' [' + e.label + ']' : ''}`, 'dmg');
     if (e.t === 'death') addLog(`<b>${u.name}</b> is down!`, 'death');
+  }
+  /** a boss goes down: the world slows, a white flash, 再起不能 across the screen */
+  async function bossDeath(u, pt) {
+    if (!root) return;
+    root.classList.add('slowmo');
+    SBR.audio.play('boom');
+    SBR.fx.flash('#fff', 260, 0.9);
+    SBR.fx.ring(pt.x, pt.y, '#fff3a0', Math.max(innerWidth, innerHeight) * 0.6, 12, 1.1);
+    SBR.fx.stars(pt.x, pt.y, '#f2c14e', 16, 320);
+    ui.shake(undefined, true);
+    await sleep(260);
+    const k = el('div', { class: 'boss-kill-kana', html: '<b>再起不能</b><span>RETIRED</span>' });
+    root.appendChild(k);
+    await sleep(900);
+    root.classList.remove('slowmo');
+    k.classList.add('out');
+    setTimeout(() => k.remove(), 500);
   }
   function addLog(text, kind = '') {
     logBox.insertBefore(el('div', { class: 'log-line ' + kind, html: text }), logBox.firstChild);
@@ -576,6 +646,7 @@ SBR.battle = (() => {
     const items = ui.btn(el('span', { html: `<b>E</b> Items (${SBR.run.items.length})` }), () => itemTray(u), 'btn-items' + (u.usedItem || !SBR.run.items.length ? ' disabled' : ''));
     SBR.tip.bind(items, '<b>Items</b><br>Use one item per turn. Doesn\'t end your turn.');
     extra.append(brace, items);
+    hooks.actions.forEach(f => safe(f, u, extra, api));
     actionBox.appendChild(extra);
   }
   function itemTray(u) {
@@ -602,20 +673,22 @@ SBR.battle = (() => {
     actionBox.querySelectorAll('.ab-btn').forEach(b => b.classList.toggle('selected', b.dataset.id === id));
     const t = a.target;
     if (t === 'self' || t === 'allEnemies' || t === 'allAllies' || t === 'none') return finishInput(() => c.useAbility(u, id, t === 'self' ? u.uid : null));
-    const valid = targetsFor(u, t);
+    const valid = targetsFor(u, t, a);
     if (valid.length === 1 && t === 'enemy') return finishInput(() => c.useAbility(u, id, valid[0].uid));
     if (a.pick > 1 && valid.length > 1) return startTargeting(u, t, uids => finishInput(() => c.useAbility(u, id, uids)), Math.min(a.pick, valid.length), a);
     startTargeting(u, t, tuid => finishInput(() => c.useAbility(u, id, tuid)));
   }
-  function targetsFor(u, t) {
-    if (t === 'enemy') { const T = c.tauntersAgainst(u); return T.length ? T : c.foes(u); }
+  /** battlefield objects can be hit by single-target moves and items (not by multi-pick moves), unless a taunt forces the target */
+  function targetsFor(u, t, ab) {
+    if (t === 'enemy') { const T = c.tauntersAgainst(u); if (T.length) return T; const objs = u.side === 'party' && !(ab && ab.pick > 1) ? c.units.filter(o => o.side === 'field' && !o.dead && !o.removed) : []; return c.foes(u).concat(objs); }
+    if (t === 'foe') { const T = c.tauntersAgainst(u); return T.length ? T : c.foes(u); }
     if (t === 'ally') return c.friends(u);
     if (t === 'allyDead') return c.party().filter(p => p.dead && !p.removed);
     return [];
   }
   function startTargeting(u, t, cb, pick = 0, ab = null) {
     actionBox.querySelectorAll('.target-hint').forEach(h => h.remove());
-    const valid = targetsFor(u, t);
+    const valid = targetsFor(u, t, ab);
     targeting = { u, t, cb, valid, pick, picked: [], ab };
     root.classList.add('targeting');
     Object.values(cards).forEach(k => k.classList.remove('targetable', 'target-picked'));
@@ -628,9 +701,9 @@ SBR.battle = (() => {
   function renderHint() {
     const h = actionBox.querySelector('.target-hint'); if (!h || !targeting) return;
     const T = targeting;
-    const TT = T.t === 'enemy' ? c.tauntersAgainst(T.u) : [];
+    const TT = (T.t === 'enemy' || T.t === 'foe') ? c.tauntersAgainst(T.u) : [];
     const taunted = TT.length ? `<b class="th-taunt">挑 TAUNTED</b> Must target ${TT.map(t => t.name).join(' / ')} · ` : '';
-    if (!T.pick) { if (taunted) h.innerHTML = taunted + 'Esc to cancel'; else h.innerHTML = `${T.t === 'enemy' ? 'Choose a target' : 'Choose an ally'} <span class="th-keys"><kbd class="ux-kbd">Tab</kbd> cycle <kbd class="ux-kbd">↵</kbd> pick <kbd class="ux-kbd">Esc</kbd> cancel</span>`; return; }
+    if (!T.pick) { if (taunted) h.innerHTML = taunted + 'Esc to cancel'; else h.innerHTML = `${T.t === 'enemy' || T.t === 'foe' ? 'Choose a target' : 'Choose an ally'} <span class="th-keys"><kbd class="ux-kbd">Tab</kbd> cycle <kbd class="ux-kbd">↵</kbd> pick <kbd class="ux-kbd">Esc</kbd> cancel</span>`; return; }
     const k = T.picked.length, who = T.t === 'enemy' ? 'enemies' : 'allies';
     h.innerHTML = `<span class="th-count">${[...Array(T.pick)].map((_, i) => `<i class="${i < k ? 'on' : ''}"></i>`).join('')}</span>
       <span class="th-text">${taunted}Pick up to <b>${T.pick}</b> ${who}${T.ab && T.ab.spread && k > 1 ? ` · <em>${SPLIT(k)}% each</em>` : T.ab && T.ab.spread ? ' · split damage' : ''}</span>`;
@@ -698,6 +771,7 @@ SBR.battle = (() => {
     }
     if (e.key === 'Enter' && targeting) { const cur = root.querySelector('.target-hover'); if (targeting.pick) { if (targeting.picked.length) confirmPicks(); else if (cur) onCardClick(c.unit(cur.dataset.uid)); return; } if (cur) onCardClick(c.unit(cur.dataset.uid)); return; }
     if (e.key === ' ' && targeting && targeting.pick) { e.preventDefault(); const cur = root.querySelector('.target-hover'); if (cur) onCardClick(c.unit(cur.dataset.uid)); return; }
+    for (const k of hooks.keys) if (safe(k, e, u, api)) return;
     const n = parseInt(e.key, 10);
     if (n >= 1 && n <= u.abilities.length) { const id = u.abilities[n - 1]; if (c.canUse(u, id)) chooseAbility(u, id); return; }
     if (e.key === 'q' || e.key === 'Q') finishInput(() => c.brace(u));
@@ -765,16 +839,45 @@ SBR.battle = (() => {
     }
     document.removeEventListener('keydown', keyHandler);
     SBR.inBattle = false;
-    if (c.result === 'win') { SBR.audio.play('victory'); await banner(opts.boss ? 'BOSS DEFEATED!' : 'VICTORY!'); }
+    if (c.result === 'win') { SBR.audio.play('victory'); victoryPose(opts); await banner(opts.boss ? 'BOSS DEFEATED!' : 'VICTORY!'); if (opts.boss && SBR.toBeContinued && !calm()) await SBR.toBeContinued(); }
     else { root.classList.add('defeat'); SBR.audio.play('defeat'); await banner('RETIRED', 'Your party has fallen.'); }
     const combat = c;
     return { result: c.result, combat };
   }
 
+  /** the riders still standing strike a pose; anyone this fight's XP will level up gets a burst on their card */
+  function victoryPose(opts) {
+    if (!root) return;
+    let xp = 0;
+    try { const b = SBR.bonus(); xp = Math.round(c.loot.xp * (1 + (b.xp || 0)) * (SBR.riskMul ? SBR.riskMul() : 1)); } catch (err) { xp = 0; }
+    const need = SBR.game && SBR.game.xpToNext;
+    c.party().filter(p => !p.dead && !p.removed).forEach((p, i) => {
+      const k = cards[p.uid]; if (!k) return;
+      k.classList.add('victory');
+      const m = p.ref;
+      if (need && m && xp > 0 && (m.xp || 0) + xp >= need(m.level)) {
+        setTimeout(() => {
+          const pt = center(p.uid);
+          k.classList.add('lvl-burst');
+          const b = el('div', { class: 'lvl-up-tag' }, 'LEVEL UP!');
+          k.querySelector('.uc-frame').appendChild(b);
+          if (!calm()) { SBR.fx.ring(pt.x, pt.y, '#f2c14e', 110, 8, 0.6); SBR.fx.stars(pt.x, pt.y, '#fff3a0', 12, 240); }
+          SBR.audio.play('buff');
+        }, 250 + i * 160);
+      }
+    });
+    if (!calm()) { const pt = { x: innerWidth * 0.28, y: innerHeight * 0.36 }; SBR.fx.kana(pt.x, pt.y, opts.boss ? 'ドーン' : 'ババーン', '#f2c14e', 70, 1000); }
+  }
   async function tutorial() {
     SBR.meta.tutorialDone = true; SBR.saveMeta();
     await ui.resultPanel('How to fight', 'Each turn, your active rider gains 2 Energy (max 6). Spend it on abilities — ◆ pips show the cost. Free abilities cost nothing. BRACE (Q) skips your action for +1 Energy and Guard. You can use one item per turn without ending it. Hover anything for details: statuses, enemies, abilities. Spin-tagged abilities matter against some Stands.', 'sword');
   }
 
-  return { run, get combat() { return c; } };
+  // what hooks get to work with
+  const api = {
+    get c() { return c; }, get root() { return root; }, get actionBox() { return actionBox; }, get activeUid() { return activeUid; }, get waitingInput() { return !!inputResolve; },
+    cards: () => cards, center, floatText, burstAt, sfxWord, banner, addLog, play, syncAll, pulse, artOf, renderEnergy, renderStatus, setHp,
+    showActions, finishInput, startTargeting, targetsFor, quake: vfxQuake,
+  };
+  return { run, hooks, api, get combat() { return c; } };
 })();

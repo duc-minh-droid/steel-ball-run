@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+/* Run structure (js/route.js): the fork-in-the-road picker, the stage look-ahead strip, the Map-tab graph, rivals */
+
+/* ---------- road picker ---------- */
+.road-modal .modal { background: var(--paper); background-image: radial-gradient(rgba(26, 16, 32, .12) 1.2px, transparent 1.4px); background-size: 9px 9px; border: 5px solid var(--ink); box-shadow: 10px 10px 0 var(--ink); overflow: hidden; }
+.road-modal .modal.xl { max-width: min(1040px, 96vw); }
+.road-pick { position: relative; padding: 4px 6px 2px; }
+.rp-head { text-align: center; position: relative; margin-bottom: 10px; }
+.rp-kicker { display: table; margin: 0 auto; font-family: var(--f-ui); font-weight: 700; letter-spacing: .25em; font-size: 12px; background: var(--ink); color: var(--gold); padding: 3px 12px; transform: skewX(-12deg); }
+.road-modal .rp-title { font-family: 'Anton', var(--f-sfx); font-size: clamp(34px, 5vw, 58px); letter-spacing: .04em; margin: 6px 0 2px; color: var(--pink); -webkit-text-stroke: 2px var(--ink); text-shadow: 5px 5px 0 var(--ink); line-height: 1; position: relative; display: inline-block; transform: rotate(-2deg); animation: rpSlam .45s cubic-bezier(.2, 1.6, .4, 1) both; }
+.rp-kana { position: absolute; right: -76px; top: -6px; font-family: var(--f-jp); font-size: 26px; color: var(--ink); -webkit-text-stroke: 0; text-shadow: 2px 2px 0 var(--gold); transform: rotate(10deg); animation: rpShiver 1.2s infinite; }
+.rp-sub { font-family: var(--f-title); font-size: 17px; margin: 4px 0 0; }
+.rp-roads { display: grid; gap: 14px; grid-template-columns: repeat(3, 1fr); }
+.rp-roads.rp-n2 { grid-template-columns: repeat(2, minmax(0, 330px)); justify-content: center; }
+.road-modal .choice.road-sign { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; padding: 8px 12px 12px; background: #fffaf0; border: 4px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); transition: transform .14s, box-shadow .14s, background .14s; animation: rpIn .5s cubic-bezier(.2, 1.4, .4, 1) both; overflow: hidden; }
+.road-modal .choice.road-sign::before { content: ''; position: absolute; inset: 0; background: repeating-conic-gradient(from 0deg at 50% 32%, color-mix(in srgb, var(--rc) 20%, transparent) 0 6deg, transparent 6deg 18deg); opacity: .0; transition: opacity .2s; pointer-events: none; }
+.road-modal .choice.road-sign:nth-child(2) { animation-delay: .08s; } .road-modal .choice.road-sign:nth-child(3) { animation-delay: .16s; }
+.road-modal .choice.road-sign:hover, .road-modal .choice.road-sign:focus-visible { transform: translateY(-6px) rotate(-1deg); background: #fff3c0; box-shadow: 10px 10px 0 var(--rc, var(--pink)); outline: none; }
+.road-modal .choice.road-sign:hover::before { opacity: 1; }
+.road-sign .choice-n { position: absolute; top: 8px; left: 8px; z-index: 2; }
+.road-sign .rs-svg { width: 100%; max-width: 230px; height: auto; display: block; position: relative; z-index: 1; filter: drop-shadow(3px 3px 0 rgba(26, 16, 32, .25)); }
+.road-sign:hover .rs-svg { animation: rpSway .8s ease-in-out infinite alternate; }
+.rs-glyph path, .rs-glyph rect, .rs-glyph text { fill: var(--ink); stroke: var(--ink); stroke-width: 0; }
+.rs-glyph .ri-hole { fill: var(--paper); }
+.rs-glyph .ri-line { stroke: var(--paper); stroke-width: 1.4; fill: none; }
+.rs-glyph path[fill="none"] { fill: none; stroke-width: 1.6; }
+.rs-kana { font-family: var(--f-jp); font-weight: 900; font-size: 22px; fill: var(--paper); stroke: var(--ink); stroke-width: 4px; paint-order: stroke; }
+.rs-name { font-family: 'Anton', var(--f-sfx); font-size: 26px; letter-spacing: .03em; text-transform: uppercase; color: var(--ink); line-height: 1; position: relative; z-index: 1; }
+.rs-name::after { content: ''; display: block; height: 5px; margin: 3px auto 0; width: 70%; background: var(--rc); border: 2px solid var(--ink); transform: skewX(-20deg); }
+.rs-blurb { font-family: var(--f-ui); font-size: 14px; line-height: 1.3; color: #3a2a40; position: relative; z-index: 1; min-height: 36px; }
+.rs-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; position: relative; z-index: 1; }
+.rs-chips i { font-style: normal; font-family: var(--f-sfx); letter-spacing: .06em; font-size: 15px; background: var(--rc); color: #fff; border: 2px solid var(--ink); padding: 1px 8px; text-shadow: 1px 1px 0 var(--ink); transform: rotate(-2deg); }
+.rs-chips i:nth-child(2) { transform: rotate(2deg); }
+.rs-next { display: flex; align-items: center; gap: 4px; margin-top: 4px; position: relative; z-index: 1; }
+.rs-next small { font-weight: 700; letter-spacing: .15em; font-size: 10px; opacity: .7; margin-right: 2px; }
+.rs-next b, .rstrip-cell b { display: grid; place-items: center; width: 26px; height: 26px; background: var(--rc); border: 2px solid var(--ink); clip-path: polygon(0 0, 78% 0, 100% 50%, 78% 100%, 0 100%); padding-right: 4px; }
+.r-ico path, .r-ico rect { fill: var(--paper); stroke: var(--ink); stroke-width: 1.4; stroke-linejoin: round; }
+.r-ico text { fill: var(--paper); stroke: var(--ink); stroke-width: 1; }
+.r-ico .ri-hole { fill: var(--ink); stroke: none; }
+.r-ico .ri-line { fill: none; stroke: var(--ink); }
+.rp-foot { margin-top: 12px; text-align: center; font-size: 12px; opacity: .75; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.rp-foot .r-ico path { fill: var(--gold); }
+@keyframes rpSlam { 0% { transform: scale(2.2) rotate(-8deg); opacity: 0; } 100% { transform: rotate(-2deg); opacity: 1; } }
+@keyframes rpIn { 0% { transform: translateY(40px) rotate(3deg); opacity: 0; } 100% { transform: none; opacity: 1; } }
+@keyframes rpSway { from { transform: rotate(-1.5deg); } to { transform: rotate(1.5deg); } }
+@keyframes rpShiver { 0%, 100% { transform: rotate(10deg) translate(0, 0); } 50% { transform: rotate(10deg) translate(1px, -1px); } }
+.road-toast { display: flex; align-items: center; gap: 8px; font-family: var(--f-ui); }
+.road-toast .r-ico path, .road-toast .r-ico rect { fill: var(--rc); }
+
+/* ---------- stage look-ahead strip ---------- */
+.road-strip { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 4px 10px 4px 6px; background: rgba(26, 16, 32, .82); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); pointer-events: auto; transform: skewX(-8deg); }
+.road-strip > * { transform: skewX(8deg); }
+.rstrip-now { display: inline-flex; align-items: center; gap: 6px; background: var(--rc); border: 2px solid var(--ink); padding: 2px 8px 2px 4px; font-family: 'Anton', var(--f-sfx); letter-spacing: .05em; font-size: 15px; color: #fff; text-shadow: 1px 1px 0 var(--ink); text-transform: uppercase; }
+.rstrip-now .r-ico path, .rstrip-now .r-ico rect { fill: var(--paper); }
+.rstrip-arrow { font-style: normal; color: var(--pink); font-size: 12px; }
+.rstrip-cell { display: inline-flex; gap: 3px; }
+.rstrip-cell b { width: 24px; height: 24px; }
+.rstrip-cell.far { opacity: .6; }
+
+/* ---------- map graph ---------- */
+.route-graph { margin-top: 10px; border: 4px solid var(--ink); background: #f3e3c3; background-image: radial-gradient(rgba(26, 16, 32, .1) 1px, transparent 1.2px); background-size: 8px 8px; box-shadow: var(--shadow-s); padding: 6px 8px 8px; }
+.rg-head { display: flex; align-items: baseline; gap: 10px; }
+.rg-head b { font-family: 'Anton', var(--f-sfx); font-size: 22px; letter-spacing: .06em; color: var(--pink); -webkit-text-stroke: 1px var(--ink); text-shadow: 2px 2px 0 var(--ink); }
+.rg-head span { font-family: var(--f-title); font-size: 14px; }
+.rg-head em { margin-left: auto; font-style: normal; font-family: var(--f-jp); color: var(--ink); opacity: .5; font-size: 14px; }
+.rg-svg { width: 100%; height: auto; display: block; }
+.rg-lbl { font-family: var(--f-ui); font-weight: 700; font-size: 11px; letter-spacing: .12em; text-anchor: middle; fill: rgba(26, 16, 32, .55); }
+.rg-lbl.now { fill: var(--pink); }
+.rg-edge { fill: none; stroke: rgba(26, 16, 32, .22); stroke-width: 3; stroke-dasharray: 5 5; }
+.rg-edge.open { stroke: var(--ink); stroke-width: 3; stroke-dasharray: none; }
+.rg-edge.rode { stroke: var(--pink); stroke-width: 7; stroke-dasharray: none; stroke-linecap: round; filter: drop-shadow(2px 2px 0 var(--ink)); }
+.rg-shape { stroke: var(--ink); stroke-width: 3.5; stroke-linejoin: round; }
+.rg-glyph path, .rg-glyph rect, .rg-glyph text { fill: var(--paper); stroke: var(--ink); stroke-width: 1.3; }
+.rg-glyph .ri-hole { fill: var(--ink); stroke: none; } .rg-glyph .ri-line { fill: none; }
+.rg-node.dim { opacity: .35; }
+.rg-node.rode .rg-shape { stroke-width: 4.5; }
+.rg-ring { fill: none; stroke: var(--gold); stroke-width: 5; animation: rgPulse 1.2s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+.rg-node.cur .rg-shape { filter: drop-shadow(0 0 0 var(--gold)); }
+@keyframes rgPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(1.15); } }
+.rg-legend { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 4px; font-size: 12px; }
+.rg-legend span { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
+.rg-legend span .r-ico { background: var(--rc); border: 2px solid var(--ink); padding: 1px; box-sizing: content-box; }
+.rg-legend small { font-weight: 400; opacity: .7; }
+
+/* ---------- rivals ---------- */
+.rival-panel { margin-top: 10px; }
+.rv-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.rv-card { position: relative; border: 3px solid var(--ink); background: #fffaf0; box-shadow: 3px 3px 0 var(--ink); padding: 4px 4px 6px; text-align: center; border-top: 8px solid var(--rc); }
+.rv-card.unmet { opacity: .5; filter: grayscale(.8); }
+.rv-port { height: 64px; overflow: hidden; border: 2px solid var(--ink); background: var(--rc); }
+.rv-port svg { width: 100%; height: 100%; }
+.rv-name { font-family: 'Anton', var(--f-sfx); letter-spacing: .04em; font-size: 15px; margin-top: 2px; text-transform: uppercase; }
+.rv-stance { display: inline-block; font-family: var(--f-sfx); font-size: 14px; letter-spacing: .08em; background: var(--rc); color: #fff; border: 2px solid var(--ink); padding: 0 6px; text-shadow: 1px 1px 0 var(--ink); transform: rotate(-3deg); }
+.rv-meet { display: flex; justify-content: center; gap: 3px; margin-top: 4px; }
+.rv-meet i { width: 10px; height: 10px; border: 2px solid var(--ink); transform: rotate(45deg); background: transparent; }
+.rv-meet i.on { background: var(--pink); }
+.sr-stance { display: inline-block; font-family: var(--f-sfx); font-size: 12px; letter-spacing: .06em; background: var(--rc); color: #fff; border: 2px solid var(--ink); padding: 0 5px; text-shadow: 1px 1px 0 var(--ink); vertical-align: middle; }
+.rival-toast { display: flex; align-items: center; gap: 8px; }
+.rival-toast > svg, .rival-toast > div:first-child { width: 40px; height: 48px; flex-shrink: 0; border: 2px solid var(--ink); background: var(--rc); overflow: hidden; }
+.rival-toast small { display: block; font-weight: 700; letter-spacing: .15em; font-size: 10px; color: var(--rc); }
+.rival-cameo { display: inline-block; width: 30px; height: 36px; vertical-align: middle; border: 2px solid var(--ink); overflow: hidden; margin-right: 6px; background: var(--teal); }
+.rival-cameo svg { width: 100%; height: 100%; }
+.chronicle .rival-panel { margin: 6px 0 10px; }
+
+@media (max-width: 760px) {
+  .rp-roads, .rp-roads.rp-n2 { grid-template-columns: 1fr; }
+  .road-sign .rs-svg { max-width: 150px; }
+  .rs-blurb { min-height: 0; }
+  .rp-kana { display: none; }
+  .rv-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rp-title, .road-modal .choice.road-sign, .rg-ring, .road-sign:hover .rs-svg, .rp-kana { animation: none; }
+}

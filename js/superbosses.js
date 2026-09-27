@@ -660,7 +660,9 @@
     const baseBattle = SBR.music.themeForBattle;
     SBR.music.themeForBattle = (enemies, opts) => {
       const ids = enemies || [];
-      if (ids.includes('sb_dio') || ids.includes('sb_trex')) return 'boss_diego';
+      if (ids.includes('sb_dio')) return 'boss_diego';
+      const own = { sb_kars: 'boss_kars', sb_pucci: 'boss_pucci', sb_kira: 'boss_kira', sb_trex: 'boss_trex' }, k = ids.find(id => own[id]);
+      if (k && SBR.MUSIC_THEMES[own[k]]) return own[k];
       if (ids.some(id => SBR.ENEMIES[id] && SBR.ENEMIES[id].secret)) return 'boss_valentine';
       return baseBattle(enemies, opts);
     };

@@ -166,6 +166,118 @@
   };
   SBR.MUSIC_THEMES = T;
 
+  /* ---- boss, superboss, screen and minigame themes ---- */
+  Object.assign(T, {
+    // Ringo Roadagain: a high-noon standoff, the clock ticking between each note
+    boss_ringo: { gain: 1.3, bpm: 84, root: 50, scale: 'harm', amb: 'wind',
+      lead: { inst: 'whistle', v: 0.6, n: P('0 - - - - - . . | 4 - 3 - 2 - . . | 0 - - - -1 - - - | . . . . . . . . | 4 - - - - - . . | 7 - 6 - 4 - . . | 5 - - - 4 - - - | 2 - - - . . . . ') },
+      bass: { inst: 'pluck', v: 0.75, n: P('0 - - - - - - - | 0 - - - - - - - | 5 - - - - - - - | 4 - - - - - - - ') },
+      pad: { inst: 'pad', v: 0.35, ch: [[0, 2, 4], [0, 2, 4], [5, 7, 9], [4, 6, 8]], every: 16 },
+      drums: 'b...c...c...c...' },
+    // Blackmore: rain on the brim of a hat, bells in harmonic minor
+    boss_blackmore: { gain: 0.8, bpm: 118, root: 49, scale: 'harm', amb: 'rain',
+      lead: { inst: 'bell', v: 0.55, n: P('7 . 6 . 7 . 4 . | 3 . 4 . 2 . . . | 7 . 6 . 7 . 9 . | 8 - - - 7 - - - | 4 . 3 . 4 . 1 . | 0 . 1 . -1 . . . | 0 . 2 . 4 . 6 . | 7 - - - . . . . ') },
+      bass: { inst: 'sub', v: 0.7, n: P('0 - - - 0 - - - | 5 - - - 5 - - - | 3 - - - 3 - - - | 4 - - - 6 - - - ') },
+      pad: { inst: 'glass', v: 0.6, ch: [[0, 2, 4], [5, 7, 9], [3, 5, 7], [4, 6, 8]], every: 16 },
+      drums: 'k...h.h.s...h.hh' },
+    // Sandman: a runner's flute over war drums
+    boss_sandman: { gain: 1.0, bpm: 132, root: 52, scale: 'minor', amb: 'wind',
+      lead: { inst: 'whistle', v: 0.55, n: P('0 - 2 - 3 - 4 - | 7 - - - 4 - 3 - | 4 - - - 2 - 0 - | 0 - - - . . . . | 7 - 9 - 7 - 4 - | 3 - 4 - 7 - - - | 4 - 3 - 2 - 0 - | -1 - - - . . . . ') },
+      bass: { inst: 'sub', v: 0.7, n: P('0 - - - - - - - | 0 - - - - - - - | 3 - - - - - - - | 4 - - - - - - - ') },
+      pad: null, drums: 'k..kk..ks..kk.s.' },
+    // Axl RO: a ghostly waltz of the guilt he carries
+    boss_axl: { gain: 0.9, bpm: 120, root: 53, scale: 'minor', amb: 'wind', steps: 12,
+      lead: { inst: 'glass', v: 0.75, n: P('4 - - 3 - - 2 - - 0 - - | 1 - - 2 - - 4 - - - - - | 5 - - 4 - - 3 - - 1 - - | 2 - - - - - 0 - - - - - ') },
+      bass: { inst: 'pluck', v: 0.7, n: P('0 . . 4 . . | 3 . . 5 . . | 1 . . 5 . . | 4 . . 6 . . ') },
+      pad: { inst: 'organ', v: 0.3, ch: [[0, 2, 4], [3, 5, 7], [1, 3, 5], [4, 6, 8]], every: 12 },
+      drums: 'k..h..s..h..' },
+    // Wekapipo and Magent Magent: a Neapolitan tarantella gone to war
+    boss_wekapipo: { gain: 1.1, bpm: 176, root: 50, scale: 'harm', amb: null, steps: 12,
+      lead: { inst: 'twang', v: 0.5, n: P('4 5 4 3 4 5 | 7 - 5 4 - - | 3 4 3 2 3 4 | 5 - 4 3 - - | 2 3 2 1 2 3 | 4 - 3 2 - - | 1 2 3 4 5 6 | 7 - - 4 - - ') },
+      bass: { inst: 'pluck', v: 0.8, n: P('0 . 4 0 . 4 | 3 . 6 3 . 6 | 4 . 1 4 . 1 | 0 . 4 7 . 4 ') },
+      pad: null, drums: 'k.hs.hk.hs.h' },
+    // Kars: the Pillar Men awaken, an organ chant in phrygian
+    boss_kars: { gain: 0.9, bpm: 136, root: 45, scale: 'phryg', amb: null,
+      lead: { inst: 'organ', v: 0.6, n: P('0 - - - 1 - - - | 0 - - - -1 - - - | 0 - - - 1 - 3 - | 4 - - - 3 - 1 - | 7 - - - 8 - - - | 7 - - - 5 - 4 - | 3 - 1 - 3 - 4 - | 0 - - - . . . . ') },
+      bass: { inst: 'fuzz', v: 0.8, n: P('0 0 . 0 0 . 1 . | 0 0 . 0 0 . -1 . ') },
+      pad: { inst: 'pad', v: 0.4, ch: [[0, 2, 4], [1, 3, 5], [0, 2, 4], [-1, 1, 3]], every: 16 },
+      drums: 'k.k.s.k..kk.s.kr' },
+    // Pucci: time accelerates, the arpeggios never stop climbing
+    boss_pucci: { gain: 0.8, bpm: 180, root: 57, scale: 'harm', amb: null,
+      lead: { inst: 'piano', v: 0.45, n: P('0 2 4 7 4 2 0 2 | 5 7 9 12 9 7 5 7 | 3 5 7 10 7 5 3 5 | 4 6 8 11 8 6 4 6 ') },
+      bass: { inst: 'fuzz', v: 0.7, n: P('0 . 0 . 0 . 0 . | 5 . 5 . 5 . 5 . | 3 . 3 . 3 . 3 . | 4 . 4 . 6 . 4 . ') },
+      pad: { inst: 'organ', v: 0.3, ch: [[0, 2, 4], [5, 7, 9], [3, 5, 7], [4, 6, 8]], every: 16 },
+      drums: 'k.h.s.hok.hks.ho' },
+    // Kira: a quiet life, played on a walking bass
+    boss_kira: { gain: 1.3, bpm: 104, root: 48, scale: 'dorian', amb: null,
+      lead: { inst: 'piano', v: 0.55, n: P('. . 4 . 6 . 4 2 | . . 0 . . . . . | . . 4 . 6 . 7 6 | 4 - . . . . . . | . . 7 . 9 . 7 6 | 4 . 2 . 4 . . . | 1 . 2 . 4 . 6 . | 7 - - - . . . . ') },
+      bass: { inst: 'pluck', v: 0.8, n: P('0 . 0 2 . 4 . 2 | 3 . 3 5 . 6 . 5 | 4 . 4 6 . 7 . 6 | 0 . 4 . 3 . 1 . ') },
+      pad: null, drums: 'k..hs.hk.kh.s.o.' },
+    // The T-rex: Scary Monsters, primal and pounding
+    boss_trex: { gain: 0.9, bpm: 150, root: 52, scale: 'phryg', amb: 'rumble',
+      lead: { inst: 'brass', v: 0.55, n: P('0 - . 0 - . 1 - | 0 - - - . . . . | 3 - . 3 - . 4 - | 1 - - - . . . . ') },
+      bass: { inst: 'fuzz', v: 0.9, n: P('0 0 0 . 0 0 1 . | 0 0 0 . 0 0 -1 . ') },
+      pad: null, drums: 'b...k.k.b.s.k.kk' },
+    // the guardian at the heart of a detour
+    boss_area: { gain: 1.0, bpm: 150, root: 47, scale: 'harm', amb: null,
+      lead: { inst: 'twang', v: 0.55, n: P('0 . 3 . 4 . 6 . | 7 - 6 - 4 - . . | 0 . 3 . 4 . 7 . | 8 - 7 - 6 - 7 - | 4 . 6 . 7 . 9 . | 10 - 9 - 7 - . . | 8 - 7 - 6 - 4 - | 3 - 4 - . . . . ') },
+      bass: { inst: 'fuzz', v: 0.8, n: P('0 0 . 0 0 . 0 6 | 4 4 . 4 4 . 4 3 | 5 5 . 5 5 . 5 4 | 3 3 . 3 4 . 4 . ') },
+      pad: { inst: 'organ', v: 0.3, ch: [[0, 2, 4], [4, 6, 8], [5, 7, 9], [3, 5, 7]], every: 16 },
+      drums: 'k.hks.hkk.hks.hr' },
+    // the Pillar Tomb: dripping stone, an organ in the dark
+    pillartomb: { gain: 0.6, bpm: 66, root: 45, scale: 'phryg', amb: 'drips',
+      lead: { inst: 'organ', v: 0.5, n: P('0 - - - - - - - | 1 - - - 0 - - - | 4 - - - - - - - | 3 - 1 - 0 - - - | . . . . . . . . | 7 - - - 8 - - - | 7 - - - 4 - - - | 1 - - - - - - - ') },
+      bass: { inst: 'sub', v: 0.7, n: P('0 - - - - - - - | 1 - - - - - - - ') },
+      pad: { inst: 'glass', v: 0.6, ch: [[0, 4, 7], [1, 4, 8]], every: 16 },
+      drums: 'b.......c.......' },
+    // the Arrow's tarot reading: bells turning over in the dark
+    tarot: { gain: 0.7, bpm: 88, root: 50, scale: 'harm', amb: 'wind',
+      lead: { inst: 'bell', v: 0.5, n: P('0 . 2 . 4 . 7 . | 6 . 4 . 2 . . . | 1 . 3 . 5 . 8 . | 7 - - - . . . . | 0 . 2 . 4 . 7 . | 9 . 8 . 7 . 6 . | 4 . 2 . 1 . 2 . | 0 - - - . . . . ') },
+      bass: { inst: 'sub', v: 0.55, n: P('0 - - - - - - - | 5 - - - - - - - | 1 - - - - - - - | 4 - - - - - - - ') },
+      pad: { inst: 'glass', v: 0.6, ch: [[0, 2, 4], [5, 7, 9], [1, 3, 5], [4, 6, 8]], every: 16 },
+      drums: '............t...' },
+    // events and dialogue: a campfire guitar
+    event: { gain: 1.6, bpm: 96, root: 55, scale: 'mixo', amb: 'wind',
+      lead: { inst: 'twang', v: 0.4, n: P('4 . . 5 4 . 2 . | 0 - - - . . . . | 4 . . 5 7 . 5 . | 4 - - - . . . . | 3 . . 4 3 . 1 . | 0 . 1 . 2 . . . | 4 . 2 . 1 . -1 . | 0 - - - . . . . ') },
+      bass: { inst: 'pluck', v: 0.6, n: P('0 . . . 4 . . . | 3 . . . 0 . . . | 0 . . . 4 . . . | 4 . . . 0 . . . ') },
+      pad: { inst: 'pad', v: 0.3, ch: [[0, 2, 4], [3, 5, 7], [0, 2, 4], [4, 6, 8]], every: 16 },
+      drums: 'c.......c.......' },
+    // the route map: an open-road whistle
+    map: { gain: 1.1, bpm: 104, root: 50, scale: 'major', amb: 'wind',
+      lead: { inst: 'whistle', v: 0.55, n: P('0 - 2 - 4 - - - | 5 - 4 - 2 - - - | 4 - 5 - 7 - - - | 9 - 7 - . . . . | 7 - 8 - 9 - - - | 7 - 5 - 4 - - - | 2 - 4 - 5 - 4 - | 0 - - - . . . . ') },
+      bass: { inst: 'pluck', v: 0.7, n: P('0 . . 4 0 . . 4 | 3 . . 0 3 . . 0 | 3 . . 0 4 . . 1 | 0 . . 4 0 . . . ') },
+      pad: null, drums: 'k...c...k.c.c...' },
+    // after a won fight: a brass fanfare that loops
+    victory: { gain: 1.2, bpm: 132, root: 48, scale: 'major', amb: null,
+      lead: { inst: 'brass', v: 0.5, n: P('0 - 0 0 4 - 7 - | 9 - 7 - 4 - . . | 5 - 5 5 7 - 9 - | 11 - - - . . . . | 7 - 7 7 9 - 7 - | 5 - 4 - 2 - . . | 3 - 4 - 5 - 6 - | 7 - - - . . . . ') },
+      bass: { inst: 'pluck', v: 0.75, n: P('0 . 4 . 0 . 4 . | 3 . 5 . 3 . 5 . | 3 . 5 . 4 . 6 . | 4 . 1 . 4 . 4 . ') },
+      pad: null, drums: 'k.h.s.h.k.hks.h.' },
+    // retired from the race
+    gameover: { gain: 0.9, bpm: 60, root: 45, scale: 'minor', amb: 'wind',
+      lead: { inst: 'whistle', v: 0.5, n: P('7 - - - - - 6 - | 4 - - - - - - - | 5 - - - 4 - 2 - | 3 - - - - - - - | 2 - - - 1 - 0 - | -1 - - - - - - - | 0 - - - - - - - | . . . . . . . . ') },
+      bass: { inst: 'sub', v: 0.5, n: P('0 - - - - - - - | 3 - - - - - - - | 5 - - - - - - - | 4 - - - - - - - ') },
+      pad: { inst: 'pad', v: 0.45, ch: [[0, 2, 4], [3, 5, 7], [5, 7, 9], [4, 6, 8]], every: 16 },
+      drums: '................' },
+    // the end of the race: the title theme, turned major
+    ending: { gain: 1.0, bpm: 100, root: 52, scale: 'major', amb: 'wind',
+      lead: { inst: 'whistle', v: 0.65, n: P('7 - - - 9 - 8 7 | 4 - - - 5 - 4 3 | 4 - - - 6 - 5 4 | 2 - - - . . . . | 7 - - - 9 - 11 9 | 7 - - - 8 - 7 6 | 4 - 5 - 6 - 7 - | 7 - - - - - . . ') },
+      bass: { inst: 'pluck', v: 0.75, n: P('0 . . 0 . . 4 . | 0 . . 0 . . 4 . | 3 . . 3 . . 2 . | 4 . . 4 . . 1 . ') },
+      pad: { inst: 'organ', v: 0.35, ch: [[0, 2, 4], [0, 2, 4], [3, 5, 7], [4, 6, 8], [0, 2, 4], [5, 7, 9], [3, 5, 7], [4, 6, 8]], every: 8 },
+      drums: 'k.......c...k...' },
+    // minigames: a quick chiptune jig
+    minigame: { gain: 1.1, bpm: 150, root: 55, scale: 'mixo', amb: null,
+      lead: { inst: 'chip', v: 0.5, n: P('0 2 4 . 4 . 5 4 | 2 . 0 . . . . . | 0 2 4 . 7 . 6 4 | 5 - - - . . . . | 4 5 7 . 7 . 9 7 | 5 . 4 . 2 . . . | 1 2 4 . 2 . 1 -1 | 0 - - - . . . . ') },
+      bass: { inst: 'pluck', v: 0.75, n: P('0 . 4 . 0 . 4 . | 3 . 6 . 3 . 6 . | 0 . 4 . 0 . 4 . | 4 . 1 . 4 . 4 . ') },
+      pad: null, drums: 'k.hhs.hhk.hhs.hk' },
+    // minigame duels and bluffs: a ticking clock and a held breath
+    minigame_duel: { gain: 1.2, bpm: 112, root: 52, scale: 'harm', amb: 'wind',
+      lead: { inst: 'whistle', v: 0.45, n: P('7 - - - - - - - | . . . . 6 - 4 - | 7 - - - - - - - | . . . . 8 - 7 - ') },
+      bass: { inst: 'sub', v: 0.7, n: P('0 - - - - - - - | 0 - - - -1 - - - ') },
+      pad: null, drums: 'c...c...c...c.c.' },
+  });
+  // battle themes carry the act's melody underneath as a tension layer (louder as the party gets hurt)
+  T.battle.tension = true; T.elite.tension = true;
+
   /* ---------------- ambience beds ---------------- */
   function ambience(ctx, kind, out) {
     if (!kind) return () => {};
@@ -197,6 +309,41 @@
     const d = Math.floor(deg), oct = Math.floor(d / n), i = ((d % n) + n) % n;
     return tr.root + oct * 12 + sc[i];
   }
+  /** tension layer for battle themes: the current act's melody at half speed in the battle's key, plus a heartbeat.
+      Its level follows how hurt the party is (SBR.battle.combat), or SBR.music.tension(v) when set by hand. */
+  let tensionOverride = null;
+  function danger() {
+    if (tensionOverride != null) return tensionOverride;
+    try {
+      const cb = SBR.inBattle && SBR.battle && SBR.battle.combat; if (!cb) return 0.3;
+      const p = cb.party().filter(u => !u.dead); if (!p.length) return 1;
+      const frac = p.reduce((s, u) => s + u.hp, 0) / p.reduce((s, u) => s + u.maxHp, 0);
+      const boss = cb.enemies().some(e => e.tier === 'boss' || e.tier === 'elite') ? 0.2 : 0;
+      return Math.max(0, Math.min(1, (1 - frac) * 1.1 + boss + 0.1));
+    } catch (e) { return 0.3; }
+  }
+  function tensionLayer(c, tr, out) {
+    const act = Math.min(6, Math.max(1, (SBR.run && SBR.run.act) || 1));
+    const src = T['act' + act] || T.act1;
+    const g = c.createGain(); g.gain.value = 0.0001; g.connect(out);
+    let lvl = danger();
+    const iv = setInterval(() => { lvl = danger(); try { g.gain.setTargetAtTime(0.15 + 0.85 * lvl, c.currentTime, 0.6); } catch (e) {} }, 500);
+    g.gain.setTargetAtTime(0.15 + 0.85 * lvl, c.currentTime, 0.6);
+    const lead = src.lead, map = Object.assign({}, src, { root: tr.root });
+    return {
+      step(t, step, stepDur) {
+        if (lead && step % 2 === 0) {
+          const i = (step / 2) % lead.n.length, tok = lead.n[i];
+          let k = 1; while (lead.n[(i + k) % lead.n.length] === '-' && k < 32) k++;
+          if (tok !== '.' && tok !== '-') INST[lead.inst](c, t, degToMidi(map, +tok) - 12, k * stepDur * 2, lead.v * 0.45, g);
+        }
+        const s16 = step % 16;
+        if (lvl > 0.45 && (s16 === 0 || s16 === 3)) DRUM.k(c, t, g, s16 ? 0.35 : 0.5);
+        if (lvl > 0.7 && s16 === 12) DRUM.r(c, t, g, 0.5);
+      },
+      stop() { clearInterval(iv); setTimeout(() => { try { g.disconnect(); } catch (e) {} }, 1000); },
+    };
+  }
   function startSynth(key) {
     const c = ensureBus(); if (!c) return null;
     const tr = T[key]; if (!tr) return null;
@@ -207,6 +354,7 @@
     const noteLen = (arr, i) => { let k = 1; while (arr[(i + k) % arr.length] === '-' && k < 32) k++; return k; };
     const drums = (tr.drums || '').replace(/\|/g, '');
     const stopAmb = ambience(c, tr.amb, out);
+    const tn = tr.tension ? tensionLayer(c, tr, out) : null;
     const tick = () => {
       while (next < c.currentTime + 0.15) {
         const t = next;
@@ -221,11 +369,12 @@
         }
         const dc = drums[step % (drums.length || 1)];
         if (dc && DRUM[dc]) DRUM[dc](c, t, out, 0.6);
+        if (tn) tn.step(t, step, stepDur);
         next += stepDur; step++;
       }
     };
     const iv = setInterval(tick, 25); tick();
-    return { key, stop() { clearInterval(iv); const t = c.currentTime; try { out.gain.cancelScheduledValues(t); out.gain.setValueAtTime(Math.max(out.gain.value, 0.0001), t); out.gain.exponentialRampToValueAtTime(0.0001, t + 0.8); } catch (e) {} setTimeout(() => { stopAmb(); try { out.disconnect(); } catch (e) {} }, 1000); } };
+    return { key, stop() { clearInterval(iv); if (tn) tn.stop(); const t = c.currentTime; try { out.gain.cancelScheduledValues(t); out.gain.setValueAtTime(Math.max(out.gain.value, 0.0001), t); out.gain.exponentialRampToValueAtTime(0.0001, t + 0.8); } catch (e) {} setTimeout(() => { stopAmb(); try { out.disconnect(); } catch (e) {} }, 1000); } };
   }
   function startFile(key) {
     const a = new Audio('music/' + files[key]); a.loop = true; a.volume = 0;
@@ -259,15 +408,23 @@
     if (r.area) return r.area.id;
     return 'act' + Math.min(6, Math.max(1, r.act || 1));
   }
+  const BOSS_THEMES = [[/^ringo/, 'boss_ringo'], [/^blackmore/, 'boss_blackmore'], [/^sandman/, 'boss_sandman'], [/^axl/, 'boss_axl'],
+    [/^wekapipo|^magent/, 'boss_wekapipo'], [/^pm_wamuu|^pm_esidisi|^sb_kars/, 'boss_kars'], [/^sb_pucci/, 'boss_pucci'], [/^sb_kira/, 'boss_kira'], [/^sb_trex/, 'boss_trex']];
   function themeForBattle(enemies, opts) {
     const ids = enemies || [];
     if (ids.some(i => /^diego_world|^diego_rival/.test(i))) return 'boss_diego';
     if (ids.some(i => /^valentine|^lovetrain/.test(i))) return 'boss_valentine';
+    // act bosses with a theme of their own (by enemy id prefix)
+    const own = BOSS_THEMES.find(([re]) => ids.some(i => re.test(i)));
+    if (own) return own[1];
+    if (opts && opts.boss && SBR.run && SBR.run.area) return 'boss_area';
     if (opts && opts.boss) return 'boss';
     if (opts && opts.elite) return 'elite';
     return 'battle';
   }
-  SBR.music = { play, stop, setVolume, themeForStage, themeForBattle, get current() { return cur && cur.key; }, get files() { return files; }, get bus() { return bus; } };
+  SBR.music = { play, stop, setVolume, themeForStage, themeForBattle, get current() { return cur && cur.key; }, get wanted() { return wanted; }, get files() { return files; }, get bus() { return bus; },
+    /** pin the battle tension layer to 0..1, or null to follow the party's HP */
+    tension(v) { tensionOverride = v == null ? null : Math.max(0, Math.min(1, +v)); } };
 
   /* ---------------- extra sound effects ---------------- */
   const def = (name, fn) => A.define(name, () => { const c = A.ctx; if (c) fn(c, A.master, c.currentTime); });
@@ -289,7 +446,21 @@
   def('stand', (c, o, t) => { osc(c, 'sawtooth', 110, t, 0.9, o, 0.08, 0.1, 0.9, { lp: 600, lpEnd: 2400 }); osc(c, 'sine', 55, t, 0.9, o, 0.2, 0.05, 0.9); nz(c, t, 0.5, o, 0.1, 'bandpass', 800, 3); });
   def('d4c', (c, o, t) => { [880, 1108, 1318, 1760].forEach((f, i) => osc(c, 'sine', f, t + i * 0.05, 0.6, o, 0.06, 0.02, 0.6, { vib: 7 })); });
   def('deal', (c, o, t) => { nz(c, t, 0.06, o, 0.2, 'highpass', 3000); osc(c, 'sine', 700, t, 0.05, o, 0.05, 0.001, 0.05, { slide: 400 }); });
-  def('flip', (c, o, t) => { nz(c, t, 0.05, o, 0.18, 'bandpass', 2500); nz(c, t + 0.06, 0.04, o, 0.12, 'bandpass', 3500); });
+  // a tarot card turned over: a whoosh, then the snap of the card landing
+  def('flip', (c, o, t) => { nz(c, t, 0.16, o, 0.14, 'bandpass', 1400, 1.2); nz(c, t + 0.13, 0.04, o, 0.3, 'bandpass', 3200, 1); osc(c, 'sine', 1400, t + 0.13, 0.08, o, 0.05, 0.001, 0.08, { slide: 700 }); });
+  // the deck riffled: a burst of card clicks that speeds up
+  def('shuffle', (c, o, t) => { let d = 0; for (let i = 0; i < 18; i++) { nz(c, t + d, 0.025, o, 0.16 + Math.random() * 0.08, 'bandpass', 2600 + Math.random() * 1600, 1.4); d += 0.045 - i * 0.0016; } nz(c, t + d, 0.08, o, 0.2, 'lowpass', 1500); });
+  // combo gauge up a notch: a rising chime
+  def('combo', (c, o, t) => { osc(c, 'triangle', 660, t, 0.16, o, 0.1, 0.003, 0.16, { slide: 1320 }); osc(c, 'sine', 1760, t + 0.07, 0.2, o, 0.05, 0.002, 0.2); });
+  // team-up attack: a brass stab, a drum hit and a cymbal
+  def('teamup', (c, o, t) => { [0, 4, 7, 12].forEach(s => { osc(c, 'sawtooth', hz(57 + s), t, 0.5, o, 0.06, 0.01, 0.5, { lp: 2600, lpEnd: 900 }); }); osc(c, 'sine', 110, t, 0.5, o, 0.3, 0.002, 0.5, { slide: 45 }); nz(c, t, 0.9, o, 0.18, 'highpass', 5000); osc(c, 'square', hz(81), t + 0.18, 0.4, o, 0.05, 0.005, 0.4, { vib: 8 }); });
+  // powder barrel: a blast with crackling debris
+  def('barrel', (c, o, t) => { nz(c, t, 0.9, o, 0.7, 'lowpass', 600); osc(c, 'sine', 70, t, 0.7, o, 0.45, 0.002, 0.7, { slide: 28 }); for (let i = 0; i < 7; i++) nz(c, t + 0.15 + Math.random() * 0.6, 0.03, o, 0.18, 'highpass', 3000); });
+  // minigame cues
+  def('mg_start', (c, o, t) => { osc(c, 'square', 660, t, 0.12, o, 0.08, 0.002, 0.12); osc(c, 'square', 660, t + 0.3, 0.12, o, 0.08, 0.002, 0.12); osc(c, 'square', 1320, t + 0.6, 0.35, o, 0.09, 0.002, 0.35); });
+  def('mg_win', (c, o, t) => { [523, 659, 784, 1047, 1319].forEach((f, i) => osc(c, 'square', f, t + i * 0.07, i === 4 ? 0.45 : 0.12, o, 0.07, 0.003, i === 4 ? 0.45 : 0.12)); });
+  def('mg_lose', (c, o, t) => { osc(c, 'sawtooth', 330, t, 0.25, o, 0.07, 0.01, 0.25, { lp: 1400 }); osc(c, 'sawtooth', 247, t + 0.25, 0.6, o, 0.07, 0.01, 0.6, { lp: 1100, vib: 6, slide: 200 }); });
+  def('mg_tick', (c, o, t) => { osc(c, 'sine', 1900, t, 0.03, o, 0.12, 0.001, 0.03); nz(c, t, 0.02, o, 0.1, 'highpass', 6000); });
   def('anvil', (c, o, t) => { [880, 1320, 2200].forEach(f => osc(c, 'sine', f, t, 0.9, o, 0.08, 0.001, 0.9)); nz(c, t, 0.05, o, 0.35, 'highpass', 3000); });
   def('equip', (c, o, t) => { nz(c, t, 0.04, o, 0.25, 'bandpass', 1800); osc(c, 'square', 440, t + 0.03, 0.06, o, 0.06, 0.001, 0.06); });
   def('fanfare', (c, o, t) => { [[523, 0], [659, 0.1], [784, 0.2], [1047, 0.34], [784, 0.5], [1047, 0.6]].forEach(([f, d]) => { osc(c, 'sawtooth', f, t + d, 0.28, o, 0.07, 0.01, 0.28, { lp: 2400 }); osc(c, 'square', f / 2, t + d, 0.28, o, 0.04, 0.01, 0.28); }); });

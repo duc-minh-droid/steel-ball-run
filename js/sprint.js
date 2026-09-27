@@ -658,7 +658,7 @@ SBR.sprint = (() => {
         if (!tutorial && cands.length >= 2 && Math.random() < 0.45 && feud(cands) && (threat || Math.random() < 0.5)) return;
         // attackers are the ones close to you, ahead or behind
         const near = cands.filter(x => Math.abs(x.pos - runners[0].pos) < 120);
-        if (!threat && !pending && (near.length || Math.random() < 0.5) && Math.random() < (tutorial ? 0.35 : 0.5 + hard * 0.04)) attack(SBR.util.pick(near.length ? near : cands));
+        if (!threat && !pending && (near.length || Math.random() < 0.5) && Math.random() < (tutorial ? 0.35 : 0.5 + hard * 0.04)) attack((SBR.route && SBR.route.pickAttacker(near.length ? near : cands)) || SBR.util.pick(near.length ? near : cands)); // rival stance (js/route.js)
         else if (threat && hard >= 4) { const o = SBR.util.pick(cands); o.surge = 2.4; o.bigSurge = 2; say(`${o.name.toUpperCase()} uses the chaos to pull ahead!`); }
         else if (!pending) selfBoost(SBR.util.pick(cands));
       }

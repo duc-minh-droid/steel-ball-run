@@ -117,18 +117,19 @@
   /* ---------------- manga cut-in ----------------
      A diagonal panel slams across the screen with the attacker's portrait and the move name. */
   let lastCut = 0;
-  SBR.cutin = async ({ portrait, name, sub, color = '#f2c14e', enemy = false, kanaText = 'ドドドド' }) => {
+  SBR.cutin = async ({ portrait, portrait2, color2, name, sub, color = '#f2c14e', enemy = false, kanaText = 'ドドドド' }) => {
     const now = Date.now();
-    if (now - lastCut < 900 || SBR.settings.reducedMotion) return;
+    if ((now - lastCut < 900 && !portrait2) || SBR.settings.reducedMotion) return;
     lastCut = now;
     const layer = document.getElementById('fx-layer');
     const el = document.createElement('div');
-    el.className = 'cutin' + (enemy ? ' enemy' : '');
+    el.className = 'cutin' + (enemy ? ' enemy' : '') + (portrait2 ? ' dual' : '');
     el.style.setProperty('--cc', color);
-    el.innerHTML = `<div class="ci-band"><div class="ci-lines"></div><div class="ci-port">${portrait || ''}</div><div class="ci-text"><div class="ci-sub">${sub || ''}</div><div class="ci-name">${name}</div></div><div class="ci-kana">${kanaText}</div></div>`;
+    if (portrait2) el.style.setProperty('--cc2', color2 || color); // team-ups: two portraits (css/combat2.css)
+    el.innerHTML = `<div class="ci-band"><div class="ci-lines"></div><div class="ci-port">${portrait || ''}</div>${portrait2 ? `<div class="ci-port ci-port2">${portrait2}</div>` : ''}<div class="ci-text"><div class="ci-sub">${sub || ''}</div><div class="ci-name">${name}</div></div><div class="ci-kana">${kanaText}</div></div>`;
     layer.appendChild(el);
     const sp = SBR.settings.speed || 1;
-    await new Promise(r => setTimeout(r, 820 / sp));
+    await new Promise(r => setTimeout(r, (portrait2 ? 1050 : 820) / sp));
     el.classList.add('out');
     setTimeout(() => el.remove(), 320 / sp);
   };

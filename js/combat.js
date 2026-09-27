@@ -630,7 +630,7 @@ SBR.Combat = class Combat {
   /** Party unit acting on its own (dinosaurified) */
   autoRaptor(u) {
     const basic = u.abilities[0];
-    const targets = this.units.filter(t => !t.dead && !t.removed && t !== u);
+    const targets = this.units.filter(t => !t.dead && !t.removed && t !== u && t.side !== 'field');
     const t = SBR.util.pick(targets);
     this.push({ t: 'float', uid: u.uid, text: 'RAAARGH!', cls: 'debuff' });
     const ab = SBR.ABILITIES[basic];

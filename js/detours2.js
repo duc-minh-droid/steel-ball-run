@@ -268,7 +268,7 @@
     };
     if (SBR.music && SBR.music.themeForStage) {
       const t = SBR.music.themeForStage;
-      SBR.music.themeForStage = () => (SBR.run && SBR.run.area && SBR.run.area.id === 'pillartomb' ? 'silvermine' : t());
+      SBR.music.themeForStage = () => (SBR.run && SBR.run.area && SBR.run.area.id === 'pillartomb' ? (SBR.MUSIC_THEMES.pillartomb ? 'pillartomb' : 'silvermine') : t());
     }
   })();
 

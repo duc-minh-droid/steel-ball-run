@@ -16,7 +16,8 @@ SBR.FACTIONS = {
 SBR.campaign = (() => {
   const W = () => {
     const r = SBR.run;
-    if (!r.world) r.world = { rep: { president: 0, vatican: 0, racers: 0, natives: 0, naples: 0, law: 0 }, npc: {}, deeds: [], queue: [], clock: 0, keys: {} };
+    if (!r.world) r.world = { rep: { president: 0, vatican: 0, racers: 0, natives: 0, naples: 0, law: 0 }, npc: {}, deeds: [], queue: [], clock: 0, keys: {}, rivals: {} };
+    if (!r.world.rivals) r.world.rivals = {}; // recurring racers: { stance, score, meetings } (js/route.js)
     return r.world;
   };
   const clamp = v => Math.max(-5, Math.min(5, v));

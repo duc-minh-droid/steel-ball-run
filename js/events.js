@@ -19,7 +19,7 @@ SBR.EVENTS = [
   { id: 'poker', acts: [1, 2, 3, 4, 5], type: 'event', title: 'A Game Against a Stand User', blurb: 'The dealer never loses. Everyone says so.', icon: 'dice', weight: 2, once: true, pace: -3, art: 'gunslinger',
     text: 'A saloon gambler flips cards without looking at them. A faint figure hangs over his shoulder, whispering. "My friend here reads every card in the deck. Bet your gear, cowboy — or bet your horse."',
     choices: [
-      { label: 'Bet Slow Dancer\'s saddle for his silks (LUCK)', check: { stat: 'luck', dc: 14 }, ok: { text: 'Pocket aces. His Stand shrieks. He slides his racing silks across the table and storms out.', fx: g => g.gear('silks') }, fail: { text: 'He wins. You keep your saddle only by handing over supplies — and a night without sleep. (Johnny gains 1 Exhaustion, lose an item.)', fx: g => { g.exhaust('johnny', 1); g.loseItem(); } } },
+      { label: 'Bet Slow Dancer\'s saddle for his silks (soul chips)', minigame: { id: 'darby', stat: 'luck', dc: 14, opts: { foe: 'gunslinger' } }, ok: { text: 'Pocket aces. His Stand shrieks. He slides his racing silks across the table and storms out.', fx: g => g.gear('silks') }, fail: { text: 'He wins. You keep your saddle only by handing over supplies — and a night without sleep. (Johnny gains 1 Exhaustion, lose an item.)', fx: g => { g.exhaust('johnny', 1); g.loseItem(); } } },
       { label: 'Spot what the Stand is doing (AIM)', check: { stat: 'aim', dc: 13 }, ok: { text: 'You shoot the mirror behind him. The Stand was reading reflections. The house hands you his lucky poker chip to keep things quiet.', fx: g => g.gear('silver_dollar') }, fail: { text: 'You miss, and his hired guns stand up.', fight: { enemies: ['outlaw', 'outlaw'] } } },
       { label: 'Call him a cheat and draw', ok: { text: 'Chairs scatter.', fight: { enemies: ['gunslingerboss', 'outlaw'], after: g => g.gear('colt_navy') } } },
     ] },
@@ -40,7 +40,7 @@ SBR.EVENTS = [
   { id: 'gunrange', acts: [1, 2, 3, 4, 5], type: 'trainer', title: 'The Old Marksman', blurb: 'A retired gunfighter who once shot with Mountain Tim.', icon: 'train', weight: 2, once: true, pace: -5, art: 'gunslinger',
     text: '"Tim was the fastest I ever saw. You boys ride with him? Then show me you deserve to."',
     choices: [
-      { label: 'Shoot a coin out of the air (AIM)', check: { stat: 'aim', dc: 13 }, ok: { text: 'The coin spins off into the brush. He laughs and hands over his old Winchester.', fx: g => g.gear('winchester') }, fail: { text: 'You clip his hat. "Again," he says, and drills you until dawn. (Chosen rider +2 AIM, Johnny gains 1 Exhaustion.)', fx: g => { g.statUp('choose', 'aim', 2); g.exhaust('johnny', 1); } } },
+      { label: 'Draw on him with blanks, the way Tim did', minigame: { id: 'quickdraw', stat: 'aim', dc: 13, opts: { foe: 'gunslinger' } }, ok: { text: 'Your blank goes off before his hand moves. He laughs and hands over his old Winchester.', fx: g => g.gear('winchester') }, fail: { text: 'His blank cracks first. "Again," he says, and drills you until dawn. (Chosen rider +2 AIM, Johnny gains 1 Exhaustion.)', fx: g => { g.statUp('choose', 'aim', 2); g.exhaust('johnny', 1); } } },
       { label: 'Ask him to train you properly', ok: { text: 'Three hours of dry-firing. Your hands stop shaking.', fx: g => g.train() } },
     ] },
   { id: 'fortune', acts: ALL, type: 'event', title: 'The Blind Fortune Teller', blurb: 'She knows your name before you say it.', icon: 'star', weight: 2, once: true, pace: -2, art: 'axl',
