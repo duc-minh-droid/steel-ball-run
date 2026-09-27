@@ -178,10 +178,15 @@ They start with nothing but an old six-shooter and a punch, and can earn **one**
 
 ## Travellers from other centuries
 
-Two lead riders arrive by Stand Arrow: **Jotaro Kujo** 「Star Platinum」 and **Josuke Higashikata** 「Crazy Diamond」. Johnny and Gyro still ride with them. Jotaro is a front-line brawler (ORA ORA, Star Finger, Yare Yare Daze) whose Paths are *Stardust Crusader* (rushes), *The World Within* (stopped time that lasts longer as he levels) and *Marine Biologist* (scanning, catching blows and throwing them back, dolphin trivia at the worst moment). Josuke is a healer who can fix anyone except himself. His Paths are *Crazy Diamond* (restoration and undoing damage), *Homing Restoration* (shards, blood and bullet fragments that fly home through the enemy) and *Great Days* (insult the pompadour and find out). Each has three Path trainers on the road, a 21-node Legacy tree and a race power.
+Four lead riders arrive from other Parts. First, by Stand Arrow: **Jotaro Kujo** 「Star Platinum」 and **Josuke Higashikata** 「Crazy Diamond」. Johnny and Gyro still ride with them. Jotaro is a front-line brawler (ORA ORA, Star Finger, Yare Yare Daze) whose Paths are *Stardust Crusader* (rushes), *The World Within* (stopped time that lasts longer as he levels) and *Marine Biologist* (scanning, catching blows and throwing them back, dolphin trivia at the worst moment). Josuke is a healer who can fix anyone except himself. His Paths are *Crazy Diamond* (restoration and undoing damage), *Homing Restoration* (shards, blood and bullet fragments that fly home through the enemy) and *Great Days* (insult the pompadour and find out). Each has three Path trainers on the road, a 21-node Legacy tree and a race power.
 
 - **Jotaro's quest:** beat a boss from Act II on without anyone falling, or defeat DIO.
 - **Josuke's quest:** bring a rider back from under 10% HP to full health in one battle.
+
+**Giorno Giovanna** 「Gold Experience」 and **Jolyne Cujoh** 「Stone Free」 ride in too. Giorno, blown into 1890 by an old arrowhead and a golden wind, fights with MUDA rushes, frogs that bounce damage back, flesh and organs made from buttons, and a passive that gives the whole party Regen. His Paths are *Gang-Star* (gang buffs and the full MUDA finisher), *Life Giver* (trees, frog guardians, organ transplants) and *Requiem* (Return to Zero cancels the next attack on an ally; Gold Experience Requiem, once per battle, traps a foe in Endless Death). Jolyne, who came out the far side of a universe spun once too far, hits harder the more she is hurt. Her Paths are *Stone Free* (string radar, stitches, the Möbius Strip), *Green Dolphin Street* (string whip, tripwires, a party-wide Jailbreak) and *Stone Ocean* (string barriers and an ORA rush that grows as she bleeds). Each has a Legacy tree, a race power and a lead ending.
+
+- **Giorno's quest:** finish the race holding 3 or more Corpse Parts.
+- **Jolyne's quest:** win a boss battle while your lead rider is below 20% HP.
 
 ## Strange travellers from Morioh
 
