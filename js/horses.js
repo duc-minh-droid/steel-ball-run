@@ -122,7 +122,9 @@
   const KEEPS = ['johnny', 'gyro', 'diego']; // they ride their own horses the whole race
   const offers = {};
   const offer = (id, n, pool) => {
-    const r = SBR.run, at = [id, r.act, r.stage, r.area ? r.area.stage : '', r.horse].join(':');
+    const r = SBR.run;
+    if (!r) return { at: '', keys: [], choices: null }; // read before a run exists (audits, compendium)
+    const at = [id, r.act, r.stage, r.area ? r.area.stage : '', r.horse].join(':');
     if (offers[id] && offers[id].at === at) return offers[id];
     const keys = SBR.util.shuffle(pool().filter(k => k !== r.horse && H[k].race && !(H[k].owner && (KEEPS.includes(H[k].owner) || inParty(H[k].owner))))).slice(0, n);
     return (offers[id] = { at, keys, choices: null });
